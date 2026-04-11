@@ -1,0 +1,8 @@
+# Blueprint Render — site estático (Vite + React)
+# https://render.com/docs/static-sites
+services:
+  - type: web
+    name: convites-eventos
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
