@@ -28,6 +28,21 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 
 No **Render** (Static Site): define as mesmas variáveis em **Environment** e faz **redeploy** (o Vite injeta `VITE_*` no **build**).
 
+### Rotas SPA (`/admin` em 404)
+
+O servidor só tem ficheiros em `/` e `/assets/…`. Pedidos a `/admin` têm de servir o mesmo `index.html` para o React Router funcionar.
+
+1. No Render: o teu **Static Site** → **Redirects / Rewrites** (ou **Redirects**).
+2. Adiciona **Rewrite** (não redirect):
+   - **Source:** `/*`
+   - **Destination:** `/index.html`
+3. (Opcional) Para o pedido automático a `/favicon.ico`, adiciona **Rewrite**:
+   - **Source:** `/favicon.ico`
+   - **Destination:** `/favicon.svg`  
+   Coloca esta regra **antes** da regra `/*` se o painel permitir ordenar.
+
+O ficheiro `render.yaml` na raiz do repo já inclui estas regras; se o serviço foi criado **só pelo dashboard**, tens de as criar à mão ou associar o Blueprint ao serviço.
+
 ## 5. Primeira gravação
 
 1. `npm run dev` → abre `/admin` → entra com o utilizador criado.
