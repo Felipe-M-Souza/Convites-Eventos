@@ -180,8 +180,22 @@ export function AdminEditor({ onSignOut }: Props) {
 
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Links</legend>
-          <Field label="WhatsApp RSVP">
-            <input className={inputClass} value={form.rsvpWhatsappLink} onChange={(e) => set('rsvpWhatsappLink')(e.target.value)} />
+          <Field label="WhatsApp — número (só dígitos, com DDI)">
+            <input
+              className={inputClass}
+              inputMode="numeric"
+              autoComplete="tel"
+              placeholder="5511999999999"
+              value={form.rsvpWhatsappPhone}
+              onChange={(e) => set('rsvpWhatsappPhone')(e.target.value.replace(/[^\d]/g, ''))}
+            />
+          </Field>
+          <Field label="WhatsApp — mensagem ao abrir o chat">
+            <textarea
+              className={`${inputClass} min-h-[72px]`}
+              value={form.rsvpWhatsappMessage}
+              onChange={(e) => set('rsvpWhatsappMessage')(e.target.value)}
+            />
           </Field>
           <Field label="Lista de presentes">
             <input className={inputClass} value={form.giftsLink} onChange={(e) => set('giftsLink')(e.target.value)} />

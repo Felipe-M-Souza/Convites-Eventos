@@ -1,3 +1,5 @@
+import { parseWaMeLink } from '../lib/whatsappLink'
+
 /** Primeira letra de cada nome quando o formato é «Nome & Nome» ou «Nome e Nome». */
 export function initialsFromCoupleNames(names: string): string {
   const parts = names
@@ -58,8 +60,10 @@ export const eventData = {
   notes: 'Estacionamento no local. Cerimônia e festa no mesmo endereço.',
   mapsLink:
     'https://www.google.com/maps/search/?api=1&query=Espa%C3%A7o+Jardim+Imperial+S%C3%A3o+Paulo',
-  rsvpWhatsappLink:
-    'https://wa.me/5511999999999?text=Ol%C3%A1%2C%20confirmo%20minha%20presen%C3%A7a%20no%20casamento!',
+  /** Apenas dígitos (DDI + DDD + número), sem + nem espaços. */
+  rsvpWhatsappPhone: '5511999999999',
+  /** Texto pré-preenchido no WhatsApp (acentos ok; o link é montado em código). */
+  rsvpWhatsappMessage: 'Olá, confirmo minha presença no casamento!',
   giftsLink: 'https://www.example.com/lista-de-presentes',
   galleryPhotos: [
     'https://images.unsplash.com/photo-1522673606560-13142e25f67d?auto=format&fit=crop&w=800&q=80',
@@ -75,11 +79,45 @@ export const eventData = {
 
 export type EventData = typeof eventData
 
+type StoredPayload = Partial<EventData> & { rsvpWhatsappLink?: string }
+
 /** Junta o JSON guardado no CMS com os valores por omissão (novas chaves no código). */
 export function mergeInvitePayload(stored: unknown): EventData {
   const defaults = structuredClone(eventData)
-  if (stored != null && typeof stored === 'object' && !Array.isArray(stored)) {
-    return { ...defaults, ...(stored as Partial<EventData>) } as EventData
+  if (stored == null || typeof stored !== 'object' || Array.isArray(stored)) {
+    return defaults
   }
-  return defaults
+
+  const s = stored as StoredPayload
+  const merged = { ...defaults, ...s } as EventData & { rsvpWhatsappLink?: string }
+
+  const hasExplicitNew =
+    Object.prototype.hasOwnProperty.call(s, 'rsvpWhatsappPhone') ||
+    Object.prototype.hasOwnProperty.call(s, 'rsvpWhatsappMessage')
+
+  if (hasExplicitNew) {
+    delete merged.rsvpWhatsappLink
+    return merged as EventData
+  }
+
+  const link = typeof s.rsvpWhatsappLink === 'string' ? s.rsvpWhatsappLink.trim() : ''
+  if (link) {
+    const parsed = parseWaMeLink(link)
+    if (parsed?.phone) {
+      merged.rsvpWhatsappPhone = parsed.phone
+      merged.rsvpWhatsappMessage = parsed.message.trim()
+        ? parsed.message
+        : defaults.rsvpWhatsappMessage
+    } else {
+      merged.rsvpWhatsappPhone = ''
+      merged.rsvpWhatsappMessage = ''
+      merged.rsvpWhatsappLink = link
+    }
+  }
+
+  if (!merged.rsvpWhatsappLink) {
+    delete merged.rsvpWhatsappLink
+  }
+
+  return merged as EventData
 }

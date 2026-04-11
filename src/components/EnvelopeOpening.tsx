@@ -50,7 +50,7 @@ function FloralBackdrop() {
       <img
         src={OPENING_FRAME_SRC}
         alt=""
-        className="h-full min-h-full w-full object-contain object-center"
+        className="h-full min-h-full w-full object-cover object-center md:object-contain"
         decoding="async"
         fetchPriority="high"
       />
@@ -312,12 +312,12 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
     >
       <FloralBackdrop />
 
-      <div className="relative z-10 flex min-h-dvh flex-col items-center justify-center pb-8 pt-10">
-        <p className="mb-3 max-w-xs -translate-y-2 text-center font-display text-lg italic text-rose-900/35 md:-translate-y-3 md:text-xl">
+      <div className="relative z-10 flex min-h-dvh flex-col items-center pb-8 pt-10 max-md:justify-between max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:pt-[max(1rem,env(safe-area-inset-top))] md:justify-center">
+        <p className="mb-3 max-w-xs shrink-0 -translate-y-2 text-center font-display text-lg italic text-rose-900/35 max-md:mb-1 max-md:translate-y-0 md:-translate-y-3 md:text-xl">
           {data.openingEyebrow}
         </p>
 
-        <div className="-mt-3 overflow-visible [perspective:1400px] md:-mt-4">
+        <div className="-mt-3 flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center overflow-visible [perspective:1400px] max-md:my-1 md:my-0 md:-mt-4 md:block md:flex-none">
           <div
             className="relative mx-auto min-h-0 w-[min(94vw,420px)] transform-gpu"
             style={{ transformStyle: 'preserve-3d' }}
@@ -379,34 +379,36 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
           </div>
         </div>
 
-        <p
-          className={`mt-8 max-w-[280px] text-center text-[11px] uppercase tracking-[0.32em] transition-opacity duration-300 ${
-            inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
-          }`}
-        >
-          {data.openingSealHint}
-        </p>
-        <p
-          className={`mt-2.5 max-w-[280px] text-center font-display text-sm tracking-wide transition-opacity duration-300 ${
-            inProgress ? 'text-rose-900/20' : 'text-rose-900/45'
-          }`}
-        >
-          {data.weddingDateLabel}
-        </p>
-        <p
-          className={`mt-1.5 max-w-[280px] text-center font-display text-xs leading-snug transition-opacity duration-300 ${
-            inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
-          }`}
-        >
-          {data.venue}
-        </p>
-        <p
-          className={`mt-0.5 max-w-[280px] text-center font-display text-xs transition-opacity duration-300 ${
-            inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
-          }`}
-        >
-          {data.time}
-        </p>
+        <div className="flex w-full max-w-[280px] shrink-0 flex-col items-center pt-6 max-md:pt-2 md:pt-0">
+          <p
+            className={`text-center text-[11px] uppercase tracking-[0.32em] transition-opacity duration-300 md:mt-8 ${
+              inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
+            }`}
+          >
+            {data.openingSealHint}
+          </p>
+          <p
+            className={`mt-2.5 text-center font-display text-sm tracking-wide transition-opacity duration-300 ${
+              inProgress ? 'text-rose-900/20' : 'text-rose-900/45'
+            }`}
+          >
+            {data.weddingDateLabel}
+          </p>
+          <p
+            className={`mt-1.5 text-center font-display text-xs leading-snug transition-opacity duration-300 ${
+              inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
+            }`}
+          >
+            {data.venue}
+          </p>
+          <p
+            className={`mt-0.5 text-center font-display text-xs transition-opacity duration-300 ${
+              inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
+            }`}
+          >
+            {data.time}
+          </p>
+        </div>
       </div>
     </motion.div>
   )

@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { EventData } from '../data/eventData'
+import { buildRsvpWhatsappHref } from '../lib/whatsappLink'
 
 type Props = {
   data: EventData
@@ -22,7 +23,7 @@ export function ActionButtons({ data }: Props) {
       <a className={btn} href={data.mapsLink} target="_blank" rel="noreferrer">
         Ver no mapa
       </a>
-      <a className={btn} href={data.rsvpWhatsappLink} target="_blank" rel="noreferrer">
+      <a className={btn} href={buildRsvpWhatsappHref(data)} target="_blank" rel="noreferrer">
         Confirmar presença
       </a>
       <a className={btn} href={data.giftsLink} target="_blank" rel="noreferrer">
