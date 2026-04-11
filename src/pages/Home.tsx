@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { eventData } from '../data/eventData'
+import { useEventData } from '../contexts/EventDataContext'
+import { isCmsConfigured } from '../lib/supabase'
 import { HeroSection } from '../components/HeroSection'
 import { CoupleMessage } from '../components/CoupleMessage'
 import { CountdownTimer } from '../components/CountdownTimer'
@@ -12,6 +13,7 @@ import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
 
 export function Home() {
+  const { data: eventData, status } = useEventData()
   const [inviteUnlocked, setInviteUnlocked] = useState(false)
   const musicRef = useRef<MusicToggleHandle>(null)
 
@@ -34,6 +36,14 @@ export function Home() {
     }
     return undefined
   }, [inviteUnlocked])
+
+  if (isCmsConfigured && status === 'loading') {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-[color:var(--color-cream)] text-stone-500">
+        <p className="font-display text-lg">A carregar o convite…</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-cream)]">

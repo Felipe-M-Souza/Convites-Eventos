@@ -74,3 +74,12 @@ export const eventData = {
 }
 
 export type EventData = typeof eventData
+
+/** Junta o JSON guardado no CMS com os valores por omissão (novas chaves no código). */
+export function mergeInvitePayload(stored: unknown): EventData {
+  const defaults = structuredClone(eventData)
+  if (stored != null && typeof stored === 'object' && !Array.isArray(stored)) {
+    return { ...defaults, ...(stored as Partial<EventData>) } as EventData
+  }
+  return defaults
+}
