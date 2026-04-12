@@ -10,7 +10,7 @@ type Props = {
 
 type OpeningPhase = 'idle' | 'seal' | 'flap' | 'card'
 
-const OPENING_FRAME_SRC = '/images/floral-convite-frame.png'
+const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 
 /**
  * Centro vertical do selo (% da altura da caixa do envelope fechado).
@@ -380,7 +380,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
           </div>
         </div>
 
-        <div className="flex w-full max-w-[min(90vw,280px)] shrink-0 flex-col items-center space-y-2 px-1 text-center [&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)] md:max-w-[280px]">
+        <div className="mb-7 flex w-full max-w-[min(90vw,280px)] shrink-0 flex-col items-center space-y-2 px-1 text-center [&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)] md:mb-9 md:max-w-[280px]">
           <p
             className={`text-[11px] uppercase tracking-[0.3em] transition-opacity duration-300 ${
               inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
@@ -403,7 +403,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
             {data.venue}
           </p>
           <p
-            className={`font-display text-xs transition-opacity duration-300 ${
+            className={`-translate-y-1 font-display text-xs transition-opacity duration-300 md:-translate-y-1.5 ${
               inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
             }`}
           >
