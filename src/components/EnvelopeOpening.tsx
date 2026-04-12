@@ -28,17 +28,19 @@ const ENVELOPE_NATURAL_W = 1024
 const ENVELOPE_NATURAL_H = 682
 /** Margens brancas no PNG; >1 aproxima o bordô (cortando o “quadro” branco). */
 const ENVELOPE_TEXTURE_ZOOM_DESKTOP = 1.24
-/** Em viewports estreitas o envelope ocupa mais área útil; zoom maior corta mais o branco. */
-const ENVELOPE_TEXTURE_ZOOM_COMPACT = 1.4
+/** Telefone: envelope mais estreito + zoom um pouco menor que antes para não cortar filigranas. */
+const ENVELOPE_TEXTURE_ZOOM_COMPACT = 1.32
 
-function envelopeTextureZoomForViewport(): number {
-  if (typeof window === 'undefined') return ENVELOPE_TEXTURE_ZOOM_DESKTOP
+/** Largura da caixa do envelope em vw (≤767px vs maior). */
+const ENVELOPE_WIDTH_VW_COMPACT = 84
+const ENVELOPE_WIDTH_VW_DESKTOP = 94
+
+function isOpeningCompactViewport(): boolean {
+  if (typeof window === 'undefined') return false
   return window.matchMedia('(max-width: 767px)').matches
-    ? ENVELOPE_TEXTURE_ZOOM_COMPACT
-    : ENVELOPE_TEXTURE_ZOOM_DESKTOP
 }
 
-function subscribeEnvelopeTextureZoom(onChange: () => void) {
+function subscribeOpeningCompactViewport(onChange: () => void) {
   const mq = window.matchMedia('(max-width: 767px)')
   mq.addEventListener('change', onChange)
   return () => mq.removeEventListener('change', onChange)
@@ -64,7 +66,7 @@ const sealGold = {
 function FloralBackdrop() {
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] px-1 py-2 sm:px-3 sm:py-3 md:p-6"
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] px-2.5 py-2 sm:px-3 sm:py-3 md:p-6"
       aria-hidden
     >
       <img
@@ -196,15 +198,17 @@ function OpeningEnvelope({
   reduce,
   children,
 }: OpeningEnvelopeProps) {
-  const textureZoom = useSyncExternalStore(
-    subscribeEnvelopeTextureZoom,
-    envelopeTextureZoomForViewport,
-    () => ENVELOPE_TEXTURE_ZOOM_DESKTOP,
+  const compact = useSyncExternalStore(
+    subscribeOpeningCompactViewport,
+    isOpeningCompactViewport,
+    () => false,
   )
+  const textureZoom = compact ? ENVELOPE_TEXTURE_ZOOM_COMPACT : ENVELOPE_TEXTURE_ZOOM_DESKTOP
+  const envelopeVw = compact ? ENVELOPE_WIDTH_VW_COMPACT : ENVELOPE_WIDTH_VW_DESKTOP
 
   const boxStyle = {
-    width: 'min(96vw, 400px)',
-    height: `min(min(42vh, 320px), calc(min(96vw, 400px) * ${ENVELOPE_NATURAL_H} / ${ENVELOPE_NATURAL_W}))`,
+    width: `min(${envelopeVw}vw, 400px)`,
+    height: `min(min(42vh, 320px), calc(min(${envelopeVw}vw, 400px) * ${ENVELOPE_NATURAL_H} / ${ENVELOPE_NATURAL_W}))`,
   }
 
   const imgShared =
@@ -345,7 +349,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
 
         <div className="flex w-full shrink-0 flex-col items-center justify-center overflow-visible [perspective:1400px]">
           <div
-            className="relative mx-auto w-[min(96vw,420px)] min-w-0 transform-gpu md:w-[min(94vw,420px)]"
+            className="relative mx-auto w-[min(84vw,420px)] min-w-0 transform-gpu md:w-[min(94vw,420px)]"
             style={{ transformStyle: 'preserve-3d' }}
           >
             <motion.div
