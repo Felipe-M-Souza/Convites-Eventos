@@ -41,13 +41,17 @@ const sealGold = {
   `,
 }
 
+/** Mesma lógica em todos os tamanhos: moldura completa, sem crop nos cantos (como no desktop). */
 function FloralBackdrop() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)]" aria-hidden>
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] p-4 md:p-6"
+      aria-hidden
+    >
       <img
         src={OPENING_FRAME_SRC}
         alt=""
-        className="h-full w-full origin-center object-cover object-center max-md:scale-[0.93] md:scale-100 md:object-contain"
+        className="h-full w-full object-contain object-center"
         decoding="async"
         fetchPriority="high"
       />
@@ -298,7 +302,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[60] px-5"
+      className="fixed inset-0 z-[60]"
       initial={{ opacity: 1 }}
       exit={{
         opacity: 0,
@@ -309,14 +313,14 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
     >
       <FloralBackdrop />
 
-      <div className="relative z-10 flex min-h-dvh flex-col items-center pb-8 pt-10 max-md:justify-between max-md:pb-[max(1.25rem,env(safe-area-inset-bottom))] max-md:pt-[max(1rem,env(safe-area-inset-top))] md:justify-center">
-        <p className="mb-3 max-w-xs shrink-0 text-center font-display text-lg italic text-rose-900/35 max-md:mb-2 md:-translate-y-3 md:text-xl">
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col items-center justify-center gap-4 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] md:max-w-none md:gap-8 md:px-5 md:py-10">
+        <p className="shrink-0 px-1 text-center font-display text-base italic leading-snug text-rose-900/35 md:text-xl">
           {data.openingEyebrow}
         </p>
 
-        <div className="-mt-3 flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center overflow-visible [perspective:1400px] max-md:my-1 md:my-0 md:-mt-4 md:block md:flex-none">
+        <div className="flex w-full shrink-0 flex-col items-center justify-center overflow-visible [perspective:1400px]">
           <div
-            className="relative mx-auto min-h-0 w-[min(94vw,420px)] transform-gpu"
+            className="relative mx-auto w-[min(92vw,420px)] min-w-0 transform-gpu md:w-[min(94vw,420px)]"
             style={{ transformStyle: 'preserve-3d' }}
           >
             <motion.div
@@ -376,30 +380,30 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
           </div>
         </div>
 
-        <div className="max-md:[&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_20px_rgba(250,247,242,0.85)] flex w-full max-w-[280px] shrink-0 flex-col items-center pt-6 max-md:pt-2 md:pt-0">
+        <div className="flex w-full max-w-[min(90vw,280px)] shrink-0 flex-col items-center space-y-2 px-1 text-center [&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)] md:max-w-[280px]">
           <p
-            className={`text-center text-[11px] uppercase tracking-[0.32em] transition-opacity duration-300 md:mt-8 ${
+            className={`text-[11px] uppercase tracking-[0.3em] transition-opacity duration-300 ${
               inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
             }`}
           >
             {data.openingSealHint}
           </p>
           <p
-            className={`mt-2.5 text-center font-display text-sm tracking-wide transition-opacity duration-300 ${
+            className={`font-display text-sm tracking-wide transition-opacity duration-300 ${
               inProgress ? 'text-rose-900/20' : 'text-rose-900/45'
             }`}
           >
             {data.weddingDateLabel}
           </p>
           <p
-            className={`mt-1.5 text-center font-display text-xs leading-snug transition-opacity duration-300 ${
+            className={`font-display text-xs leading-snug transition-opacity duration-300 ${
               inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
             }`}
           >
             {data.venue}
           </p>
           <p
-            className={`mt-0.5 text-center font-display text-xs transition-opacity duration-300 ${
+            className={`font-display text-xs transition-opacity duration-300 ${
               inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
             }`}
           >
