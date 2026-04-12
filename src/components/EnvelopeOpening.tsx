@@ -43,14 +43,11 @@ const sealGold = {
 
 function FloralBackdrop() {
   return (
-    <div
-      className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] p-3 max-md:p-5 md:p-4"
-      aria-hidden
-    >
+    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)]" aria-hidden>
       <img
         src={OPENING_FRAME_SRC}
         alt=""
-        className="h-full w-full object-contain object-center"
+        className="h-full w-full origin-center object-cover object-center max-md:scale-[0.93] md:scale-100 md:object-contain"
         decoding="async"
         fetchPriority="high"
       />
@@ -177,9 +174,8 @@ function OpeningEnvelope({
   children,
 }: OpeningEnvelopeProps) {
   const boxStyle = {
-    width: 'min(92vw, 400px)',
-    /** Menor em altura no telemóvel para sobrar espaço aos textos sem encostar à moldura. */
-    height: `min(min(34vh, 270px), calc(min(92vw, 400px) * ${ENVELOPE_NATURAL_H} / ${ENVELOPE_NATURAL_W}))`,
+    width: 'min(94vw, 400px)',
+    height: `min(min(42vh, 320px), calc(min(94vw, 400px) * ${ENVELOPE_NATURAL_H} / ${ENVELOPE_NATURAL_W}))`,
   }
 
   const imgShared =
@@ -313,18 +309,18 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
     >
       <FloralBackdrop />
 
-      <div className="relative z-10 flex min-h-dvh flex-col items-center pb-8 pt-10 max-md:justify-between max-md:pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+1.75rem))] max-md:pt-[max(1.75rem,calc(env(safe-area-inset-top)+1rem))] md:justify-center">
-        <p className="mb-3 max-w-[min(90vw,20rem)] shrink-0 text-center font-display text-lg italic text-rose-900/35 max-md:mb-2 max-md:text-base md:-translate-y-3 md:text-xl">
+      <div className="relative z-10 flex min-h-dvh flex-col items-center pb-8 pt-10 max-md:justify-between max-md:pb-[max(1.25rem,env(safe-area-inset-bottom))] max-md:pt-[max(1rem,env(safe-area-inset-top))] md:justify-center">
+        <p className="mb-3 max-w-xs shrink-0 text-center font-display text-lg italic text-rose-900/35 max-md:mb-2 md:-translate-y-3 md:text-xl">
           {data.openingEyebrow}
         </p>
 
-        <div className="-mt-2 flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center overflow-visible [perspective:1400px] max-md:my-0.5 md:my-0 md:-mt-4 md:block md:flex-none">
+        <div className="-mt-3 flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center overflow-visible [perspective:1400px] max-md:my-1 md:my-0 md:-mt-4 md:block md:flex-none">
           <div
-            className="relative mx-auto min-h-0 w-[min(92vw,420px)] transform-gpu"
+            className="relative mx-auto min-h-0 w-[min(94vw,420px)] transform-gpu"
             style={{ transformStyle: 'preserve-3d' }}
           >
             <motion.div
-              className="pointer-events-none absolute left-1/2 top-[50%] z-[5] w-[min(78%,300px)] max-w-[300px] -translate-x-1/2 rounded-sm border border-rose-100/90 bg-white px-4 py-5 text-center shadow-md"
+              className="pointer-events-none absolute left-1/2 top-[50%] z-[5] w-[min(78%,300px)] max-w-[300px] -translate-x-1/2 rounded-sm border border-rose-200/80 bg-[color:var(--color-blush)] px-4 py-5 text-center shadow-md"
               initial={{ y: 32, rotateX: 0, opacity: 0 }}
               animate={{
                 y: cardOut ? -122 : 32,
@@ -351,7 +347,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
               </p>
             </motion.div>
 
-            <div className="relative z-[20] mx-auto flex w-full max-w-[min(92vw,400px)] justify-center">
+            <div className="relative z-[20] mx-auto flex w-full max-w-[400px] justify-center">
               <OpeningEnvelope
                 closedSrc={envelopeSrc}
                 openSrc={envelopeOpenSrc}
@@ -380,37 +376,35 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
           </div>
         </div>
 
-        <div className="flex w-full max-w-[min(92vw,300px)] shrink-0 flex-col items-center pt-4 max-md:pt-3 md:pt-0">
-          <div className="w-full rounded-2xl bg-[color:var(--color-cream)]/92 px-4 py-3 shadow-sm ring-1 ring-rose-900/[0.06] backdrop-blur-[2px] max-md:mb-1 md:mt-8 md:bg-transparent md:px-0 md:py-0 md:shadow-none md:ring-0 md:backdrop-blur-none">
-            <p
-              className={`text-center text-[11px] uppercase tracking-[0.28em] transition-opacity duration-300 ${
-                inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
-              }`}
-            >
-              {data.openingSealHint}
-            </p>
-            <p
-              className={`mt-2 text-center font-display text-sm tracking-wide transition-opacity duration-300 ${
-                inProgress ? 'text-rose-900/20' : 'text-rose-900/45'
-              }`}
-            >
-              {data.weddingDateLabel}
-            </p>
-            <p
-              className={`mt-1.5 text-center font-display text-xs leading-snug transition-opacity duration-300 ${
-                inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
-              }`}
-            >
-              {data.venue}
-            </p>
-            <p
-              className={`mt-0.5 text-center font-display text-xs transition-opacity duration-300 ${
-                inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
-              }`}
-            >
-              {data.time}
-            </p>
-          </div>
+        <div className="max-md:[&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_20px_rgba(250,247,242,0.85)] flex w-full max-w-[280px] shrink-0 flex-col items-center pt-6 max-md:pt-2 md:pt-0">
+          <p
+            className={`text-center text-[11px] uppercase tracking-[0.32em] transition-opacity duration-300 md:mt-8 ${
+              inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
+            }`}
+          >
+            {data.openingSealHint}
+          </p>
+          <p
+            className={`mt-2.5 text-center font-display text-sm tracking-wide transition-opacity duration-300 ${
+              inProgress ? 'text-rose-900/20' : 'text-rose-900/45'
+            }`}
+          >
+            {data.weddingDateLabel}
+          </p>
+          <p
+            className={`mt-1.5 text-center font-display text-xs leading-snug transition-opacity duration-300 ${
+              inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
+            }`}
+          >
+            {data.venue}
+          </p>
+          <p
+            className={`mt-0.5 text-center font-display text-xs transition-opacity duration-300 ${
+              inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
+            }`}
+          >
+            {data.time}
+          </p>
         </div>
       </div>
     </motion.div>
