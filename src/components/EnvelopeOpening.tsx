@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { resolveSealMark, type EventData } from '../data/eventData'
 
@@ -14,7 +14,7 @@ const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 
 /**
  * Centro vertical do selo (% da altura da caixa do envelope fechado).
- * Ajuste se mudar o PNG fechado ou ENVELOPE_TEXTURE_ZOOM.
+ * Ajuste se mudar o PNG fechado ou os valores ENVELOPE_TEXTURE_ZOOM_*.
  */
 const SEAL_ANCHOR_Y = 0.68
 
@@ -26,8 +26,23 @@ const ENVELOPE_CROSSFADE_S = 0.45
 /** Metadados do PNG em `public/images/envelope-burgundy.png` (para caixa sem “letterbox”). */
 const ENVELOPE_NATURAL_W = 1024
 const ENVELOPE_NATURAL_H = 682
-/** O ficheiro tem margens brancas à volta do bordô; >1 recorta-as (ideal: PNG com transparência). */
-const ENVELOPE_TEXTURE_ZOOM = 1.19
+/** Margens brancas no PNG; >1 aproxima o bordô (cortando o “quadro” branco). */
+const ENVELOPE_TEXTURE_ZOOM_DESKTOP = 1.24
+/** Em viewports estreitas o envelope ocupa mais área útil; zoom maior corta mais o branco. */
+const ENVELOPE_TEXTURE_ZOOM_COMPACT = 1.4
+
+function envelopeTextureZoomForViewport(): number {
+  if (typeof window === 'undefined') return ENVELOPE_TEXTURE_ZOOM_DESKTOP
+  return window.matchMedia('(max-width: 767px)').matches
+    ? ENVELOPE_TEXTURE_ZOOM_COMPACT
+    : ENVELOPE_TEXTURE_ZOOM_DESKTOP
+}
+
+function subscribeEnvelopeTextureZoom(onChange: () => void) {
+  const mq = window.matchMedia('(max-width: 767px)')
+  mq.addEventListener('change', onChange)
+  return () => mq.removeEventListener('change', onChange)
+}
 
 const sealGold = {
   background: `
@@ -41,17 +56,21 @@ const sealGold = {
   `,
 }
 
-/** Mesma lógica em todos os tamanhos: moldura completa, sem crop nos cantos (como no desktop). */
+/**
+ * Moldura de fundo: em viewports estreitas o PNG (muito alto) com object-contain deixa
+ * faixas laterais largas; object-cover + object-bottom preenche a largura e preserva
+ * sobretudo a base (alianças). A partir de md volta contain para não cortar no desktop.
+ */
 function FloralBackdrop() {
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] p-4 md:p-6"
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] px-1 py-2 sm:px-3 sm:py-3 md:p-6"
       aria-hidden
     >
       <img
         src={OPENING_FRAME_SRC}
         alt=""
-        className="h-full w-full object-contain object-center"
+        className="h-full w-full object-cover object-bottom md:object-contain md:object-center"
         decoding="async"
         fetchPriority="high"
       />
@@ -177,18 +196,24 @@ function OpeningEnvelope({
   reduce,
   children,
 }: OpeningEnvelopeProps) {
+  const textureZoom = useSyncExternalStore(
+    subscribeEnvelopeTextureZoom,
+    envelopeTextureZoomForViewport,
+    () => ENVELOPE_TEXTURE_ZOOM_DESKTOP,
+  )
+
   const boxStyle = {
-    width: 'min(94vw, 400px)',
-    height: `min(min(42vh, 320px), calc(min(94vw, 400px) * ${ENVELOPE_NATURAL_H} / ${ENVELOPE_NATURAL_W}))`,
+    width: 'min(96vw, 400px)',
+    height: `min(min(42vh, 320px), calc(min(96vw, 400px) * ${ENVELOPE_NATURAL_H} / ${ENVELOPE_NATURAL_W}))`,
   }
 
   const imgShared =
-    'pointer-events-none absolute left-1/2 top-0 block h-full max-w-none select-none object-cover object-center'
+    'pointer-events-none absolute left-1/2 top-0 block h-full max-w-none select-none bg-transparent object-cover object-center'
 
   const imgZoomStyle = {
     width: 'auto' as const,
     minWidth: '100%',
-    transform: `translateX(-50%) scale(${ENVELOPE_TEXTURE_ZOOM})`,
+    transform: `translateX(-50%) scale(${textureZoom})`,
     transformOrigin: 'top center' as const,
   }
 
@@ -202,7 +227,7 @@ function OpeningEnvelope({
       animate={{ opacity: cardOut ? 0 : 1 }}
       transition={{ duration: reduce ? 0.2 : 0.48, ease: 'easeOut' }}
     >
-      <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden bg-transparent">
         <motion.img
           src={closedSrc}
           alt=""
@@ -313,14 +338,14 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
     >
       <FloralBackdrop />
 
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-lg flex-col items-center justify-center gap-4 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] md:max-w-none md:gap-8 md:px-5 md:py-10">
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center justify-center gap-3 px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-4 sm:px-4 sm:py-5 md:max-w-none md:gap-8 md:px-5 md:py-10">
         <p className="shrink-0 px-1 text-center font-display text-base italic leading-snug text-rose-900/35 md:text-xl">
           {data.openingEyebrow}
         </p>
 
         <div className="flex w-full shrink-0 flex-col items-center justify-center overflow-visible [perspective:1400px]">
           <div
-            className="relative mx-auto w-[min(92vw,420px)] min-w-0 transform-gpu md:w-[min(94vw,420px)]"
+            className="relative mx-auto w-[min(96vw,420px)] min-w-0 transform-gpu md:w-[min(94vw,420px)]"
             style={{ transformStyle: 'preserve-3d' }}
           >
             <motion.div
@@ -380,7 +405,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
           </div>
         </div>
 
-        <div className="mb-7 flex w-full max-w-[min(90vw,280px)] shrink-0 flex-col items-center space-y-2 px-1 text-center [&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)] md:mb-9 md:max-w-[280px]">
+        <div className="mb-7 flex w-full max-w-[min(94vw,320px)] shrink-0 flex-col items-center space-y-2 px-1 text-center [&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)] sm:max-w-[min(90vw,300px)] md:mb-9 md:max-w-[300px]">
           <p
             className={`text-[11px] uppercase tracking-[0.3em] transition-opacity duration-300 ${
               inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
