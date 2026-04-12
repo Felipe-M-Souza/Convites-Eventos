@@ -332,8 +332,16 @@ export function AdminEditor({ onSignOut }: Props) {
               onChange={(e) => set('rsvpWhatsappMessage')(e.target.value)}
             />
           </Field>
-          <Field label="Lista de presentes">
+          <Field label="Lista de presentes — URL">
             <input className={inputClass} value={form.giftsLink} onChange={(e) => set('giftsLink')(e.target.value)} />
+          </Field>
+          <Field label="Lista de presentes — texto opcional (acima do botão)">
+            <textarea
+              className={`${inputClass} min-h-[88px]`}
+              placeholder="Ex.: uma nota sobre a lista ou agradecimento antes do link."
+              value={form.giftsIntro}
+              onChange={(e) => set('giftsIntro')(e.target.value)}
+            />
           </Field>
         </fieldset>
 

@@ -65,6 +65,8 @@ export const eventData = {
   /** Texto pré-preenchido no WhatsApp (acentos ok; o link é montado em código). */
   rsvpWhatsappMessage: 'Olá, confirmo minha presença no casamento!',
   giftsLink: 'https://www.example.com/lista-de-presentes',
+  /** Texto opcional acima do botão «Lista de presentes». Vazio = não mostra. */
+  giftsIntro: '',
   /** Fotos «Momentos» em `public/images/momentos/`. */
   galleryPhotos: [
     '/images/momentos/momento-1.png',
