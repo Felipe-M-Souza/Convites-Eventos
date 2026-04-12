@@ -4,6 +4,7 @@ import { eventData, type EventData } from '../data/eventData'
 import { useEventData } from '../contexts/EventDataContext'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
+import { removeGalleryFolderContents } from '../lib/galleryStorage'
 import { normalizeInviteSlug } from '../lib/inviteSlug'
 
 type Props = {
@@ -38,6 +39,7 @@ export function AdminEditor({ onSignOut }: Props) {
   const [inviteRows, setInviteRows] = useState<InviteRow[]>([])
   const [newSlugDraft, setNewSlugDraft] = useState('')
   const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const loadInviteList = () => {
     if (!supabase) return
@@ -101,6 +103,42 @@ export function AdminEditor({ onSignOut }: Props) {
     }
     setNewSlugDraft('')
     navigate(`/admin?slug=${encodeURIComponent(slug)}`)
+  }
+
+  const handleDeleteInvite = async () => {
+    if (!supabase || !inviteId) return
+    if (inviteRows.length < 2) {
+      setMessage({
+        type: 'err',
+        text: 'Cria outro convite primeiro: é preciso haver pelo menos dois convites para poder apagar um.',
+      })
+      return
+    }
+    const ok = window.confirm(
+      `Apagar definitivamente o convite «${inviteSlug}»?\n\nEsta ação não pode ser anulada. O link /c/${inviteSlug} deixa de funcionar.`,
+    )
+    if (!ok) return
+    setDeleting(true)
+    setMessage(null)
+    const others = inviteRows.filter((r) => r.id !== inviteId).sort((a, b) => a.slug.localeCompare(b.slug))
+    const next = others[0]
+    if (!next) {
+      setDeleting(false)
+      setMessage({ type: 'err', text: 'Não foi possível determinar o convite seguinte.' })
+      return
+    }
+    const { error } = await supabase.from('invite_config').delete().eq('id', inviteId)
+    setDeleting(false)
+    if (error) {
+      setMessage({ type: 'err', text: error.message })
+      return
+    }
+    try {
+      await removeGalleryFolderContents(supabase, inviteSlug)
+    } catch {
+      /* ficheiros no Storage podem já estar vazios ou política diferente */
+    }
+    navigate(`/admin?slug=${encodeURIComponent(next.slug)}`)
   }
 
   const inputClass =
@@ -217,6 +255,25 @@ export function AdminEditor({ onSignOut }: Props) {
                 {creating ? 'A criar…' : 'Criar convite'}
               </button>
             </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-2 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-stone-500">
+              Apagar remove o convite da base e tenta limpar as fotos deste slug no Storage. Só disponível se existirem
+              pelo menos dois convites.
+            </p>
+            <button
+              type="button"
+              disabled={deleting || inviteRows.length < 2}
+              title={
+                inviteRows.length < 2
+                  ? 'Cria outro convite para poder apagar este.'
+                  : 'Apagar definitivamente este convite'
+              }
+              onClick={() => void handleDeleteInvite()}
+              className="shrink-0 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-800 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {deleting ? 'A apagar…' : 'Apagar este convite'}
+            </button>
           </div>
         </div>
       ) : null}

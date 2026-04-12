@@ -15,6 +15,8 @@ Para **upload de fotos** no painel (galeria «Momentos»), executa também `supa
 
 Para **vários convites** (URL por casal), executa `supabase/migrations/003_invite_slug.sql`. Adiciona a coluna `slug` (única); a linha existente fica com `slug` igual ao `id` (normalmente `default`).
 
+Para **apagar convites** no painel, executa `supabase/migrations/004_invite_config_delete.sql` (política `DELETE` para utilizadores autenticados).
+
 ## 3. Criar utilizador administrador
 
 **Authentication** → **Users** → **Add user** → email + password (ou convida por email).

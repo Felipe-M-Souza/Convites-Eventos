@@ -54,3 +54,19 @@ export async function removeGalleryObject(
   const { error } = await supabase.storage.from(GALLERY_BUCKET).remove([path])
   if (error) throw new Error(error.message)
 }
+
+/** Remove todos os ficheiros JPEG da pasta do slug no bucket (best-effort após apagar convite). */
+export async function removeGalleryFolderContents(
+  supabase: SupabaseClient,
+  folder: string,
+): Promise<void> {
+  const prefix = sanitizeFolder(folder)
+  const { data: items, error: listErr } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .list(prefix, { limit: 500 })
+  if (listErr) throw new Error(listErr.message)
+  if (!items?.length) return
+  const paths = items.map((f) => `${prefix}/${f.name}`)
+  const { error: remErr } = await supabase.storage.from(GALLERY_BUCKET).remove(paths)
+  if (remErr) throw new Error(remErr.message)
+}

@@ -26,24 +26,35 @@ export function PhotoGallery({ photos }: Props) {
         Alguns registros que aquecem o coração até o grande dia.
       </p>
       <div className="mt-10 columns-2 gap-3 sm:columns-3 sm:gap-4">
-        {photos.map((src, i) => (
-          <motion.figure
-            key={`${i}-${src}`}
-            className="mb-3 break-inside-avoid overflow-hidden rounded-xl shadow-md sm:mb-4"
-            initial={reduce ? false : { opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-20px' }}
-            transition={{ delay: i * 0.05, duration: 0.45 }}
-          >
-            <img
-              src={src}
-              alt=""
-              className="block w-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          </motion.figure>
-        ))}
+        {photos.map((src, i) => {
+          const isLast = i === photos.length - 1
+          return (
+            <motion.figure
+              key={`${i}-${src}`}
+              className={
+                isLast
+                  ? 'mb-3 flex aspect-[3/4] w-full break-inside-avoid items-center justify-center overflow-hidden rounded-xl bg-[color:var(--color-blush)] shadow-md sm:mb-4'
+                  : 'mb-3 break-inside-avoid overflow-hidden rounded-xl shadow-md sm:mb-4'
+              }
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-20px' }}
+              transition={{ delay: i * 0.05, duration: 0.45 }}
+            >
+              <img
+                src={src}
+                alt=""
+                className={
+                  isLast
+                    ? 'max-h-full max-w-full object-contain'
+                    : 'block h-auto w-full max-w-full align-middle'
+                }
+                loading="lazy"
+                decoding="async"
+              />
+            </motion.figure>
+          )
+        })}
       </div>
     </motion.section>
   )
