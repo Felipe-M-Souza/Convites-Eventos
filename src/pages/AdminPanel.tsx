@@ -63,7 +63,7 @@ export function AdminPanel() {
             to="/"
             className="mt-8 inline-block rounded-full border border-stone-300 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
-            Voltar ao convite
+            Página inicial
           </Link>
         </div>
       </div>
@@ -117,7 +117,7 @@ export function AdminPanel() {
             </button>
           </form>
           <Link to="/" className="mt-8 block text-center text-sm text-stone-500 underline hover:text-stone-700">
-            Voltar ao convite
+            Página inicial
           </Link>
         </div>
       </div>

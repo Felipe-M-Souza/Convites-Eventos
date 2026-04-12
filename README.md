@@ -6,6 +6,8 @@ Aplicação **React + Vite + TypeScript** com **Tailwind CSS v4** e **Framer Mot
 
 Edite `src/data/eventData.ts` (nomes, textos, links, data ISO da contagem, URLs de fotos e, se quiser, `backgroundAudioUrl` apontando para um ficheiro em `public/audio/`).
 
+Com **Supabase** (`CMS_SETUP.md`): convite público em **`/c/<slug>`** (ex. `/c/default`), portfólio em **`/`**, painel em **`/admin?slug=...`**.
+
 ## Comandos
 
 ```bash

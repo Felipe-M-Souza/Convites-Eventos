@@ -2,10 +2,13 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const GALLERY_BUCKET = 'invite-gallery'
 
-const CONFIG_FOLDER = 'default'
+function sanitizeFolder(folder: string): string {
+  const s = folder.replace(/[^a-z0-9-]/gi, '').slice(0, 64)
+  return s || 'default'
+}
 
-export function galleryObjectPath(fileName: string): string {
-  return `${CONFIG_FOLDER}/${fileName}`
+export function galleryObjectPath(folder: string, fileName: string): string {
+  return `${sanitizeFolder(folder)}/${fileName}`
 }
 
 export function getGalleryPublicUrl(supabase: SupabaseClient, objectPath: string): string {
@@ -30,9 +33,10 @@ export function pathFromInviteGalleryPublicUrl(publicUrl: string): string | null
 export async function uploadGalleryJpeg(
   supabase: SupabaseClient,
   blob: Blob,
+  folder: string,
 ): Promise<string> {
   const name = `${crypto.randomUUID()}.jpg`
-  const path = galleryObjectPath(name)
+  const path = galleryObjectPath(folder, name)
   const { error } = await supabase.storage.from(GALLERY_BUCKET).upload(path, blob, {
     contentType: 'image/jpeg',
     upsert: false,

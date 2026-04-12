@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEventData } from '../contexts/EventDataContext'
 import { isCmsConfigured } from '../lib/supabase'
@@ -13,7 +14,7 @@ import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
 
 export function Home() {
-  const { data: eventData, status } = useEventData()
+  const { data: eventData, status, inviteNotFound, inviteSlug } = useEventData()
   const [inviteUnlocked, setInviteUnlocked] = useState(false)
   const musicRef = useRef<MusicToggleHandle>(null)
 
@@ -41,6 +42,24 @@ export function Home() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-[color:var(--color-cream)] text-stone-500">
         <p className="font-display text-lg">A carregar o convite…</p>
+      </div>
+    )
+  }
+
+  if (isCmsConfigured && inviteNotFound) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[color:var(--color-cream)] px-6 text-center">
+        <p className="font-display text-2xl text-[color:var(--color-ink)]">Convite não encontrado</p>
+        <p className="max-w-md text-sm text-[color:var(--color-ink-muted)]">
+          Não há nenhum convite com o slug <span className="font-mono font-medium text-stone-700">{inviteSlug}</span>.
+          Confirma o link ou pede um novo ao organizador.
+        </p>
+        <Link
+          to="/"
+          className="rounded-full border border-stone-300 bg-white px-6 py-2.5 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
+        >
+          Voltar ao início
+        </Link>
       </div>
     )
   }

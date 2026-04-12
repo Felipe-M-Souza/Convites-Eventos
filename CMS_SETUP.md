@@ -13,6 +13,8 @@ No Supabase: **SQL Editor** → cola o conteúdo de `supabase/migrations/001_inv
 
 Para **upload de fotos** no painel (galeria «Momentos»), executa também `supabase/migrations/002_invite_gallery_storage.sql` no mesmo editor. Cria o bucket público `invite-gallery` e as políticas de Storage (leitura pública, escrita só com utilizador autenticado).
 
+Para **vários convites** (URL por casal), executa `supabase/migrations/003_invite_slug.sql`. Adiciona a coluna `slug` (única); a linha existente fica com `slug` igual ao `id` (normalmente `default`).
+
 ## 3. Criar utilizador administrador
 
 **Authentication** → **Users** → **Add user** → email + password (ou convida por email).
@@ -48,15 +50,17 @@ O ficheiro `render.yaml` na raiz do repo já inclui estas regras; se o serviço 
 ## 5. Primeira gravação
 
 1. `npm run dev` → abre `/admin` → entra com o utilizador criado.
-2. **Guardar alterações** cria a linha `id = default` na tabela.
+2. **Guardar alterações** grava o JSON na linha do convite atual (por omissão `slug = default` após a migração `003`).
 
-## 6. Encomendas / vários convites
+## 6. Portfólio e links por cliente
 
-Este modelo usa **um** documento (`id = default`). Para vários clientes, o passo seguinte seria:
+- **`/`** — página de portfólio (apresentação + atalhos).
+- **`/c/<slug>`** — convite público (ex.: `/c/default`, `/c/maria-joao`). Partilhas este URL com os convidados.
+- **`/admin`** — painel do convite com `slug = default`.
+- **`/admin?slug=maria-joao`** — edita outro convite. No painel podes **mudar o convite** no menu, **criar novo** (slug em minúsculas, hífens) e ver o link público.
 
-- coluna `slug` (ex. `maria-joao`) e rotas `/c/:slug`;
-- ou um projeto Supabase por cliente.
+Sem Supabase, `/c/qualquer-coisa` usa os dados por omissão de `eventData.ts` (útil para desenvolvimento).
 
 ---
 
-Resumo técnico: tabela `invite_config` com coluna `payload` (JSON) alinhada ao tipo `EventData` em TypeScript.
+Resumo técnico: tabela `invite_config` com `id`, `slug` (único) e `payload` (JSON) alinhado ao tipo `EventData` em TypeScript.

@@ -9,12 +9,14 @@ const JPEG_QUALITY = 0.88
 
 type Props = {
   supabase: SupabaseClient
+  /** Pasta no bucket (normalmente o slug do convite). */
+  storageFolder: string
   photos: string[]
   onChange: (urls: string[]) => void
   inputClass: string
 }
 
-export function GalleryPhotosField({ supabase, photos, onChange, inputClass }: Props) {
+export function GalleryPhotosField({ supabase, storageFolder, photos, onChange, inputClass }: Props) {
   const inputId = useId()
   const fileRef = useRef<HTMLInputElement>(null)
   const [maxEdge, setMaxEdge] = useState<number>(DEFAULT_MAX_EDGE)
@@ -78,7 +80,7 @@ export function GalleryPhotosField({ supabase, photos, onChange, inputClass }: P
           setProgress(`A processar ${i + 1} / ${files.length}…`)
           const jpeg = await resizeImageToJpeg(file, maxEdge, JPEG_QUALITY)
           setProgress(`A enviar ${i + 1} / ${files.length}…`)
-          const publicUrl = await uploadGalleryJpeg(supabase, jpeg)
+          const publicUrl = await uploadGalleryJpeg(supabase, jpeg, storageFolder)
           acc = [...acc, publicUrl]
           onChange(acc)
         }
@@ -90,7 +92,7 @@ export function GalleryPhotosField({ supabase, photos, onChange, inputClass }: P
         if (fileRef.current) fileRef.current.value = ''
       }
     },
-    [maxEdge, onChange, photos, supabase],
+    [maxEdge, onChange, photos, storageFolder, supabase],
   )
 
   return (
