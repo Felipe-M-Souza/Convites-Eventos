@@ -65,14 +65,14 @@ export const eventData = {
   /** Texto pré-preenchido no WhatsApp (acentos ok; o link é montado em código). */
   rsvpWhatsappMessage: 'Olá, confirmo minha presença no casamento!',
   giftsLink: 'https://www.example.com/lista-de-presentes',
+  /** Fotos «Momentos» em `public/images/momentos/`. */
   galleryPhotos: [
-    'https://images.unsplash.com/photo-1522673606560-13142e25f67d?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1529636799528-293b665e4a38?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=800&q=80',
+    '/images/momentos/momento-1.png',
+    '/images/momentos/momento-2.png',
+    '/images/momentos/momento-3.png',
   ],
-  /** URL de um arquivo de áudio em `public/audio/` (ex.: `/audio/from-this-moment-on.mp3`). */
-  backgroundAudioUrl: '/audio/from-this-moment-on.mp3',
+  /** URL de um arquivo de áudio em `public/audio/` (ex.: `/audio/velha-infancia.mp3`). */
+  backgroundAudioUrl: '/audio/velha-infancia.mp3',
   footerThanks: 'Obrigado por fazer parte da nossa história.',
   footerContact: 'Dúvidas? Fale com os noivos pelo WhatsApp do RSVP.',
 }
@@ -80,6 +80,19 @@ export const eventData = {
 export type EventData = typeof eventData
 
 type StoredPayload = Partial<EventData> & { rsvpWhatsappLink?: string }
+
+/** Galeria demo antiga (Unsplash) ainda gravada no CMS. */
+const LEGACY_GALLERY_PHOTOS = [
+  'https://images.unsplash.com/photo-1522673606560-13142e25f67d?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1529636799528-293b665e4a38?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=800&q=80',
+] as const
+
+function isLegacyGalleryPhotos(photos: string[]): boolean {
+  if (photos.length !== LEGACY_GALLERY_PHOTOS.length) return false
+  return LEGACY_GALLERY_PHOTOS.every((url, i) => photos[i] === url)
+}
 
 /** Junta o JSON guardado no CMS com os valores por omissão (novas chaves no código). */
 export function mergeInvitePayload(stored: unknown): EventData {
@@ -90,6 +103,15 @@ export function mergeInvitePayload(stored: unknown): EventData {
 
   const s = stored as StoredPayload
   const merged = { ...defaults, ...s } as EventData & { rsvpWhatsappLink?: string }
+
+  /** Payloads antigos ainda apontam para a demo; alinhar à faixa por omissão do código. */
+  if (merged.backgroundAudioUrl.trim() === '/audio/from-this-moment-on.mp3') {
+    merged.backgroundAudioUrl = defaults.backgroundAudioUrl
+  }
+
+  if (isLegacyGalleryPhotos(merged.galleryPhotos)) {
+    merged.galleryPhotos = defaults.galleryPhotos
+  }
 
   const hasExplicitNew =
     Object.prototype.hasOwnProperty.call(s, 'rsvpWhatsappPhone') ||

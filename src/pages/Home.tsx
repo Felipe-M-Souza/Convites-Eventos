@@ -49,6 +49,7 @@ export function Home() {
     <div className="min-h-dvh bg-[color:var(--color-cream)]">
       {audio ? (
         <MusicToggle
+          key={audio}
           ref={musicRef}
           src={audio}
           showButton={inviteUnlocked}
