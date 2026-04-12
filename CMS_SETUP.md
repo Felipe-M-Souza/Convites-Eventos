@@ -11,6 +11,8 @@ O site continua a funcionar **só com** `src/data/eventData.ts` se não configur
 
 No Supabase: **SQL Editor** → cola o conteúdo de `supabase/migrations/001_invite_config.sql` → **Run**.
 
+Para **upload de fotos** no painel (galeria «Momentos»), executa também `supabase/migrations/002_invite_gallery_storage.sql` no mesmo editor. Cria o bucket público `invite-gallery` e as políticas de Storage (leitura pública, escrita só com utilizador autenticado).
+
 ## 3. Criar utilizador administrador
 
 **Authentication** → **Users** → **Add user** → email + password (ou convida por email).

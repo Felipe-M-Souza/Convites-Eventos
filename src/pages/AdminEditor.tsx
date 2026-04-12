@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { EventData } from '../data/eventData'
 import { useEventData } from '../contexts/EventDataContext'
 import { supabase } from '../lib/supabase'
+import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
 
 const CONFIG_ID = 'default'
 
@@ -42,15 +43,6 @@ export function AdminEditor({ onSignOut }: Props) {
     (value: EventData[K]) => {
       setForm((f) => ({ ...f, [key]: value }))
     }
-
-  const galleryText = form.galleryPhotos.join('\n')
-  const setGallery = (text: string) => {
-    const lines = text
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean)
-    setForm((f) => ({ ...f, galleryPhotos: lines }))
-  }
 
   const handleSave = async () => {
     if (!supabase) return
@@ -173,8 +165,17 @@ export function AdminEditor({ onSignOut }: Props) {
           <Field label="Mensagem aos convidados">
             <textarea className={`${inputClass} min-h-[120px]`} value={form.message} onChange={(e) => set('message')(e.target.value)} />
           </Field>
-          <Field label="Fotos da galeria (uma URL por linha)">
-            <textarea className={`${inputClass} min-h-[100px] font-mono text-xs`} value={galleryText} onChange={(e) => setGallery(e.target.value)} />
+          <Field label="Galeria Momentos (upload ou URL)">
+            {supabase ? (
+              <GalleryPhotosField
+                supabase={supabase}
+                photos={form.galleryPhotos}
+                onChange={(urls) => setForm((f) => ({ ...f, galleryPhotos: urls }))}
+                inputClass={inputClass}
+              />
+            ) : (
+              <p className="text-sm text-stone-500">Configura o Supabase para usar upload de fotos.</p>
+            )}
           </Field>
         </fieldset>
 
