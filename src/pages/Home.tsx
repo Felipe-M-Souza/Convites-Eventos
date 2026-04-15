@@ -13,6 +13,32 @@ import { Footer } from '../components/Footer'
 import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
 
+function upsertMetaByName(name: string, content: string) {
+  let node = document.head.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null
+  if (!node) {
+    node = document.createElement('meta')
+    node.setAttribute('name', name)
+    document.head.appendChild(node)
+  }
+  node.setAttribute('content', content)
+}
+
+function upsertMetaByProperty(property: string, content: string) {
+  let node = document.head.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null
+  if (!node) {
+    node = document.createElement('meta')
+    node.setAttribute('property', property)
+    document.head.appendChild(node)
+  }
+  node.setAttribute('content', content)
+}
+
+function buildInviteDescription(message: string): string {
+  const text = message.trim().replace(/\s+/g, ' ')
+  if (!text) return 'Você recebeu um convite especial.'
+  return text.length > 170 ? `${text.slice(0, 167)}...` : text
+}
+
 export function Home() {
   const { data: eventData, status, inviteNotFound, inviteSlug } = useEventData()
   const [inviteUnlocked, setInviteUnlocked] = useState(false)
@@ -37,6 +63,26 @@ export function Home() {
     }
     return undefined
   }, [inviteUnlocked])
+
+  useEffect(() => {
+    if (isCmsConfigured && status !== 'ready') return
+    const title = `${eventData.coupleNames} | Convite digital`
+    const description = buildInviteDescription(eventData.message)
+    const image = eventData.coverImageUrl?.trim() || `${window.location.origin}/images/hero-couple.jpg`
+    const url = window.location.href
+
+    document.title = title
+    upsertMetaByName('description', description)
+    upsertMetaByProperty('og:title', title)
+    upsertMetaByProperty('og:description', description)
+    upsertMetaByProperty('og:image', image)
+    upsertMetaByProperty('og:url', url)
+    upsertMetaByProperty('og:type', 'website')
+    upsertMetaByName('twitter:card', 'summary_large_image')
+    upsertMetaByName('twitter:title', title)
+    upsertMetaByName('twitter:description', description)
+    upsertMetaByName('twitter:image', image)
+  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, status])
 
   if (isCmsConfigured && status === 'loading') {
     return (

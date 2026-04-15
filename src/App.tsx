@@ -31,6 +31,12 @@ function LegacyInviteRedirectRoute() {
   return <Navigate to={`/c/${encodeURIComponent(slug)}`} replace />
 }
 
+function ShareInviteRedirectRoute() {
+  const { slug } = useParams()
+  if (!slug) return <Navigate to="/" replace />
+  return <Navigate to={`/c/${encodeURIComponent(slug)}`} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -38,6 +44,7 @@ export default function App() {
         <Route path="/" element={<PortfolioPage />} />
         <Route path="/modelos" element={<ExamplesPage />} />
         <Route path="/c/:slug" element={<InviteRoute />} />
+        <Route path="/i/:slug" element={<ShareInviteRedirectRoute />} />
         <Route path="/admin" element={<AdminRoute />} />
         <Route path="/:slug" element={<LegacyInviteRedirectRoute />} />
       </Routes>

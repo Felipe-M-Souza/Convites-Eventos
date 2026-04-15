@@ -1,0 +1,16 @@
+RewriteEngine On
+
+# Atalhos de ficheiros
+RewriteRule ^favicon\.ico$ /favicon.svg [L]
+
+# Link de compartilhamento (WhatsApp/Instagram/etc): /i/slug
+# Entrega metatags OG/Twitter no servidor e redireciona para /c/slug.
+RewriteRule ^i/([a-z0-9-]{2,64})/?$ /preview.php?slug=$1 [L,QSA,NC]
+
+# Mantém ficheiros e pastas reais
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# SPA fallback
+RewriteRule ^ /index.html [L]
