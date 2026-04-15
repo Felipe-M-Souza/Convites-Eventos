@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { eventData, mergeInvitePayload, type EventData } from '../data/eventData'
+import { demoInvitesBySlug } from '../data/demoInvites'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 
 type Status = 'idle' | 'loading' | 'ready' | 'error' | 'not_found'
@@ -40,6 +41,16 @@ export function EventDataProvider({ inviteSlug, children }: ProviderProps) {
   const [inviteNotFound, setInviteNotFound] = useState(false)
 
   const load = useCallback(async () => {
+    const builtInDemo = demoInvitesBySlug[inviteSlug]
+    if (builtInDemo) {
+      setData(builtInDemo)
+      setSource('local')
+      setStatus('ready')
+      setInviteId(null)
+      setInviteNotFound(false)
+      return
+    }
+
     if (!isCmsConfigured || !supabase) {
       setData(eventData)
       setSource('local')

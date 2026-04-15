@@ -46,7 +46,7 @@ export function HeroSection({ data, onContinue }: Props) {
           className="mt-4 rounded-full border border-white/40 bg-white/10 px-8 py-3 text-sm font-medium uppercase tracking-widest text-white backdrop-blur-sm transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           whileTap={{ scale: reduce ? 1 : 0.97 }}
         >
-          Ver convite
+          {data.heroContinueLabel?.trim() || 'Ver convite'}
         </motion.button>
       </motion.div>
     </header>

@@ -4,6 +4,7 @@ import { eventData, type EventData } from '../data/eventData'
 import { useEventData } from '../contexts/EventDataContext'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
+import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
 import { removeGalleryFolderContents } from '../lib/galleryStorage'
 import { normalizeInviteSlug } from '../lib/inviteSlug'
 
@@ -399,6 +400,48 @@ export function AdminEditor({ onSignOut }: Props) {
               value={form.giftsIntro}
               onChange={(e) => set('giftsIntro')(e.target.value)}
             />
+          </Field>
+          <Field label="QR Code da lista de presentes (PNG)">
+            {supabase ? (
+              <GiftsQrCodeField
+                supabase={supabase}
+                storageFolder={inviteSlug}
+                value={form.giftsQrCodeImageUrl}
+                onChange={(url) => set('giftsQrCodeImageUrl')(url)}
+              />
+            ) : (
+              <input
+                className={inputClass}
+                placeholder="https://.../qrcode.png"
+                value={form.giftsQrCodeImageUrl}
+                onChange={(e) => set('giftsQrCodeImageUrl')(e.target.value)}
+              />
+            )}
+          </Field>
+          <Field label="QR Code — tamanho (px)">
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="range"
+                min={96}
+                max={320}
+                step={4}
+                value={Math.min(320, Math.max(96, Number(form.giftsQrCodeSizePx) || 180))}
+                onChange={(e) => set('giftsQrCodeSizePx')(Number(e.target.value))}
+                className="h-2 w-full flex-1 cursor-pointer appearance-none rounded-lg bg-stone-200 accent-[color:var(--color-gold)]"
+              />
+              <input
+                type="number"
+                min={96}
+                max={320}
+                step={4}
+                className={`${inputClass} w-28`}
+                value={Math.min(320, Math.max(96, Number(form.giftsQrCodeSizePx) || 180))}
+                onChange={(e) => {
+                  const n = Number(e.target.value)
+                  set('giftsQrCodeSizePx')(Number.isFinite(n) ? Math.min(320, Math.max(96, n)) : 180)
+                }}
+              />
+            </div>
           </Field>
         </fieldset>
 

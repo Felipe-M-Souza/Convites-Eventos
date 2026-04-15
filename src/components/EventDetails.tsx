@@ -18,7 +18,7 @@ export function EventDetails({ data }: Props) {
       transition={{ duration: 0.65 }}
     >
       <h2 className="text-center font-display text-3xl text-[color:var(--color-ink)] md:text-4xl">
-        Detalhes do evento
+        {data.eventDetailsHeading?.trim() || 'Detalhes do evento'}
       </h2>
       <dl className="mt-10 space-y-6 text-center md:text-left">
         <div className="rounded-2xl border border-stone-200/80 bg-white/70 p-6 shadow-sm">
@@ -42,7 +42,7 @@ export function EventDetails({ data }: Props) {
         </div>
         <div className="rounded-2xl border border-stone-200/80 bg-white/70 p-6 shadow-sm">
           <dt className="text-xs font-medium uppercase tracking-widest text-[color:var(--color-gold)]">
-            Traje
+            {data.dressCodeLabel?.trim() || 'Traje'}
           </dt>
           <dd className="mt-2 text-[color:var(--color-ink)]">{data.dressCode}</dd>
         </div>

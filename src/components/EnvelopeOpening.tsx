@@ -63,14 +63,14 @@ const sealGold = {
  * faixas laterais largas; object-cover + object-bottom preenche a largura e preserva
  * sobretudo a base (alianças). A partir de md volta contain para não cortar no desktop.
  */
-function FloralBackdrop() {
+function FloralBackdrop({ frameSrc }: { frameSrc: string }) {
   return (
     <div
       className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] px-2.5 py-2 sm:px-3 sm:py-3 md:p-6"
       aria-hidden
     >
       <img
-        src={OPENING_FRAME_SRC}
+        src={frameSrc}
         alt=""
         className="h-full w-full object-cover object-bottom md:object-contain md:object-center"
         decoding="async"
@@ -183,6 +183,9 @@ function TearingGoldSeal({ torn, reduce, mark }: TearingGoldSealProps) {
 type OpeningEnvelopeProps = {
   closedSrc: string
   openSrc: string
+  naturalWidth: number
+  naturalHeight: number
+  sealAnchorY: number
   showOpenArt: boolean
   cardOut: boolean
   reduce: boolean
@@ -193,6 +196,9 @@ type OpeningEnvelopeProps = {
 function OpeningEnvelope({
   closedSrc,
   openSrc,
+  naturalWidth,
+  naturalHeight,
+  sealAnchorY,
   showOpenArt,
   cardOut,
   reduce,
@@ -208,7 +214,7 @@ function OpeningEnvelope({
 
   const boxStyle = {
     width: `min(${envelopeVw}vw, 400px)`,
-    height: `min(min(42vh, 320px), calc(min(${envelopeVw}vw, 400px) * ${ENVELOPE_NATURAL_H} / ${ENVELOPE_NATURAL_W}))`,
+    height: `min(min(42vh, 320px), calc(min(${envelopeVw}vw, 400px) * ${naturalHeight} / ${naturalWidth}))`,
   }
 
   const imgShared =
@@ -261,7 +267,7 @@ function OpeningEnvelope({
         <div
           className="pointer-events-none absolute left-1/2 transition-opacity duration-200 ease-out"
           style={{
-            top: `${SEAL_ANCHOR_Y * 100}%`,
+            top: `${sealAnchorY * 100}%`,
             transform: 'translate(-50%, -50%)',
             opacity: showOpenArt ? 0 : 1,
           }}
@@ -276,10 +282,16 @@ function OpeningEnvelope({
 export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
   const reduce = useReducedMotion()
   const [phase, setPhase] = useState<OpeningPhase>('idle')
-
+  const frameSrc = data.openingFrameImageUrl?.trim() || OPENING_FRAME_SRC
   const envelopeSrc = data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
-  const envelopeOpenSrc =
-    data.openingEnvelopeOpenImageUrl?.trim() || '/images/envelope-open.png'
+  const envelopeOpenSrc = data.openingEnvelopeOpenImageUrl?.trim() || '/images/envelope-open.png'
+  const envelopeNaturalW = data.openingEnvelopeNaturalWidth || ENVELOPE_NATURAL_W
+  const envelopeNaturalH = data.openingEnvelopeNaturalHeight || ENVELOPE_NATURAL_H
+  const sealAnchorY =
+    typeof data.openingSealAnchorY === 'number' && Number.isFinite(data.openingSealAnchorY)
+      ? data.openingSealAnchorY
+      : SEAL_ANCHOR_Y
+  const previewTitle = data.openingPreviewTitle?.trim() || 'Convite especial'
 
   /** Pré-carrega o PNG aberto para o crossfade não “piscar”. */
   useEffect(() => {
@@ -340,7 +352,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
         transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
       }}
     >
-      <FloralBackdrop />
+      <FloralBackdrop frameSrc={frameSrc} />
 
       <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center justify-center gap-3 px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-4 sm:px-4 sm:py-5 md:max-w-none md:gap-8 md:px-5 md:py-10">
         <p className="shrink-0 px-1 text-center font-display text-base italic leading-snug text-rose-900/35 md:text-xl">
@@ -369,7 +381,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
               style={{ transformStyle: 'preserve-3d' }}
               aria-hidden={!cardOut}
             >
-              <p className="font-display text-lg italic text-rose-900/55">Save the Date</p>
+              <p className="font-display text-lg italic text-rose-900/55">{previewTitle}</p>
               <p className="mt-2 font-display text-xl font-semibold text-stone-800">
                 {data.coupleNames}
               </p>
@@ -384,6 +396,9 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
               <OpeningEnvelope
                 closedSrc={envelopeSrc}
                 openSrc={envelopeOpenSrc}
+                naturalWidth={envelopeNaturalW}
+                naturalHeight={envelopeNaturalH}
+                sealAnchorY={sealAnchorY}
                 showOpenArt={flapOpen}
                 cardOut={cardOut}
                 reduce={Boolean(reduce)}

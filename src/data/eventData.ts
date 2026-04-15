@@ -39,10 +39,35 @@ export const eventData = {
    * (ex.: «Maria & João» → «M & J»).
    */
   openingSealMark: '',
+  /**
+   * Moldura de fundo na abertura (PNG em `public/images/frames/`).
+   * Vazio = usa a moldura padrão do casamento.
+   */
+  openingFrameImageUrl: '',
   /** Imagem do envelope na abertura (ficheiro em `public/images/`). */
   openingEnvelopeImageUrl: '/images/envelope-burgundy.png',
   /** Envelope já aberto (aba para cima); mostrado após rasgar o selo. `public/images/`. */
   openingEnvelopeOpenImageUrl: '/images/envelope-open.png',
+  /**
+   * Proporção nativa do PNG do envelope (largura × altura), usada para calcular a caixa e o selo.
+   * O modelo antigo usa 1024×682; artes novas costumam ser 1536×1024.
+   */
+  openingEnvelopeNaturalWidth: 1024,
+  openingEnvelopeNaturalHeight: 682,
+  /** Posição vertical do selo (0–1), relativa à caixa do envelope fechado. */
+  openingSealAnchorY: 0.68,
+  /** Título curto no cartão que sobe após abrir o envelope. */
+  openingPreviewTitle: 'Convite especial',
+  /** Título da secção de detalhes (ex.: «Detalhes do evento»). */
+  eventDetailsHeading: 'Detalhes do evento',
+  /** Rótulo do campo de traje / vestimenta. */
+  dressCodeLabel: 'Traje',
+  /** Texto do botão do mapa. */
+  mapsButtonLabel: 'Ver no mapa',
+  /** Texto do botão de confirmação (RSVP). */
+  rsvpButtonLabel: 'Confirmar presença',
+  /** Texto do botão principal na hero após abrir o convite. */
+  heroContinueLabel: 'Ver convite',
   coupleNames: 'Maria & João',
   verse:
     'O amor é paciente, o amor é bondoso. — 1 Coríntios 13:4',
@@ -65,13 +90,20 @@ export const eventData = {
   /** Texto pré-preenchido no WhatsApp (acentos ok; o link é montado em código). */
   rsvpWhatsappMessage: 'Olá, confirmo minha presença no casamento!',
   giftsLink: 'https://www.example.com/lista-de-presentes',
+  /** Texto do terceiro botão de ação. */
+  giftsButtonLabel: 'Lista de presentes',
   /** Texto opcional acima do botão «Lista de presentes». Vazio = não mostra. */
   giftsIntro: '',
-  /** Fotos «Momentos» em `public/images/momentos/`. */
+  /** URL da imagem do QR Code da lista de presentes (PNG, opcional). */
+  giftsQrCodeImageUrl: '',
+  /** Tamanho exibido do QR Code em px (largura e altura). */
+  giftsQrCodeSizePx: 180,
+  /** Fotos da galeria (URLs públicas ou caminhos em `public/`). */
   galleryPhotos: [
-    '/images/momentos/momento-1.png',
-    '/images/momentos/momento-2.png',
-    '/images/momentos/momento-3.png',
+    'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1516589091380-5d8e87df6999?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
   ],
   /** URL de um arquivo de áudio em `public/audio/` (ex.: `/audio/velha-infancia.mp3`). */
   backgroundAudioUrl: '/audio/velha-infancia.mp3',

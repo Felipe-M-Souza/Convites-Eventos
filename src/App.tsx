@@ -1,16 +1,9 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useParams, useSearchParams } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useSearchParams, useParams } from 'react-router-dom'
 import { EventDataProvider } from './contexts/EventDataContext'
 import { Home } from './pages/Home'
+import { ExamplesPage } from './pages/ExamplesPage'
 import { PortfolioPage } from './pages/PortfolioPage'
-
-const AdminPanel = lazy(() => import('./pages/AdminPanel').then((m) => ({ default: m.AdminPanel })))
-
-const suspenseFallback = (
-  <div className="flex min-h-dvh items-center justify-center bg-[color:var(--color-cream)] text-stone-500">
-    A carregar…
-  </div>
-)
+import { AdminPanel } from './pages/AdminPanel'
 
 function InviteRoute() {
   const { slug } = useParams()
@@ -22,17 +15,20 @@ function InviteRoute() {
   )
 }
 
-function AdminRouteShell() {
+function AdminRoute() {
   const [searchParams] = useSearchParams()
-  const raw = searchParams.get('slug')?.trim()
-  const slug = raw && raw.length > 0 ? raw : 'default'
+  const slug = (searchParams.get('slug') ?? 'default').trim() || 'default'
   return (
-    <EventDataProvider inviteSlug={slug} key={slug}>
-      <Suspense fallback={suspenseFallback}>
-        <AdminPanel />
-      </Suspense>
+    <EventDataProvider inviteSlug={slug}>
+      <AdminPanel />
     </EventDataProvider>
   )
+}
+
+function LegacyInviteRedirectRoute() {
+  const { slug } = useParams()
+  if (!slug) return <Navigate to="/" replace />
+  return <Navigate to={`/c/${encodeURIComponent(slug)}`} replace />
 }
 
 export default function App() {
@@ -40,8 +36,10 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PortfolioPage />} />
+        <Route path="/modelos" element={<ExamplesPage />} />
         <Route path="/c/:slug" element={<InviteRoute />} />
-        <Route path="/admin" element={<AdminRouteShell />} />
+        <Route path="/admin" element={<AdminRoute />} />
+        <Route path="/:slug" element={<LegacyInviteRedirectRoute />} />
       </Routes>
     </BrowserRouter>
   )

@@ -45,7 +45,7 @@ export function CountdownTimer({ targetIso }: Props) {
           Contagem regressiva
         </h2>
         <p className="mt-2 text-sm text-[color:var(--color-ink-muted)]">
-          Falta pouco para o grande dia
+          Falta pouco para esse momento especial
         </p>
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {items.map((item) => (

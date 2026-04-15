@@ -23,7 +23,7 @@ export function PhotoGallery({ photos }: Props) {
         Momentos
       </h2>
       <p className="mx-auto mt-2 max-w-lg text-center text-sm text-[color:var(--color-ink-muted)]">
-        Alguns registros que aquecem o coração até o grande dia.
+        Alguns registros que ajudam a contar a historia desse momento.
       </p>
       <div className="mt-10 columns-2 gap-3 sm:columns-3 sm:gap-4">
         {photos.map((src, i) => {

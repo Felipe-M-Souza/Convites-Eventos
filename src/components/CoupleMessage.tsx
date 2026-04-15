@@ -18,7 +18,7 @@ export function CoupleMessage({ data }: Props) {
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
     >
       <p className="mb-4 font-display text-2xl text-[color:var(--color-gold)] md:text-3xl">
-        Uma mensagem do casal
+        Uma mensagem especial
       </p>
       <p className="text-base leading-relaxed text-[color:var(--color-ink-muted)] md:text-lg">
         {data.message}
