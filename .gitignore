@@ -29,3 +29,6 @@ dist-ssr
 # Temporários / IDE
 .tmp-*.png
 .cursor/
+.playwright-mcp/
+__pycache__/
+*.pyc

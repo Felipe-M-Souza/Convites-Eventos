@@ -1,32 +1,11 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { eventData, mergeInvitePayload, type EventData } from '../data/eventData'
 import { demoInvitesBySlug } from '../data/demoInvites'
 import { isCmsConfigured, supabase } from '../lib/supabase'
-
-type Status = 'idle' | 'loading' | 'ready' | 'error' | 'not_found'
-
-type EventDataContextValue = {
-  data: EventData
-  status: Status
-  refresh: () => Promise<void>
-  source: 'local' | 'supabase'
-  /** Slug do URL público /c/:slug */
-  inviteSlug: string
-  /** PK em invite_config (upsert admin, pasta no Storage) */
-  inviteId: string | null
-  /** Com Supabase configurado, não existe linha com este slug. */
-  inviteNotFound: boolean
-}
-
-const EventDataContext = createContext<EventDataContextValue | null>(null)
+import {
+  EventDataContext,
+  type EventDataLoadStatus,
+} from './eventDataContext'
 
 type ProviderProps = {
   inviteSlug: string
@@ -35,7 +14,7 @@ type ProviderProps = {
 
 export function EventDataProvider({ inviteSlug, children }: ProviderProps) {
   const [data, setData] = useState<EventData>(eventData)
-  const [status, setStatus] = useState<Status>('idle')
+  const [status, setStatus] = useState<EventDataLoadStatus>('idle')
   const [source, setSource] = useState<'local' | 'supabase'>('local')
   const [inviteId, setInviteId] = useState<string | null>(null)
   const [inviteNotFound, setInviteNotFound] = useState(false)
@@ -113,10 +92,4 @@ export function EventDataProvider({ inviteSlug, children }: ProviderProps) {
   )
 
   return <EventDataContext.Provider value={value}>{children}</EventDataContext.Provider>
-}
-
-export function useEventData(): EventDataContextValue {
-  const ctx = useContext(EventDataContext)
-  if (!ctx) throw new Error('useEventData deve ser usado dentro de EventDataProvider')
-  return ctx
 }

@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useSearchParams, useParams } from 'react-router-dom'
-import { EventDataProvider } from './contexts/EventDataContext'
+import { EventDataProvider } from './contexts/EventDataProvider'
 import { Home } from './pages/Home'
 import { ExamplesPage } from './pages/ExamplesPage'
 import { PortfolioPage } from './pages/PortfolioPage'

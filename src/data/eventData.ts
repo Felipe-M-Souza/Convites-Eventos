@@ -30,8 +30,8 @@ export function resolveSealMark(d: {
 }
 
 export const eventData = {
-  /** Texto discreto acima do envelope */
-  openingEyebrow: 'Convite de casamento',
+  /** Texto discreto acima do envelope (opcional; não é exibido na abertura atual) */
+  openingEyebrow: '',
   /** Texto de ajuda — o convite só abre ao clicar no selo */
   openingSealHint: 'Clique no selo para abrir o convite',
   /**
@@ -44,6 +44,18 @@ export const eventData = {
    * Vazio = usa a moldura padrão do casamento.
    */
   openingFrameImageUrl: '',
+  /**
+   * Cor atrás da moldura na abertura (faixas letterbox / transparência).
+   * Vazio = `var(--color-cream)`; use um cinza escuro em molduras escuras para não “clarear” o centro.
+   */
+  openingBackdropColor: '',
+  /**
+   * Espaço extra acima do bloco de abertura (envelope + textos de data/hora).
+   * Valor CSS (ex.: «clamp(1rem,4vh,2.5rem)» ou «32px»). Vazio = sem offset.
+   */
+  openingLayoutOffsetTop: '',
+  /** Margem só no envelope; o bloco de dicas/data compensa para não subir/descer junto. Vazio = sem. */
+  openingEnvelopeMarginTop: '',
   /** Imagem do envelope na abertura (ficheiro em `public/images/`). */
   openingEnvelopeImageUrl: '/images/envelope-burgundy.png',
   /** Envelope já aberto (aba para cima); mostrado após rasgar o selo. `public/images/`. */
@@ -54,8 +66,30 @@ export const eventData = {
    */
   openingEnvelopeNaturalWidth: 1024,
   openingEnvelopeNaturalHeight: 682,
-  /** Posição vertical do selo (0–1), relativa à caixa do envelope fechado. */
-  openingSealAnchorY: 0.68,
+  /**
+   * Dimensões nativas do PNG aberto quando **diferem** do fechado (ex.: fechado 1536×1024, aberto 1024×1024).
+   * null = assume iguais às do fechado. A caixa usa max(h/w) entre os dois para não cortar a arte aberta.
+   */
+  openingEnvelopeOpenNaturalWidth: null as number | null,
+  openingEnvelopeOpenNaturalHeight: null as number | null,
+  /** Posição vertical do selo (0–1), relativa à caixa do envelope fechado. Valores maiores descem o selo (ponta do aba). */
+  openingSealAnchorY: 0.8,
+  /** Posição horizontal do selo (0 = esquerda, 1 = direita). 0,5 = centro; ajuste se o PNG do envelope tiver arte descentrada (ex.: com zoom 1). */
+  openingSealAnchorX: 0.5,
+  /**
+   * Zoom na textura do envelope fechado/aberto (>1 aproxima e corta bordas).
+   * null = usa 1,24 (desktop) / 1,32 (mobile). Use 1 em artes que não devem ser cortadas.
+   */
+  openingEnvelopeTextureZoom: null as number | null,
+  /**
+   * Largura máxima (px) da caixa do envelope na abertura. null = 400.
+   * Em artes 3∶2 só fechado/aberto, aumentar também aumenta a altura (proporção fixa).
+   */
+  openingEnvelopeBoxWidthMaxPx: null as number | null,
+  /** Tecto em vh da altura da caixa do envelope. null = 42. */
+  openingEnvelopeBoxHeightVhCap: null as number | null,
+  /** Tecto em px da altura da caixa (ex.: PNG 1∶1). null = 440. */
+  openingEnvelopeBoxMaxHeightPx: null as number | null,
   /** Título curto no cartão que sobe após abrir o envelope. */
   openingPreviewTitle: 'Convite especial',
   /** Título da secção de detalhes (ex.: «Detalhes do evento»). */

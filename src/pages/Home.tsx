@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEventData } from '../contexts/EventDataContext'
+import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured } from '../lib/supabase'
 import { HeroSection } from '../components/HeroSection'
 import { CoupleMessage } from '../components/CoupleMessage'

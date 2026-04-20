@@ -14,9 +14,11 @@ const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 
 /**
  * Centro vertical do selo (% da altura da caixa do envelope fechado).
- * Ajuste se mudar o PNG fechado ou os valores ENVELOPE_TEXTURE_ZOOM_*.
+ * ~0,8 aproxima o selo à ponta do aba nos PNGs 1536×1024; ajuste por convite em `openingSealAnchorY`.
  */
-const SEAL_ANCHOR_Y = 0.68
+const SEAL_ANCHOR_Y = 0.8
+/** Centro horizontal do selo (0–1). */
+const SEAL_ANCHOR_X = 0.5
 
 /** Pausa com o envelope aberto (arte estática) antes do cartão subir (ms). */
 const OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS = 720
@@ -63,10 +65,21 @@ const sealGold = {
  * faixas laterais largas; object-cover + object-bottom preenche a largura e preserva
  * sobretudo a base (alianças). A partir de md volta contain para não cortar no desktop.
  */
-function FloralBackdrop({ frameSrc }: { frameSrc: string }) {
+function FloralBackdrop({
+  frameSrc,
+  backdropColor,
+}: {
+  frameSrc: string
+  /** Vazio = creme padrão; ex. `#141416` para molduras escuras. */
+  backdropColor?: string
+}) {
+  const bg =
+    backdropColor?.trim() ||
+    'var(--color-cream)'
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden bg-[color:var(--color-cream)] px-2.5 py-2 sm:px-3 sm:py-3 md:p-6"
+      className="pointer-events-none absolute inset-0 overflow-hidden px-2.5 py-2 sm:px-3 sm:py-3 md:p-6"
+      style={{ backgroundColor: bg }}
       aria-hidden
     >
       <img
@@ -185,11 +198,25 @@ type OpeningEnvelopeProps = {
   openSrc: string
   naturalWidth: number
   naturalHeight: number
+  /** Se o PNG aberto tiver outra proporção, define-o (ambos > 0). */
+  openNaturalWidth?: number
+  openNaturalHeight?: number
+  sealAnchorX: number
   sealAnchorY: number
+  /** null/omitido: zoom por viewport; número (ex.: 1) evita cortar bordas em PNGs sensíveis. */
+  textureZoomOverride: number | null | undefined
+  /** Moldura escura: mistura multiplicativa suavisa halos claros residuais no PNG. */
+  multiplyBlend: boolean
   showOpenArt: boolean
   cardOut: boolean
   reduce: boolean
   children: ReactNode
+  /** Omite = 400px — alinhar ao `openingEnvelopeBoxWidthMaxPx` do convite. */
+  boxWidthMaxPx?: number
+  /** Omite = 42 — `openingEnvelopeBoxHeightVhCap`. */
+  boxHeightVhCap?: number
+  /** Omite = 440 — `openingEnvelopeBoxMaxHeightPx`. */
+  boxMaxHeightPx?: number
 }
 
 /** Envelope fechado (uma textura) → após o selo, crossfade para PNG do envelope aberto. */
@@ -198,33 +225,76 @@ function OpeningEnvelope({
   openSrc,
   naturalWidth,
   naturalHeight,
+  openNaturalWidth,
+  openNaturalHeight,
+  sealAnchorX,
   sealAnchorY,
+  textureZoomOverride,
+  multiplyBlend,
   showOpenArt,
   cardOut,
   reduce,
   children,
+  boxWidthMaxPx = 400,
+  boxHeightVhCap = 42,
+  boxMaxHeightPx = 440,
 }: OpeningEnvelopeProps) {
   const compact = useSyncExternalStore(
     subscribeOpeningCompactViewport,
     isOpeningCompactViewport,
     () => false,
   )
-  const textureZoom = compact ? ENVELOPE_TEXTURE_ZOOM_COMPACT : ENVELOPE_TEXTURE_ZOOM_DESKTOP
+  const textureZoom =
+    typeof textureZoomOverride === 'number' && Number.isFinite(textureZoomOverride) && textureZoomOverride > 0
+      ? textureZoomOverride
+      : compact
+        ? ENVELOPE_TEXTURE_ZOOM_COMPACT
+        : ENVELOPE_TEXTURE_ZOOM_DESKTOP
   const envelopeVw = compact ? ENVELOPE_WIDTH_VW_COMPACT : ENVELOPE_WIDTH_VW_DESKTOP
 
+  const rClosed = naturalHeight / naturalWidth
+  const rOpen =
+    typeof openNaturalWidth === 'number' &&
+    typeof openNaturalHeight === 'number' &&
+    Number.isFinite(openNaturalWidth) &&
+    Number.isFinite(openNaturalHeight) &&
+    openNaturalWidth > 0 &&
+    openNaturalHeight > 0
+      ? openNaturalHeight / openNaturalWidth
+      : rClosed
+  /** Inclui a arte aberta mais alta (ex. aba) quando os PNGs têm proporções diferentes. */
+  const boxHeightOverWidth = Math.max(rClosed, rOpen)
+
+  const hasDistinctOpenDims =
+    typeof openNaturalWidth === 'number' &&
+    typeof openNaturalHeight === 'number' &&
+    Number.isFinite(openNaturalWidth) &&
+    Number.isFinite(openNaturalHeight) &&
+    openNaturalWidth > 0 &&
+    openNaturalHeight > 0
+  /** Fechado 3:2 + aberto 1:1: caixa quadrada com cover cortava as laterais do fechado → contain. */
+  const useObjectContain = hasDistinctOpenDims && Math.abs(rOpen - rClosed) > 0.001
+
+  const wMax = boxWidthMaxPx > 0 ? boxWidthMaxPx : 400
+  const vhCap = boxHeightVhCap > 0 ? boxHeightVhCap : 42
+  const pxCap = boxMaxHeightPx > 0 ? boxMaxHeightPx : 440
+
   const boxStyle = {
-    width: `min(${envelopeVw}vw, 400px)`,
-    height: `min(min(42vh, 320px), calc(min(${envelopeVw}vw, 400px) * ${naturalHeight} / ${naturalWidth}))`,
+    width: `min(${envelopeVw}vw, ${wMax}px)`,
+    /** Tecto vh/px: artes 1∶1; altura efetiva também limitada por largura × proporção. */
+    height: `min(min(${vhCap}vh, ${pxCap}px), calc(min(${envelopeVw}vw, ${wMax}px) * ${boxHeightOverWidth}))`,
   }
 
-  const imgShared =
-    'pointer-events-none absolute left-1/2 top-0 block h-full max-w-none select-none bg-transparent object-cover object-center'
+  const imgShared = useObjectContain
+    ? 'pointer-events-none absolute left-1/2 top-0 block h-full w-full max-w-full select-none bg-transparent object-contain object-center'
+    : 'pointer-events-none absolute left-1/2 top-0 block h-full max-w-none select-none bg-transparent object-cover object-center'
 
   const imgZoomStyle = {
-    width: 'auto' as const,
-    minWidth: '100%',
+    width: (useObjectContain ? '100%' : 'auto') as '100%' | 'auto',
+    minWidth: useObjectContain ? ('auto' as const) : '100%',
     transform: `translateX(-50%) scale(${textureZoom})`,
     transformOrigin: 'top center' as const,
+    ...(multiplyBlend ? { mixBlendMode: 'multiply' as const } : {}),
   }
 
   const fade = reduce ? 0.16 : ENVELOPE_CROSSFADE_S
@@ -237,14 +307,14 @@ function OpeningEnvelope({
       animate={{ opacity: cardOut ? 0 : 1 }}
       transition={{ duration: reduce ? 0.2 : 0.48, ease: 'easeOut' }}
     >
-      <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden bg-transparent">
+      <div className="pointer-events-none absolute inset-0 z-[1] isolate overflow-hidden bg-transparent">
         <motion.img
           src={closedSrc}
           alt=""
           draggable={false}
           decoding="async"
           fetchPriority="high"
-          className={`${imgShared} drop-shadow-[0_14px_28px_rgba(50,10,20,0.2)]`}
+          className={imgShared}
           style={imgZoomStyle}
           initial={false}
           animate={{ opacity: showOpenArt ? 0 : 1 }}
@@ -255,7 +325,7 @@ function OpeningEnvelope({
           alt=""
           draggable={false}
           decoding="async"
-          className={`${imgShared} drop-shadow-[0_14px_28px_rgba(50,10,20,0.2)]`}
+          className={imgShared}
           style={imgZoomStyle}
           initial={false}
           animate={{ opacity: showOpenArt ? 1 : 0 }}
@@ -264,9 +334,11 @@ function OpeningEnvelope({
       </div>
 
       <div className="pointer-events-none absolute inset-0 z-[30]">
+        {/* Selo: (sealAnchorX, sealAnchorY) em % da caixa; translate(-50%,-50%) no centro do selo. */}
         <div
-          className="pointer-events-none absolute left-1/2 transition-opacity duration-200 ease-out"
+          className="pointer-events-none absolute transition-opacity duration-200 ease-out"
           style={{
+            left: `${sealAnchorX * 100}%`,
             top: `${sealAnchorY * 100}%`,
             transform: 'translate(-50%, -50%)',
             opacity: showOpenArt ? 0 : 1,
@@ -283,6 +355,10 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
   const reduce = useReducedMotion()
   const [phase, setPhase] = useState<OpeningPhase>('idle')
   const frameSrc = data.openingFrameImageUrl?.trim() || OPENING_FRAME_SRC
+  const backdropColor = data.openingBackdropColor?.trim()
+  const darkOpeningBackdrop = Boolean(backdropColor)
+  const layoutOffsetTop = data.openingLayoutOffsetTop?.trim()
+  const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim()
   const envelopeSrc = data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
   const envelopeOpenSrc = data.openingEnvelopeOpenImageUrl?.trim() || '/images/envelope-open.png'
   const envelopeNaturalW = data.openingEnvelopeNaturalWidth || ENVELOPE_NATURAL_W
@@ -291,7 +367,31 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
     typeof data.openingSealAnchorY === 'number' && Number.isFinite(data.openingSealAnchorY)
       ? data.openingSealAnchorY
       : SEAL_ANCHOR_Y
+  const sealAnchorXRaw =
+    typeof data.openingSealAnchorX === 'number' && Number.isFinite(data.openingSealAnchorX)
+      ? data.openingSealAnchorX
+      : SEAL_ANCHOR_X
+  const sealAnchorX = Math.min(0.92, Math.max(0.08, sealAnchorXRaw))
   const previewTitle = data.openingPreviewTitle?.trim() || 'Convite especial'
+
+  const envBoxWMax =
+    typeof data.openingEnvelopeBoxWidthMaxPx === 'number' &&
+    Number.isFinite(data.openingEnvelopeBoxWidthMaxPx) &&
+    data.openingEnvelopeBoxWidthMaxPx > 0
+      ? data.openingEnvelopeBoxWidthMaxPx
+      : 400
+  const envBoxVhCap =
+    typeof data.openingEnvelopeBoxHeightVhCap === 'number' &&
+    Number.isFinite(data.openingEnvelopeBoxHeightVhCap) &&
+    data.openingEnvelopeBoxHeightVhCap > 0
+      ? data.openingEnvelopeBoxHeightVhCap
+      : 42
+  const envBoxPxCap =
+    typeof data.openingEnvelopeBoxMaxHeightPx === 'number' &&
+    Number.isFinite(data.openingEnvelopeBoxMaxHeightPx) &&
+    data.openingEnvelopeBoxMaxHeightPx > 0
+      ? data.openingEnvelopeBoxMaxHeightPx
+      : 440
 
   /** Pré-carrega o PNG aberto para o crossfade não “piscar”. */
   useEffect(() => {
@@ -352,17 +452,22 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
         transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
       }}
     >
-      <FloralBackdrop frameSrc={frameSrc} />
+      <FloralBackdrop frameSrc={frameSrc} backdropColor={backdropColor} />
 
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center justify-center gap-3 px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-4 sm:px-4 sm:py-5 md:max-w-none md:gap-8 md:px-5 md:py-10">
-        <p className="shrink-0 px-1 text-center font-display text-base italic leading-snug text-rose-900/35 md:text-xl">
-          {data.openingEyebrow}
-        </p>
-
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center justify-center px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:py-5 md:max-w-none md:px-5 md:py-10">
+        <div
+          className="flex w-full max-w-full flex-col items-center justify-center gap-3 sm:gap-4 md:gap-8"
+          style={layoutOffsetTop ? { marginTop: layoutOffsetTop } : undefined}
+        >
         <div className="flex w-full shrink-0 flex-col items-center justify-center overflow-visible [perspective:1400px]">
           <div
-            className="relative mx-auto w-[min(84vw,420px)] min-w-0 transform-gpu md:w-[min(94vw,420px)]"
-            style={{ transformStyle: 'preserve-3d' }}
+            className="relative mx-auto min-w-0 w-[min(84vw,var(--opening-env-w-max))] transform-gpu md:w-[min(94vw,var(--opening-env-w-max))]"
+            style={
+              {
+                ['--opening-env-w-max' as string]: `${envBoxWMax}px`,
+                transformStyle: 'preserve-3d',
+              } as React.CSSProperties
+            }
           >
             <motion.div
               className="pointer-events-none absolute left-1/2 top-[50%] z-[5] w-[min(78%,300px)] max-w-[300px] -translate-x-1/2 rounded-sm border border-rose-200/80 bg-[color:var(--color-blush)] px-4 py-5 text-center shadow-md"
@@ -392,13 +497,39 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
               </p>
             </motion.div>
 
-            <div className="relative z-[20] mx-auto flex w-full max-w-[400px] justify-center">
+            <div
+              className="relative z-[20] mx-auto flex w-full justify-center"
+              style={{
+                maxWidth: envBoxWMax,
+                ...(envelopeMarginTopOnly ? { marginTop: envelopeMarginTopOnly } : {}),
+              }}
+            >
               <OpeningEnvelope
                 closedSrc={envelopeSrc}
                 openSrc={envelopeOpenSrc}
                 naturalWidth={envelopeNaturalW}
                 naturalHeight={envelopeNaturalH}
+                openNaturalWidth={
+                  typeof data.openingEnvelopeOpenNaturalWidth === 'number' &&
+                  Number.isFinite(data.openingEnvelopeOpenNaturalWidth) &&
+                  data.openingEnvelopeOpenNaturalWidth > 0
+                    ? data.openingEnvelopeOpenNaturalWidth
+                    : undefined
+                }
+                openNaturalHeight={
+                  typeof data.openingEnvelopeOpenNaturalHeight === 'number' &&
+                  Number.isFinite(data.openingEnvelopeOpenNaturalHeight) &&
+                  data.openingEnvelopeOpenNaturalHeight > 0
+                    ? data.openingEnvelopeOpenNaturalHeight
+                    : undefined
+                }
+                sealAnchorX={sealAnchorX}
                 sealAnchorY={sealAnchorY}
+                textureZoomOverride={data.openingEnvelopeTextureZoom}
+                boxWidthMaxPx={envBoxWMax}
+                boxHeightVhCap={envBoxVhCap}
+                boxMaxHeightPx={envBoxPxCap}
+                multiplyBlend={Boolean(backdropColor)}
                 showOpenArt={flapOpen}
                 cardOut={cardOut}
                 reduce={Boolean(reduce)}
@@ -424,35 +555,71 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
           </div>
         </div>
 
-        <div className="mb-7 flex w-full max-w-[min(94vw,320px)] shrink-0 flex-col items-center space-y-2 px-1 text-center [&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)] sm:max-w-[min(90vw,300px)] md:mb-9 md:max-w-[300px]">
+        <div
+          className={`mb-7 flex w-full max-w-[min(94vw,320px)] shrink-0 flex-col items-center space-y-2 px-1 text-center sm:max-w-[min(90vw,300px)] md:mb-9 md:max-w-[300px] ${
+            darkOpeningBackdrop
+              ? '[&_p]:[text-shadow:0_1px_14px_rgba(0,0,0,0.88),0_0_20px_rgba(0,0,0,0.55)]'
+              : '[&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)]'
+          }`}
+          style={
+            envelopeMarginTopOnly
+              ? { marginTop: `calc(-1 * (${envelopeMarginTopOnly}))` }
+              : undefined
+          }
+        >
           <p
             className={`text-[11px] uppercase tracking-[0.3em] transition-opacity duration-300 ${
-              inProgress ? 'text-rose-900/15' : 'text-rose-900/40'
+              darkOpeningBackdrop
+                ? inProgress
+                  ? 'text-red-500/30'
+                  : 'text-red-500/95'
+                : inProgress
+                  ? 'text-rose-900/15'
+                  : 'text-rose-900/40'
             }`}
           >
             {data.openingSealHint}
           </p>
           <p
             className={`font-display text-sm tracking-wide transition-opacity duration-300 ${
-              inProgress ? 'text-rose-900/20' : 'text-rose-900/45'
+              darkOpeningBackdrop
+                ? inProgress
+                  ? 'text-red-400/35'
+                  : 'text-red-400'
+                : inProgress
+                  ? 'text-rose-900/20'
+                  : 'text-rose-900/45'
             }`}
           >
             {data.weddingDateLabel}
           </p>
           <p
             className={`font-display text-xs leading-snug transition-opacity duration-300 ${
-              inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
+              darkOpeningBackdrop
+                ? inProgress
+                  ? 'text-red-400/30'
+                  : 'text-red-400/95'
+                : inProgress
+                  ? 'text-rose-900/18'
+                  : 'text-rose-900/40'
             }`}
           >
             {data.venue}
           </p>
           <p
             className={`-translate-y-1 font-display text-xs transition-opacity duration-300 md:-translate-y-1.5 ${
-              inProgress ? 'text-rose-900/18' : 'text-rose-900/40'
+              darkOpeningBackdrop
+                ? inProgress
+                  ? 'text-red-300/30'
+                  : 'text-red-300'
+                : inProgress
+                  ? 'text-rose-900/18'
+                  : 'text-rose-900/40'
             }`}
           >
             {data.time}
           </p>
+        </div>
         </div>
       </div>
     </motion.div>

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { eventData, type EventData } from '../data/eventData'
-import { useEventData } from '../contexts/EventDataContext'
+import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
 import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
@@ -301,14 +301,65 @@ export function AdminEditor({ onSignOut }: Props) {
       <div className="space-y-10">
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Abertura (envelope)</legend>
-          <Field label="Texto acima do envelope">
-            <input className={inputClass} value={form.openingEyebrow} onChange={(e) => set('openingEyebrow')(e.target.value)} />
-          </Field>
           <Field label="Texto de ajuda (selo)">
             <input className={inputClass} value={form.openingSealHint} onChange={(e) => set('openingSealHint')(e.target.value)} />
           </Field>
           <Field label="Lacre manual (vazio = iniciais dos nomes)">
             <input className={inputClass} value={form.openingSealMark} onChange={(e) => set('openingSealMark')(e.target.value)} />
+          </Field>
+          <Field label="Selo — posição vertical (0 = topo, 1 = base; ~0,8 = ponta do aba)">
+            <input
+              type="number"
+              className={inputClass}
+              min={0.5}
+              max={0.95}
+              step={0.01}
+              value={form.openingSealAnchorY}
+              onChange={(e) => {
+                const v = Number(e.target.value)
+                set('openingSealAnchorY')(
+                  Number.isFinite(v) ? Math.min(0.95, Math.max(0.5, v)) : form.openingSealAnchorY,
+                )
+              }}
+            />
+          </Field>
+          <Field label="Selo — posição horizontal (0 = esquerda, 1 = direita; 0,5 = centro)">
+            <input
+              type="number"
+              className={inputClass}
+              min={0.08}
+              max={0.92}
+              step={0.01}
+              value={form.openingSealAnchorX}
+              onChange={(e) => {
+                const v = Number(e.target.value)
+                set('openingSealAnchorX')(
+                  Number.isFinite(v) ? Math.min(0.92, Math.max(0.08, v)) : form.openingSealAnchorX,
+                )
+              }}
+            />
+          </Field>
+          <Field label="Envelope — zoom da imagem (vazio = automático; 1 = sem zoom extra, evita cortar bordas)">
+            <input
+              type="number"
+              className={inputClass}
+              min={0.85}
+              max={1.5}
+              step={0.05}
+              placeholder="Automático"
+              value={form.openingEnvelopeTextureZoom ?? ''}
+              onChange={(e) => {
+                const raw = e.target.value.trim()
+                if (raw === '') {
+                  set('openingEnvelopeTextureZoom')(null)
+                  return
+                }
+                const v = Number(raw)
+                if (Number.isFinite(v) && v > 0) {
+                  set('openingEnvelopeTextureZoom')(Math.min(1.5, Math.max(0.85, v)))
+                }
+              }}
+            />
           </Field>
           <Field label="URL imagem envelope fechado">
             <input className={inputClass} value={form.openingEnvelopeImageUrl} onChange={(e) => set('openingEnvelopeImageUrl')(e.target.value)} />

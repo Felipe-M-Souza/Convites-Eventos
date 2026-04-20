@@ -1,4 +1,7 @@
+# Convite SPA (Vite) + Apache. Em subpasta, ajuste RewriteBase (ex.: /clientes/convite/).
+<IfModule mod_rewrite.c>
 RewriteEngine On
+RewriteBase /
 
 # Atalhos de ficheiros
 RewriteRule ^favicon\.ico$ /favicon.svg [L]
@@ -14,3 +17,4 @@ RewriteRule ^ - [L]
 
 # SPA fallback
 RewriteRule ^ /index.html [L]
+</IfModule>
