@@ -5,6 +5,8 @@ import { Home } from './pages/Home'
 import { ExamplesPage } from './pages/ExamplesPage'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { AdminPanel } from './pages/AdminPanel'
+import { OwnerPanel } from './pages/OwnerPanel'
+import { OwnerClaimPage } from './pages/OwnerClaimPage'
 import { ServiceLandingPage } from './pages/ServiceLandingPage'
 import { serviceLandingPagesBySlug } from './data/serviceLandingPages'
 import { initAnalytics, trackPageView } from './lib/analytics'
@@ -52,7 +54,7 @@ function AnalyticsListener() {
 
   useEffect(() => {
     initAnalytics()
-    if (location.pathname.startsWith('/admin')) return
+    if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/owner')) return
     trackPageView(`${location.pathname}${location.search}`, document.title)
   }, [location.pathname, location.search])
 
@@ -70,6 +72,8 @@ export default function App() {
         <Route path="/c/:slug" element={<InviteRoute />} />
         <Route path="/i/:slug" element={<ShareInviteRedirectRoute />} />
         <Route path="/admin" element={<AdminRoute />} />
+        <Route path="/owner" element={<OwnerPanel />} />
+        <Route path="/owner/claim" element={<OwnerClaimPage />} />
         <Route path="/:slug" element={<LegacyInviteRedirectRoute />} />
       </Routes>
     </BrowserRouter>

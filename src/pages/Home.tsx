@@ -9,6 +9,7 @@ import { CountdownTimer } from '../components/CountdownTimer'
 import { EventDetails } from '../components/EventDetails'
 import { ActionButtons } from '../components/ActionButtons'
 import { PhotoGallery } from '../components/PhotoGallery'
+import { GuestUploadsSection } from '../components/GuestUploadsSection'
 import { Footer } from '../components/Footer'
 import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
@@ -125,6 +126,12 @@ export function Home() {
               <EventDetails data={eventData} />
               <ActionButtons data={eventData} />
               <PhotoGallery photos={eventData.galleryPhotos} />
+              <GuestUploadsSection
+                inviteSlug={inviteSlug}
+                enabled={Boolean(eventData.guestUploadsEnabled)}
+                title={eventData.guestUploadsTitle}
+                description={eventData.guestUploadsDescription}
+              />
             </main>
             <Footer data={eventData} />
           </motion.div>

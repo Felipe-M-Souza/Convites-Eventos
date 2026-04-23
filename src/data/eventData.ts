@@ -144,6 +144,13 @@ export const eventData = {
     'https://images.unsplash.com/photo-1516589091380-5d8e87df6999?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
   ],
+  /** Ativa a secção pública para envio de fotos e vídeos pelos convidados. */
+  guestUploadsEnabled: false,
+  /** Título da secção pública de uploads. */
+  guestUploadsTitle: 'Compartilhe suas fotos e vídeos do evento',
+  /** Texto de apoio da secção pública de uploads. */
+  guestUploadsDescription:
+    'Envie um registro deste momento especial. O conteúdo será publicado no convite após aprovação do responsável.',
   /** URL de um arquivo de áudio em `public/audio/` (ex.: `/audio/velha-infancia.mp3`). */
   backgroundAudioUrl: '/audio/velha-infancia.mp3',
   footerThanks: 'Obrigado por fazer parte da nossa história.',

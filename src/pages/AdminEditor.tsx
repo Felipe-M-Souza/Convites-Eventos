@@ -5,7 +5,9 @@ import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
 import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
+import { OwnerAccessField } from '../components/admin/OwnerAccessField'
 import { removeGalleryFolderContents } from '../lib/galleryStorage'
+import { removeGuestUploadFolderContents } from '../lib/guestUploads'
 import { normalizeInviteSlug } from '../lib/inviteSlug'
 
 type Props = {
@@ -138,6 +140,11 @@ export function AdminEditor({ onSignOut }: Props) {
       await removeGalleryFolderContents(supabase, inviteSlug)
     } catch {
       /* ficheiros no Storage podem já estar vazios ou política diferente */
+    }
+    try {
+      await removeGuestUploadFolderContents(supabase, inviteSlug)
+    } catch {
+      /* bucket de uploads de convidados pode já estar vazio */
     }
     navigate(`/admin?slug=${encodeURIComponent(next.slug)}`)
   }
@@ -443,7 +450,39 @@ export function AdminEditor({ onSignOut }: Props) {
               <p className="text-sm text-stone-500">Configura o Supabase para usar upload de fotos.</p>
             )}
           </Field>
+          <Field label="Ativar uploads de convidados">
+            <label className="inline-flex items-center gap-3 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={form.guestUploadsEnabled}
+                onChange={(e) => set('guestUploadsEnabled')(e.target.checked)}
+                className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+              />
+              Permitir que convidados enviem fotos e vídeos para aprovação
+            </label>
+          </Field>
+          <Field label="Uploads de convidados — título da secção">
+            <input
+              className={inputClass}
+              value={form.guestUploadsTitle}
+              onChange={(e) => set('guestUploadsTitle')(e.target.value)}
+            />
+          </Field>
+          <Field label="Uploads de convidados — descrição">
+            <textarea
+              className={`${inputClass} min-h-[88px]`}
+              value={form.guestUploadsDescription}
+              onChange={(e) => set('guestUploadsDescription')(e.target.value)}
+            />
+          </Field>
         </fieldset>
+
+        {supabase ? (
+          <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
+            <legend className="px-1 font-display text-lg text-stone-800">Dono do convite e uploads</legend>
+            <OwnerAccessField supabase={supabase} inviteSlug={inviteSlug} inputClass={inputClass} />
+          </fieldset>
+        ) : null}
 
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Links</legend>

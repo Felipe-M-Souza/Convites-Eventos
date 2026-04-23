@@ -2,27 +2,63 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { AdminEditor } from './AdminEditor'
+import { bootstrapCurrentUserAsFirstAdmin, fetchCurrentAppRole, hasAnyAdminAccount, type AppRole } from '../lib/appRoles'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 
 export function AdminPanel() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
+  const [role, setRole] = useState<AppRole | null | undefined>(undefined)
+  const [hasAdmin, setHasAdmin] = useState<boolean | undefined>(undefined)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState<string | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
+  const [bootstrapLoading, setBootstrapLoading] = useState(false)
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!supabase) {
       setSession(null)
+      setRole(null)
       return
     }
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s ?? null)
+    const client = supabase
+
+    const loadAccess = async (nextSession: Session | null) => {
+      setSession(nextSession)
+      setBootstrapError(null)
+
+      if (!nextSession?.user.id) {
+        setRole(null)
+        setHasAdmin(undefined)
+        return
+      }
+
+      const [nextRole, nextHasAdmin] = await Promise.all([
+        fetchCurrentAppRole(client, nextSession.user.id),
+        hasAnyAdminAccount(client),
+      ])
+
+      setRole(nextRole)
+      setHasAdmin(nextHasAdmin)
+    }
+
+    client.auth.getSession().then(({ data: { session: s } }) => {
+      void loadAccess(s ?? null).catch((error) => {
+        setBootstrapError(error instanceof Error ? error.message : 'Não foi possível validar o acesso administrativo.')
+        setRole(null)
+        setHasAdmin(undefined)
+      })
     })
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s ?? null)
+    } = client.auth.onAuthStateChange((_event, s) => {
+      void loadAccess(s ?? null).catch((error) => {
+        setBootstrapError(error instanceof Error ? error.message : 'Não foi possível validar o acesso administrativo.')
+        setRole(null)
+        setHasAdmin(undefined)
+      })
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -44,6 +80,23 @@ export function AdminPanel() {
   const handleSignOut = async () => {
     if (!supabase) return
     await supabase.auth.signOut()
+  }
+
+  const handleBootstrapAdmin = async () => {
+    if (!supabase || !session?.user.id) return
+    const client = supabase
+    setBootstrapLoading(true)
+    setBootstrapError(null)
+
+    try {
+      await bootstrapCurrentUserAsFirstAdmin(client, session.user.id)
+      setRole('admin')
+      setHasAdmin(true)
+    } catch (error) {
+      setBootstrapError(error instanceof Error ? error.message : 'Não foi possível promover esta conta para admin.')
+    } finally {
+      setBootstrapLoading(false)
+    }
   }
 
   if (!isCmsConfigured) {
@@ -70,7 +123,7 @@ export function AdminPanel() {
     )
   }
 
-  if (session === undefined) {
+  if (session === undefined || (session && (role === undefined || hasAdmin === undefined))) {
     return (
       <div className="flex min-h-dvh items-center justify-center text-stone-500">
         A carregar sessão…
@@ -83,7 +136,7 @@ export function AdminPanel() {
       <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4">
         <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
           <h1 className="font-display text-2xl font-semibold text-stone-800">Entrar</h1>
-          <p className="mt-2 text-sm text-stone-500">Utilizador criado no Supabase (Auth → Users).</p>
+          <p className="mt-2 text-sm text-stone-500">Entre com uma conta administradora do Supabase.</p>
           <form className="mt-8 space-y-4" onSubmit={(e) => void handleLogin(e)}>
             <label className="block">
               <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">Email</span>
@@ -119,6 +172,71 @@ export function AdminPanel() {
           <Link to="/" className="mt-8 block text-center text-sm text-stone-500 underline hover:text-stone-700">
             Página inicial
           </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!hasAdmin) {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4">
+        <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
+          <h1 className="font-display text-2xl font-semibold text-stone-800">Ativar administração</h1>
+          <p className="mt-3 text-sm leading-relaxed text-stone-600">
+            Ainda não existe nenhum administrador cadastrado no sistema. Se esta for a sua conta principal, promova-a
+            agora para liberar o painel global.
+          </p>
+          <div className="mt-4 rounded-xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
+            Conta atual: <strong className="font-semibold text-stone-800">{session.user.email}</strong>
+          </div>
+          {bootstrapError ? <p className="mt-4 text-sm text-red-600">{bootstrapError}</p> : null}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={bootstrapLoading}
+              onClick={() => void handleBootstrapAdmin()}
+              className="rounded-full bg-[color:var(--color-gold)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {bootstrapLoading ? 'Ativando…' : 'Tornar esta conta administradora'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-medium text-stone-700"
+            >
+              Sair
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (role !== 'admin') {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4">
+        <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
+          <h1 className="font-display text-2xl font-semibold text-stone-800">Acesso negado</h1>
+          <p className="mt-3 text-sm leading-relaxed text-stone-600">
+            Esta conta não possui permissão de administrador global. Para aprovar uploads de um convite específico, use a
+            área <code className="rounded bg-stone-100 px-1">/owner</code>.
+          </p>
+          {bootstrapError ? <p className="mt-4 text-sm text-red-600">{bootstrapError}</p> : null}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              to="/owner"
+              className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-medium text-stone-700"
+            >
+              Ir para /owner
+            </Link>
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              className="rounded-full bg-[color:var(--color-gold)] px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </div>
     )
