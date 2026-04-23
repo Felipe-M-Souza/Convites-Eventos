@@ -102,6 +102,11 @@ export const eventData = {
   rsvpButtonLabel: 'Confirmar presença',
   /** Texto do botão principal na hero após abrir o convite. */
   heroContinueLabel: 'Ver convite',
+  /** SEO opcional para convites em /c/:slug (title da página). Vazio = fallback automático. */
+  seoTitle: 'Convite Digital Casamento Personalizado | Convites Diversos',
+  /** SEO opcional para convites em /c/:slug (meta description). Vazio = mensagem resumida. */
+  seoDescription:
+    'Convite digital de casamento com abertura animada, mapa, RSVP e trilha sonora. Um link completo para seus convidados.',
   coupleNames: 'Maria & João',
   verse:
     'O amor é paciente, o amor é bondoso. — 1 Coríntios 13:4',

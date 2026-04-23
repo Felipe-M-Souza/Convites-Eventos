@@ -6,22 +6,30 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "remotion:studio": "remotion studio src/remotion/index.ts",
+    "remotion:render:intro": "remotion render src/remotion/index.ts InstagramIntro out/instagram-intro.mp4",
+    "remotion:render:reel": "remotion render src/remotion/index.ts InviteShowcaseReel out/invite-showcase-reel.mp4",
+    "capture:invites": "node scripts/capture-invite-previews.mjs",
+    "capture:invites:live": "node scripts/capture-invite-previews.mjs --base-url=https://convitesdiversos.com.br"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "playwright": "^1.59.1",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
     "vite": "^8.0.4"
   },
   "dependencies": {
+    "@remotion/cli": "^4.0.451",
     "@supabase/supabase-js": "^2.103.0",
     "framer-motion": "^12.38.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.0"
+    "react-router-dom": "^7.14.0",
+    "remotion": "^4.0.451"
   }
 }

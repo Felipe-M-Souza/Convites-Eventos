@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { EventData } from '../data/eventData'
 import { buildRsvpWhatsappHref } from '../lib/whatsappLink'
+import { getCurrentPagePath, trackEvent } from '../lib/analytics'
 
 type Props = {
   data: EventData
@@ -9,12 +10,30 @@ type Props = {
 const btn =
   'inline-flex w-full items-center justify-center gap-2 rounded-full border border-[color:var(--color-gold)]/40 bg-white px-6 py-3.5 text-sm font-medium text-[color:var(--color-ink)] shadow-sm transition hover:border-[color:var(--color-gold)] hover:bg-[color:var(--color-blush)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-gold)] sm:w-auto sm:min-w-[220px]'
 
+function withUtm(href: string, campaign: string): string {
+  if (!href?.trim()) return href
+  try {
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://convitesdiversos.com.br'
+    const url = new URL(href, base)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return href
+    url.searchParams.set('utm_source', 'invite_page')
+    url.searchParams.set('utm_medium', 'button')
+    url.searchParams.set('utm_campaign', campaign)
+    return url.toString()
+  } catch {
+    return href
+  }
+}
+
 export function ActionButtons({ data }: Props) {
   const reduce = useReducedMotion()
   const giftsIntro = data.giftsIntro?.trim() ?? ''
   const giftsButtonLabel = data.giftsButtonLabel?.trim() || 'Lista de presentes'
   const giftsQrCode = data.giftsQrCodeImageUrl?.trim() ?? ''
   const giftsQrCodeSizePx = Math.min(320, Math.max(96, Number(data.giftsQrCodeSizePx) || 180))
+  const mapsHref = withUtm(data.mapsLink, 'maps_click')
+  const rsvpHref = withUtm(buildRsvpWhatsappHref(data), 'rsvp_click')
+  const giftsHref = withUtm(data.giftsLink, 'gifts_click')
 
   return (
     <motion.div
@@ -25,10 +44,32 @@ export function ActionButtons({ data }: Props) {
       transition={{ duration: 0.55, delay: 0.05 }}
     >
       <div className="flex w-full flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:justify-center">
-        <a className={btn} href={data.mapsLink} target="_blank" rel="noreferrer">
+        <a
+          className={btn}
+          href={mapsHref}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() =>
+            trackEvent('invite_action_click', {
+              action_type: 'maps',
+              page_path: getCurrentPagePath(),
+            })
+          }
+        >
           {data.mapsButtonLabel?.trim() || 'Ver no mapa'}
         </a>
-        <a className={btn} href={buildRsvpWhatsappHref(data)} target="_blank" rel="noreferrer">
+        <a
+          className={btn}
+          href={rsvpHref}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() =>
+            trackEvent('invite_action_click', {
+              action_type: 'rsvp',
+              page_path: getCurrentPagePath(),
+            })
+          }
+        >
           {data.rsvpButtonLabel?.trim() || 'Confirmar presença'}
         </a>
       </div>
@@ -36,7 +77,18 @@ export function ActionButtons({ data }: Props) {
         <p className="max-w-xl text-center text-sm leading-relaxed text-[color:var(--color-ink-muted)]">{giftsIntro}</p>
       ) : null}
       <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row sm:items-end">
-        <a className={btn} href={data.giftsLink} target="_blank" rel="noreferrer">
+        <a
+          className={btn}
+          href={giftsHref}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() =>
+            trackEvent('invite_action_click', {
+              action_type: 'gifts',
+              page_path: getCurrentPagePath(),
+            })
+          }
+        >
           {giftsButtonLabel}
         </a>
         {giftsQrCode ? (

@@ -12,26 +12,8 @@ import { PhotoGallery } from '../components/PhotoGallery'
 import { Footer } from '../components/Footer'
 import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
-
-function upsertMetaByName(name: string, content: string) {
-  let node = document.head.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null
-  if (!node) {
-    node = document.createElement('meta')
-    node.setAttribute('name', name)
-    document.head.appendChild(node)
-  }
-  node.setAttribute('content', content)
-}
-
-function upsertMetaByProperty(property: string, content: string) {
-  let node = document.head.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null
-  if (!node) {
-    node = document.createElement('meta')
-    node.setAttribute('property', property)
-    document.head.appendChild(node)
-  }
-  node.setAttribute('content', content)
-}
+import { applySeoMeta } from '../lib/seoMeta'
+import { trackEvent } from '../lib/analytics'
 
 function buildInviteDescription(message: string): string {
   const text = message.trim().replace(/\s+/g, ' ')
@@ -45,8 +27,12 @@ export function Home() {
   const musicRef = useRef<MusicToggleHandle>(null)
 
   const scrollToInvite = useCallback(() => {
+    trackEvent('invite_continue_click', {
+      invite_slug: inviteSlug,
+      page_path: window.location.pathname,
+    })
     document.getElementById('mensagem')?.scrollIntoView({ behavior: 'smooth' })
-  }, [])
+  }, [inviteSlug])
 
   const audio = eventData.backgroundAudioUrl?.trim()
   const primeMusicOnSeal = useCallback(() => {
@@ -66,23 +52,13 @@ export function Home() {
 
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
-    const title = `${eventData.coupleNames} | Convite digital`
-    const description = buildInviteDescription(eventData.message)
+    const title = eventData.seoTitle.trim() || `${eventData.coupleNames} | Convite digital`
+    const description = eventData.seoDescription.trim() || buildInviteDescription(eventData.message)
     const image = eventData.coverImageUrl?.trim() || `${window.location.origin}/images/hero-couple.jpg`
     const url = window.location.href
 
-    document.title = title
-    upsertMetaByName('description', description)
-    upsertMetaByProperty('og:title', title)
-    upsertMetaByProperty('og:description', description)
-    upsertMetaByProperty('og:image', image)
-    upsertMetaByProperty('og:url', url)
-    upsertMetaByProperty('og:type', 'website')
-    upsertMetaByName('twitter:card', 'summary_large_image')
-    upsertMetaByName('twitter:title', title)
-    upsertMetaByName('twitter:description', description)
-    upsertMetaByName('twitter:image', image)
-  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, status])
+    applySeoMeta({ title, description, image, url })
+  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.seoDescription, eventData.seoTitle, status])
 
   if (isCmsConfigured && status === 'loading') {
     return (
@@ -125,7 +101,13 @@ export function Home() {
           <EnvelopeOpening
             key="envelope-opening"
             data={eventData}
-            onOpen={() => setInviteUnlocked(true)}
+            onOpen={() => {
+              trackEvent('invite_opened', {
+                invite_slug: inviteSlug,
+                page_path: window.location.pathname,
+              })
+              setInviteUnlocked(true)
+            }}
             onSealUserGesture={audio ? primeMusicOnSeal : undefined}
           />
         ) : (

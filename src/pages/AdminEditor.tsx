@@ -408,6 +408,22 @@ export function AdminEditor({ onSignOut }: Props) {
 
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Conteúdo e media</legend>
+          <Field label="SEO — Title (opcional)">
+            <input
+              className={inputClass}
+              placeholder="Convite Digital [Ocasião] Personalizado | Convites Diversos"
+              value={form.seoTitle}
+              onChange={(e) => set('seoTitle')(e.target.value)}
+            />
+          </Field>
+          <Field label="SEO — Meta description (opcional)">
+            <textarea
+              className={`${inputClass} min-h-[76px]`}
+              placeholder="Até ~155 caracteres, foco em benefício + CTA."
+              value={form.seoDescription}
+              onChange={(e) => set('seoDescription')(e.target.value)}
+            />
+          </Field>
           <Field label="URL imagem de capa (hero)">
             <input className={inputClass} value={form.coverImageUrl} onChange={(e) => set('coverImageUrl')(e.target.value)} />
           </Field>

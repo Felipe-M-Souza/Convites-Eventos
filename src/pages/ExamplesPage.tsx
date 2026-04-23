@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { demoInvites } from '../data/demoInvites'
+import { trackCtaClick } from '../lib/analytics'
 
 export function ExamplesPage() {
   return (
@@ -40,6 +41,7 @@ export function ExamplesPage() {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to={`/c/${demo.slug}`}
+                  onClick={() => trackCtaClick('examples_page', 'abrir_modelo', `/c/${demo.slug}`, { demo_slug: demo.slug })}
                   className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-95"
                 >
                   Abrir modelo

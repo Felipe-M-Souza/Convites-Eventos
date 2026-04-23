@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Evita indexação de área administrativa.
+Disallow: /admin
+
+Sitemap: https://convitesdiversos.com.br/sitemap.xml

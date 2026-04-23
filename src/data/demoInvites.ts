@@ -32,6 +32,9 @@ export const demoInvites: DemoInvite[] = [
       openingLayoutOffsetTop: 'clamp(4.5rem, 13vh, 7.75rem)',
       openingEnvelopeNaturalWidth: 1536,
       openingEnvelopeNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Aniversário Infantil Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital infantil com animação, tema personalizado e envio fácil por WhatsApp. Encante os convidados com um link único.',
       coupleNames: 'Helena faz 1 aninho',
       verse: 'Um ano de descobertas, sorrisos e muito amor.',
       weddingDateLabel: '12 de abril de 2027',
@@ -71,6 +74,9 @@ export const demoInvites: DemoInvite[] = [
       openingLayoutOffsetTop: 'clamp(3.25rem, 11vh, 6.75rem)',
       openingEnvelopeNaturalWidth: 1536,
       openingEnvelopeNaturalHeight: 1024,
+      seoTitle: 'Convite Digital 15 Anos Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital para debutante com visual elegante, animações e identidade exclusiva. Pronto para compartilhar no WhatsApp.',
       coupleNames: 'Laura 15 anos',
       verse: 'Uma noite para celebrar sonhos, brilho e novos começos.',
       weddingDateLabel: '21 de agosto de 2027',
@@ -109,6 +115,9 @@ export const demoInvites: DemoInvite[] = [
       openingEnvelopeOpenImageUrl: '/images/envelopes/demo-bodas-de-prata-open.png',
       openingEnvelopeNaturalWidth: 1536,
       openingEnvelopeNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Bodas Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital para bodas com layout elegante e personalização completa. Compartilhe com facilidade e encante os convidados.',
       coupleNames: 'Marina & Carlos',
       verse: '25 anos de amor, parceria e incontáveis lembrancas.',
       weddingDateLabel: '10 de setembro de 2027',
@@ -147,6 +156,9 @@ export const demoInvites: DemoInvite[] = [
       openingEnvelopeOpenImageUrl: '/images/envelopes/demo-bodas-de-ouro-open.png',
       openingEnvelopeNaturalWidth: 1536,
       openingEnvelopeNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Bodas Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital para bodas com layout elegante e personalização completa. Compartilhe com facilidade e encante os convidados.',
       coupleNames: 'Lucia & Roberto',
       verse: 'Cinco décadas de amor e uma vida inteira de gratidão.',
       weddingDateLabel: '18 de junho de 2027',
@@ -187,6 +199,9 @@ export const demoInvites: DemoInvite[] = [
       openingLayoutOffsetTop: 'clamp(3.25rem, 15vh, 6.75rem)',
       openingEnvelopeNaturalWidth: 1536,
       openingEnvelopeNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Aniversário Adulto Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital para aniversário adulto com estilo sofisticado e experiência interativa. Ideal para WhatsApp e redes sociais.',
       coupleNames: 'Fernando 40 anos',
       verse: 'Um novo ciclo merece ser celebrado com intensidade e boas companhias.',
       weddingDateLabel: '03 de dezembro de 2027',
@@ -233,6 +248,9 @@ export const demoInvites: DemoInvite[] = [
       /** Aberto é 1024×1024; fechado 1536×1024 — a caixa usa a maior razão h/w para não cortar a aba. */
       openingEnvelopeOpenNaturalWidth: 1024,
       openingEnvelopeOpenNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Chá Revelação Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital para chá revelação com tema criativo, animação e envio por link. Personalize com nome, data e local.',
       coupleNames: 'Chá revelação do bebê',
       verse: 'Uma nova vida está a caminho, e queremos dividir essa alegria com você.',
       weddingDateLabel: '08 de maio de 2027',
@@ -278,6 +296,9 @@ export const demoInvites: DemoInvite[] = [
       openingEnvelopeNaturalHeight: 1024,
       openingEnvelopeOpenNaturalWidth: 1024,
       openingEnvelopeOpenNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Chá de Bebê Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital de chá de bebê com design delicado, abertura animada e detalhes personalizados. Compartilhe com praticidade.',
       coupleNames: 'Chá de bebê da Alice',
       verse: 'Pequenos detalhes, grandes sentimentos e muita alegria pela chegada da Alice.',
       weddingDateLabel: '19 de junho de 2027',
@@ -326,6 +347,9 @@ export const demoInvites: DemoInvite[] = [
       openingEnvelopeNaturalHeight: 1024,
       openingEnvelopeOpenNaturalWidth: 1024,
       openingEnvelopeOpenNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Aniversário Infantil Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital infantil com animação, tema personalizado e envio fácil por WhatsApp. Encante os convidados com um link único.',
       coupleNames: 'Miguel 5 anos',
       verse: 'Uma festa cheia de brincadeiras, risadas e muita diversão.',
       weddingDateLabel: '14 de outubro de 2027',
@@ -422,6 +446,9 @@ export const demoInvites: DemoInvite[] = [
       openingLayoutOffsetTop: 'clamp(3.25rem, 11vh, 6.75rem)',
       openingEnvelopeNaturalWidth: 1536,
       openingEnvelopeNaturalHeight: 1024,
+      seoTitle: 'Convite Digital Homenagem Personalizado | Convites Diversos',
+      seoDescription:
+        'Convite digital de homenagem com visual respeitoso e elegante. Personalize textos e informações para compartilhar com familiares.',
       coupleNames: 'Homenagem a Dona Celina',
       verse: 'Com carinho, respeito e gratidão, convidamos você para um momento de lembrança e homenagem.',
       weddingDateLabel: '07 de novembro de 2027',

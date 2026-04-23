@@ -1,4 +1,8 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { applySeoMeta } from '../lib/seoMeta'
+import { applyStructuredData, clearStructuredData } from '../lib/structuredData'
+import { trackCtaClick } from '../lib/analytics'
 
 export function PortfolioPage() {
   const highlights = [
@@ -8,7 +12,7 @@ export function PortfolioPage() {
     },
     {
       title: 'Tudo no mesmo link',
-      description: 'Informações do evento, mapa, confirmação via WhatsApp, contagem regressiva, música e galeria no mesmo lugar.',
+      description: 'Informações do evento, mapa, confirmação via WhatsApp, contagem regressiva, música e galeria de fotos no mesmo lugar.',
     },
     {
       title: 'Personalização para cada ocasião',
@@ -18,15 +22,114 @@ export function PortfolioPage() {
 
   const sections = [
     'Abertura em estilo envelope para criar uma apresentação sofisticada.',
-    'Página responsiva com data, local, mapa, confirmação de presença e conteúdo personalizado.',
-    'Galeria de fotos, trilha sonora e identidade visual alinhada ao momento celebrado.',
+    'Página responsiva com data, local, mapa, confirmação de presença e contagem regressiva.',
+    'Galeria de fotos, trilha sonora e identidade visual alinhadas ao momento celebrado.',
   ]
 
   const process = [
     'Definimos o estilo visual e reunimos textos, fotos e referências para a ocasião.',
-    'Montamos o convite com navegação fluida, identidade personalizada e versão para celular.',
-    'Entrego o link final pronto para compartilhamento com convidados, familiares ou homenageados.',
+    'Montamos o convite com navegação fluida, identidade personalizada, contagem regressiva e versão para celular.',
+    'Entrego o link final pronto para compartilhamento com convidados, familiares ou homenageados, com fotos, música e recursos do evento.',
   ]
+
+  const seoOccasions = [
+    { label: 'Convite digital aniversário infantil', href: '/convite-digital/aniversario-infantil' },
+    { label: 'Convite digital 15 anos', href: '/convite-digital/15-anos' },
+    { label: 'Convite digital chá de bebê', href: '/convite-digital/cha-de-bebe' },
+    { label: 'Convite digital chá revelação', href: '/convite-digital/cha-revelacao' },
+    { label: 'Convite digital aniversário adulto', href: '/convite-digital/aniversario-adulto' },
+    { label: 'Convite digital homenagem', href: '/convite-digital/homenagem' },
+    { label: 'Convite digital casamento', href: '/convite-digital/casamento' },
+    { label: 'Convite digital bodas', href: '/convite-digital/bodas' },
+  ]
+
+  const trustSignals = [
+    {
+      title: 'Experiência completa no mesmo link',
+      description:
+        'O convite pode reunir abertura animada, contagem regressiva, fotos, música, mapa e confirmação de presença em uma navegação fluida.',
+    },
+    {
+      title: 'Pensado para compartilhar com facilidade',
+      description:
+        'O formato por link facilita o envio no WhatsApp, Instagram e outros canais, sem complicar para os convidados.',
+    },
+    {
+      title: 'Leitura otimizada no celular',
+      description:
+        'A estrutura é planejada para funcionar bem em mobile, com visual elegante e acesso simples às informações importantes.',
+    },
+  ]
+
+  const faqs = [
+    {
+      question: 'O que um convite digital da Convites Diversos pode incluir?',
+      answer:
+        'Os convites podem incluir abertura animada, data, horário, local, mapa, confirmação por WhatsApp, contagem regressiva, galeria de fotos e música.',
+    },
+    {
+      question: 'O convite funciona bem no celular?',
+      answer:
+        'Sim. A experiência é pensada para mobile, com leitura confortável, navegação fluida e compartilhamento simples por link.',
+    },
+    {
+      question: 'Posso usar o mesmo convite para diferentes ocasiões?',
+      answer:
+        'Sim. A estrutura é adaptada para casamento, bodas, aniversário infantil, 15 anos, chá de bebê, chá revelação, homenagem e outras celebrações.',
+    },
+    {
+      question: 'Como o convite é entregue para compartilhar com os convidados?',
+      answer:
+        'Após a finalização, o convite fica disponível em um link pronto para ser enviado por WhatsApp, redes sociais, e-mail ou mensagem direta.',
+    },
+  ]
+
+  useEffect(() => {
+    const siteUrl = window.location.origin
+    applySeoMeta({
+      title: 'Convites Digitais Personalizados | Convites Diversos',
+      description:
+        'Convites digitais personalizados com abertura animada, mapa, RSVP e partilha por WhatsApp para diferentes ocasiões.',
+      image: `${siteUrl}/images/hero-couple.jpg`,
+      url: window.location.href,
+    })
+
+    applyStructuredData('website-org', {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          name: 'Convites Diversos',
+          url: siteUrl,
+          logo: `${siteUrl}/images/logo-convitesdiversos-transparent.png`,
+          sameAs: [],
+        },
+        {
+          '@type': 'WebSite',
+          name: 'Convites Diversos',
+          url: siteUrl,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${siteUrl}/modelos`,
+            'query-input': 'required name=ocasião',
+          },
+        },
+        {
+          '@type': 'FAQPage',
+          mainEntity: faqs.map((faq) => ({
+            '@type': 'Question',
+            name: faq.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: faq.answer,
+            },
+          })),
+        },
+      ],
+    })
+
+    return () => clearStructuredData('website-org')
+  }, [])
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-cream)] text-[color:var(--color-ink)]">
@@ -46,17 +149,20 @@ export function PortfolioPage() {
             </h1>
             <p className="mt-6 max-w-xl text-base leading-8 text-[color:var(--color-ink-muted)] sm:text-lg">
               Desenvolvimento convites digitais elegantes, personalizados e responsivos para casamentos, bodas,
-              aniversários, celebrações especiais, homenagens e outros momentos importantes.
+              aniversários, celebrações especiais, homenagens e outros momentos importantes, com contagem regressiva,
+              fotos, música e compartilhamento por link.
             </p>
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link
-                to="/c/default"
+                to="/c/default?utm_source=portfolio&utm_medium=cta&utm_campaign=demo_home"
+                onClick={() => trackCtaClick('portfolio_hero', 'ver_convite_demonstrativo', '/c/default')}
                 className="inline-flex rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
               >
                 Ver convite demonstrativo
               </Link>
               <Link
-                to="/modelos"
+                to="/modelos?utm_source=portfolio&utm_medium=cta&utm_campaign=modelos_home"
+                onClick={() => trackCtaClick('portfolio_hero', 'ver_outros_modelos', '/modelos')}
                 className="inline-flex rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
               >
                 Ver outros modelos
@@ -130,6 +236,79 @@ export function PortfolioPage() {
         </div>
       </section>
 
+      <section className="border-y border-stone-200/80 bg-white/70 px-6 py-18">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-2xl">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">
+              Prova de valor
+            </p>
+            <h2 className="mt-4 font-display text-4xl font-semibold sm:text-5xl">
+              O que faz o convite digital transmitir mais cuidado e profissionalismo.
+            </h2>
+            <p className="mt-5 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">
+              Em vez de um convite simples em imagem, o convidado recebe uma experiência completa, clara e pensada para
+              funcionar bem no celular.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {trustSignals.map((item) => (
+              <article key={item.title} className="rounded-[1.6rem] bg-[color:var(--color-cream)] p-6 shadow-sm ring-1 ring-stone-200/70">
+                <h3 className="font-display text-2xl font-semibold">{item.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--color-ink-muted)]">{item.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-stone-200/80 bg-white/70 px-6 py-14">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">
+            Ocasiões populares
+          </p>
+          <h2 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">
+            Encontre o tipo de convite digital ideal para o seu evento.
+          </h2>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {seoOccasions.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={() => trackCtaClick('portfolio_occasions', item.label, item.href)}
+                className="rounded-full border border-stone-300 bg-white px-5 py-2.5 text-sm font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-50"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-18">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-stone-200 bg-white p-8 shadow-sm sm:p-10">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">
+            Perguntas frequentes
+          </p>
+          <h2 className="mt-4 font-display text-4xl font-semibold sm:text-5xl">
+            Dúvidas comuns sobre convites digitais personalizados.
+          </h2>
+          <div className="mt-8 space-y-4">
+            {faqs.map((faq) => (
+              <details
+                key={faq.question}
+                className="rounded-[1.4rem] border border-stone-200 bg-[color:var(--color-cream)] px-5 py-4 shadow-sm open:bg-white"
+              >
+                <summary className="cursor-pointer list-none pr-6 font-medium text-[color:var(--color-ink)]">
+                  {faq.question}
+                </summary>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="px-6 pb-18">
         <div className="mx-auto max-w-5xl rounded-[2rem] bg-[color:var(--color-ink)] px-8 py-12 text-center text-white shadow-[0_25px_80px_rgba(44,38,34,0.18)] sm:px-12">
           <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/70">Demonstração</p>
@@ -142,7 +321,8 @@ export function PortfolioPage() {
           </p>
           <div className="mt-8 flex justify-center">
             <Link
-              to="/c/default"
+              to="/c/default?utm_source=portfolio&utm_medium=cta&utm_campaign=demo_footer"
+              onClick={() => trackCtaClick('portfolio_footer', 'abrir_demonstracao', '/c/default')}
               className="inline-flex rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
             >
               Abrir demonstração
