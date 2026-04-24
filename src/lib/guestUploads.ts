@@ -104,7 +104,7 @@ export async function readGuestUploadSelection(file: File): Promise<GuestUploadS
       }
 
       video.onloadedmetadata = () => {
-        const duration = Number.isFinite(video.duration) ? video.duration : 0
+        const duration = Number.isFinite(video.duration) ? Math.max(0, Math.round(video.duration)) : 0
         cleanup()
         resolve(duration)
       }
