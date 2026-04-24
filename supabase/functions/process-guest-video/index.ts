@@ -7,6 +7,11 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const RAILWAY_VIDEO_WORKER_URL = Deno.env.get('RAILWAY_VIDEO_WORKER_URL') ?? ''
 const RAILWAY_VIDEO_WORKER_SECRET = Deno.env.get('RAILWAY_VIDEO_WORKER_SECRET') ?? ''
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -17,6 +22,7 @@ function json(body: unknown, init?: ResponseInit) {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...corsHeaders,
       ...(init?.headers ?? {}),
     },
   })
@@ -45,6 +51,12 @@ async function dispatchUpload(uploadId: string) {
 }
 
 Deno.serve(async (request) => {
+  if (request.method === 'OPTIONS') {
+    return new Response('ok', {
+      headers: corsHeaders,
+    })
+  }
+
   if (request.method !== 'POST') {
     return json({ error: 'METHOD_NOT_ALLOWED' }, { status: 405 })
   }

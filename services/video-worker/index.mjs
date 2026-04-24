@@ -211,8 +211,9 @@ async function processUpload(uploadId) {
   })
 
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), `guest-video-${uploadId}-`))
-  const inputPath = path.join(tempDir, path.basename(upload.storage_path || `${uploadId}.bin`))
-  const outputPath = path.join(tempDir, `${uploadId}.mp4`)
+  const sourceName = path.basename(upload.storage_path || `${uploadId}.bin`)
+  const inputPath = path.join(tempDir, `source-${sourceName}`)
+  const outputPath = path.join(tempDir, `processed-${uploadId}.mp4`)
 
   try {
     log('downloading original video', { uploadId, storagePath: upload.storage_path })
