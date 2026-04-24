@@ -15,6 +15,7 @@ import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
 import { applySeoMeta } from '../lib/seoMeta'
 import { trackEvent } from '../lib/analytics'
+import { buildSiteUrl } from '../lib/siteUrl'
 
 function buildInviteDescription(message: string): string {
   const text = message.trim().replace(/\s+/g, ' ')
@@ -55,11 +56,11 @@ export function Home() {
     if (isCmsConfigured && status !== 'ready') return
     const title = eventData.seoTitle.trim() || `${eventData.coupleNames} | Convite digital`
     const description = eventData.seoDescription.trim() || buildInviteDescription(eventData.message)
-    const image = eventData.coverImageUrl?.trim() || `${window.location.origin}/images/hero-couple.jpg`
-    const url = window.location.href
+    const image = eventData.coverImageUrl?.trim() || buildSiteUrl('/images/hero-couple.jpg')
+    const url = buildSiteUrl(`/c/${encodeURIComponent(inviteSlug)}`)
 
     applySeoMeta({ title, description, image, url })
-  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.seoDescription, eventData.seoTitle, status])
+  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.seoDescription, eventData.seoTitle, inviteSlug, status])
 
   if (isCmsConfigured && status === 'loading') {
     return (

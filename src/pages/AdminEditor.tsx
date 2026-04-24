@@ -8,6 +8,7 @@ import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
 import { OwnerAccessField } from '../components/admin/OwnerAccessField'
 import { removeGalleryFolderContents } from '../lib/galleryStorage'
 import { removeGuestUploadFolderContents } from '../lib/guestUploads'
+import { buildSiteUrl } from '../lib/siteUrl'
 import { normalizeInviteSlug } from '../lib/inviteSlug'
 
 type Props = {
@@ -151,7 +152,7 @@ export function AdminEditor({ onSignOut }: Props) {
 
   const inputClass =
     'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-800 outline-none focus:border-[color:var(--color-gold)] focus:ring-1 focus:ring-[color:var(--color-gold)]'
-  const shareUrl = `${window.location.origin}/i/${encodeURIComponent(inviteSlug)}`
+  const shareUrl = buildSiteUrl(`/i/${encodeURIComponent(inviteSlug)}`)
 
   if (isCmsConfigured && status === 'loading') {
     return (

@@ -48,6 +48,7 @@ Cria `.env` na raiz (não commits o ficheiro; já está no `.gitignore` se usare
 ```env
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+VITE_PUBLIC_SITE_URL=https://www.convitesdiversos.com.br
 ```
 
 No **Render** (Static Site): define as mesmas variáveis em **Environment** e faz **redeploy** (o Vite injeta `VITE_*` no **build**).
@@ -66,12 +67,14 @@ HOSTGATOR_FTP_PORT=21
 HOSTGATOR_FTP_SERVER_DIR=convitesdiversos.com.br/
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+VITE_PUBLIC_SITE_URL=https://www.convitesdiversos.com.br
 VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
 Notas:
 
 - `HOSTGATOR_FTP_SERVER_DIR` deve ser a pasta onde hoje está o `index.html` do site. Se o primeiro deploy falhar por caminho, ajusta apenas este valor.
+- `VITE_PUBLIC_SITE_URL` deve apontar para o domínio público usado no compartilhamento do convite. Ex.: `https://www.convitesdiversos.com.br`.
 - `VITE_GA_MEASUREMENT_ID` é opcional; pode ficar vazio se não estiver a usar GA4.
 - O deploy automático está configurado sem limpeza agressiva do diretório remoto (`dangerous-clean-slate: false`), para não apagar ficheiros do servidor fora do `dist/`.
 
