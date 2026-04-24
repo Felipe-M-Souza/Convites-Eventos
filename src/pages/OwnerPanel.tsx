@@ -2,20 +2,28 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
+import JSZip from 'jszip'
 import { type AppRole, fetchCurrentAppRole } from '../lib/appRoles'
 import {
+  buildGuestUploadDownloadFileName,
   canApproveGuestUpload,
+  canDownloadGuestUpload,
   createGuestUploadSignedUrls,
+  formatGuestUploadExpiry,
   getGuestUploadDisplaySize,
+  getGuestUploadDownloadPath,
+  getGuestUploadRetentionStatus,
   getGuestUploadPreviewPath,
   getGuestUploadProcessingLabel,
   formatGuestUploadDuration,
+  GUEST_UPLOAD_RETENTION_DAYS,
   type GuestUploadRecord,
   type GuestUploadWithUrl,
   removeGuestUploadAssets,
 } from '../lib/guestUploads'
 import { trackEvent } from '../lib/analytics'
 import { isCmsConfigured, supabase } from '../lib/supabase'
+import { SouvenirEditorModal } from '../components/owner/SouvenirEditorModal'
 
 type OwnerInviteRow = {
   invite_slug: string
@@ -52,6 +60,9 @@ export function OwnerPanel() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionInfo, setActionInfo] = useState<string | null>(null)
   const [actionUploadId, setActionUploadId] = useState<string | null>(null)
+  const [selectedUploadIds, setSelectedUploadIds] = useState<string[]>([])
+  const [bulkDownloading, setBulkDownloading] = useState(false)
+  const [souvenirUploadId, setSouvenirUploadId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!supabase) {
@@ -170,9 +181,10 @@ export function OwnerPanel() {
         const { data, error } = await client
           .from('guest_uploads')
           .select(
-            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
+            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, expires_at, deleted_at, reviewed_at, reviewed_by, approved_at, rejected_at',
           )
           .eq('invite_slug', selectedInviteSlug)
+          .is('deleted_at', null)
           .order('created_at', { ascending: false })
 
         if (error) throw new Error(error.message)
@@ -216,6 +228,25 @@ export function OwnerPanel() {
     [uploads],
   )
 
+  const downloadableUploads = useMemo(() => uploads.filter((upload) => canDownloadGuestUpload(upload)), [uploads])
+  const selectedDownloadUploads = useMemo(
+    () => uploads.filter((upload) => selectedUploadIds.includes(upload.id) && canDownloadGuestUpload(upload)),
+    [selectedUploadIds, uploads],
+  )
+  const activeSouvenirUpload = useMemo(
+    () => uploads.find((upload) => upload.id === souvenirUploadId) ?? null,
+    [souvenirUploadId, uploads],
+  )
+  const allDownloadableSelected =
+    downloadableUploads.length > 0 && downloadableUploads.every((upload) => selectedUploadIds.includes(upload.id))
+
+  useEffect(() => {
+    setSelectedUploadIds((current) => current.filter((id) => uploads.some((upload) => upload.id === id && canDownloadGuestUpload(upload))))
+    if (souvenirUploadId && !uploads.some((upload) => upload.id === souvenirUploadId)) {
+      setSouvenirUploadId(null)
+    }
+  }, [souvenirUploadId, uploads])
+
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault()
     if (!supabase) return
@@ -248,9 +279,10 @@ export function OwnerPanel() {
     const { data, error } = await client
       .from('guest_uploads')
       .select(
-        'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
+        'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, expires_at, deleted_at, reviewed_at, reviewed_by, approved_at, rejected_at',
       )
       .eq('invite_slug', selectedInviteSlug)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (error) throw new Error(error.message)
@@ -267,6 +299,52 @@ export function OwnerPanel() {
         signedUrl: signedMap[getGuestUploadPreviewPath(record)] ?? '',
       })),
     )
+  }
+
+  const toggleUploadSelection = (uploadId: string) => {
+    setSelectedUploadIds((current) => (current.includes(uploadId) ? current.filter((id) => id !== uploadId) : [...current, uploadId]))
+  }
+
+  const toggleSelectAllUploads = () => {
+    setSelectedUploadIds(allDownloadableSelected ? [] : downloadableUploads.map((upload) => upload.id))
+  }
+
+  const handleBulkDownload = async () => {
+    if (!supabase || !selectedDownloadUploads.length) return
+    const client = supabase
+    setBulkDownloading(true)
+    setActionError(null)
+    setActionInfo(null)
+
+    try {
+      const paths = selectedDownloadUploads.map((upload) => getGuestUploadDownloadPath(upload)).filter(Boolean)
+      const signedMap = await createGuestUploadSignedUrls(client, paths, 60 * 15)
+      const zip = new JSZip()
+
+      for (const upload of selectedDownloadUploads) {
+        const storagePath = getGuestUploadDownloadPath(upload)
+        const signedUrl = signedMap[storagePath]
+        if (!storagePath || !signedUrl) continue
+
+        const response = await fetch(signedUrl)
+        if (!response.ok) throw new Error(`Falha ao baixar ${upload.original_file_name}.`)
+        const blob = await response.blob()
+        zip.file(buildGuestUploadDownloadFileName(upload), blob)
+      }
+
+      const archive = await zip.generateAsync({ type: 'blob' })
+      const downloadUrl = URL.createObjectURL(archive)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = `${selectedInviteSlug || 'convite'}-uploads.zip`
+      link.click()
+      URL.revokeObjectURL(downloadUrl)
+      setActionInfo('Download em ZIP preparado com sucesso.')
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Não foi possível baixar os arquivos selecionados.')
+    } finally {
+      setBulkDownloading(false)
+    }
   }
 
   const updateUploadStatus = async (upload: GuestUploadWithUrl, status: 'approved' | 'rejected') => {
@@ -517,6 +595,11 @@ export function OwnerPanel() {
           ) : (
             <p className="text-sm text-stone-500">Nenhum convite vinculado a esta conta.</p>
           )}
+
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Os arquivos enviados pelos convidados são apagados automaticamente após {GUEST_UPLOAD_RETENTION_DAYS} dias
+            contados do envio.
+          </div>
         </aside>
 
         <section className="space-y-4">
@@ -528,6 +611,33 @@ export function OwnerPanel() {
               {actionInfo}
             </div>
           ) : null}
+          <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <label className="inline-flex items-center gap-3 text-sm text-stone-700">
+                <input
+                  type="checkbox"
+                  checked={allDownloadableSelected}
+                  onChange={toggleSelectAllUploads}
+                  disabled={!downloadableUploads.length || bulkDownloading}
+                  className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+                />
+                Selecionar todos os arquivos baixáveis
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs uppercase tracking-[0.18em] text-stone-500">
+                  {selectedDownloadUploads.length} selecionado{selectedDownloadUploads.length === 1 ? '' : 's'}
+                </span>
+                <button
+                  type="button"
+                  disabled={!selectedDownloadUploads.length || bulkDownloading}
+                  onClick={() => void handleBulkDownload()}
+                  className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50 disabled:opacity-50"
+                >
+                  {bulkDownloading ? 'Preparando ZIP…' : 'Baixar selecionados (.zip)'}
+                </button>
+              </div>
+            </div>
+          </div>
 
           {!selectedInviteSlug ? (
             <div className="rounded-3xl border border-stone-200 bg-white p-8 text-sm text-stone-500 shadow-sm">
@@ -545,6 +655,8 @@ export function OwnerPanel() {
             uploads.map((upload) => {
               const busy = actionUploadId === upload.id
               const canApprove = canApproveGuestUpload(upload)
+              const canDownload = canDownloadGuestUpload(upload)
+              const canCreateSouvenir = upload.file_type === 'image' ? Boolean(upload.signedUrl) : upload.processing_status === 'ready' && Boolean(upload.signedUrl)
               return (
                 <article key={upload.id} className="grid gap-5 rounded-3xl border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-[220px_1fr]">
                   <div className="overflow-hidden rounded-2xl bg-stone-100">
@@ -571,18 +683,32 @@ export function OwnerPanel() {
 
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="text-lg font-semibold text-stone-800">
-                          {upload.guest_name || 'Convidado sem identificação'}
-                        </p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">
-                          {getGuestUploadProcessingLabel(upload)}
-                        </p>
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedUploadIds.includes(upload.id)}
+                          onChange={() => toggleUploadSelection(upload.id)}
+                          disabled={!canDownload || bulkDownloading}
+                          className="mt-1 h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)] disabled:opacity-40"
+                        />
+                        <div>
+                          <p className="text-lg font-semibold text-stone-800">
+                            {upload.guest_name || 'Convidado sem identificação'}
+                          </p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">
+                            {getGuestUploadProcessingLabel(upload)}
+                          </p>
+                        </div>
                       </div>
                       <div className="text-right text-xs text-stone-500">
                         <p>Enviado em {formatDateTime(upload.created_at)}</p>
                         <p>Revisado em {formatDateTime(upload.reviewed_at)}</p>
                       </div>
+                    </div>
+
+                    <div className="rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
+                      <p className="font-medium text-stone-800">{getGuestUploadRetentionStatus(upload)}</p>
+                      <p className="mt-1 text-xs text-stone-500">Exclusão programada para {formatGuestUploadExpiry(upload.expires_at)}</p>
                     </div>
 
                     <div className="grid gap-2 text-sm text-stone-600 sm:grid-cols-2">
@@ -627,6 +753,22 @@ export function OwnerPanel() {
                       >
                         {busy && upload.status !== 'rejected' ? 'Salvando…' : 'Rejeitar'}
                       </button>
+                      <button
+                        type="button"
+                        disabled={!canDownload || bulkDownloading}
+                        onClick={() => toggleUploadSelection(upload.id)}
+                        className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 disabled:opacity-50"
+                      >
+                        {selectedUploadIds.includes(upload.id) ? 'Selecionado para ZIP' : 'Selecionar para ZIP'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!canCreateSouvenir}
+                        onClick={() => setSouvenirUploadId(upload.id)}
+                        className="rounded-full border border-[color:var(--color-gold)]/40 bg-white px-4 py-2 text-sm font-semibold text-[color:var(--color-ink)] disabled:opacity-50"
+                      >
+                        Criar lembrança
+                      </button>
                       {upload.status === 'rejected' ? (
                         <button
                           type="button"
@@ -645,6 +787,12 @@ export function OwnerPanel() {
           )}
         </section>
       </div>
+      <SouvenirEditorModal
+        upload={activeSouvenirUpload}
+        inviteSlug={selectedInviteSlug || 'convite'}
+        isOpen={Boolean(activeSouvenirUpload)}
+        onClose={() => setSouvenirUploadId(null)}
+      />
     </div>
   )
 }

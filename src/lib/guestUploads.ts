@@ -15,6 +15,7 @@ export const GUEST_UPLOAD_ACCEPT = [
 export const MAX_GUEST_IMAGE_BYTES = 12 * 1024 * 1024
 export const MAX_GUEST_VIDEO_BYTES = 120 * 1024 * 1024
 export const MAX_GUEST_VIDEO_DURATION_SECONDS = 60
+export const GUEST_UPLOAD_RETENTION_DAYS = 5
 
 export type GuestUploadStatus = 'pending' | 'approved' | 'rejected'
 export type GuestUploadKind = 'image' | 'video'
@@ -43,6 +44,8 @@ export type GuestUploadRecord = {
   processing_error: string | null
   status: GuestUploadStatus
   created_at: string
+  expires_at: string | null
+  deleted_at: string | null
   reviewed_at: string | null
   reviewed_by: string | null
   approved_at: string | null
@@ -175,6 +178,86 @@ export function getGuestUploadPreviewPath(upload: Pick<GuestUploadRecord, 'file_
 
 export function getGuestUploadDisplaySize(upload: Pick<GuestUploadRecord, 'processed_file_size_bytes' | 'file_size_bytes'>) {
   return upload.processed_file_size_bytes ?? upload.file_size_bytes
+}
+
+function extensionFromUpload(upload: Pick<GuestUploadRecord, 'file_type' | 'original_file_name' | 'mime_type' | 'processing_status'>) {
+  if (upload.file_type === 'video' && upload.processing_status === 'ready') return 'mp4'
+
+  const ext = upload.original_file_name.split('.').pop()?.toLowerCase()?.replace(/[^a-z0-9]/g, '')
+  if (ext) return ext
+
+  if (upload.mime_type === 'image/jpeg') return 'jpg'
+  if (upload.mime_type === 'image/png') return 'png'
+  if (upload.mime_type === 'image/webp') return 'webp'
+  if (upload.mime_type === 'video/mp4') return 'mp4'
+  if (upload.mime_type === 'video/webm') return 'webm'
+  if (upload.mime_type === 'video/quicktime') return 'mov'
+  return 'bin'
+}
+
+function safeFileFragment(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9-_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase()
+}
+
+export function getGuestUploadDownloadPath(
+  upload: Pick<GuestUploadRecord, 'file_type' | 'processing_status' | 'storage_path' | 'processed_storage_path' | 'deleted_at'>,
+) {
+  if (upload.deleted_at) return ''
+  if (upload.file_type === 'video' && upload.processing_status === 'ready' && upload.processed_storage_path) {
+    return upload.processed_storage_path
+  }
+  return upload.storage_path
+}
+
+export function canDownloadGuestUpload(
+  upload: Pick<GuestUploadRecord, 'file_type' | 'processing_status' | 'storage_path' | 'processed_storage_path' | 'deleted_at'>,
+) {
+  return Boolean(getGuestUploadDownloadPath(upload))
+}
+
+export function buildGuestUploadDownloadFileName(
+  upload: Pick<
+    GuestUploadRecord,
+    'id' | 'guest_name' | 'created_at' | 'file_type' | 'original_file_name' | 'mime_type' | 'processing_status'
+  >,
+) {
+  const guest = safeFileFragment(upload.guest_name || 'convidado')
+  const date = new Date(upload.created_at)
+  const y = Number.isNaN(date.getTime()) ? 'data' : `${date.getFullYear()}-${padTime(date.getMonth() + 1)}-${padTime(date.getDate())}`
+  const kind = upload.file_type === 'video' ? 'video' : 'foto'
+  const ext = extensionFromUpload(upload)
+  return `${y}-${guest}-${kind}-${upload.id.slice(0, 8)}.${ext}`
+}
+
+export function formatGuestUploadExpiry(expiresAt: string | null) {
+  if (!expiresAt) return 'Sem prazo definido'
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(expiresAt))
+}
+
+export function getGuestUploadRetentionStatus(upload: Pick<GuestUploadRecord, 'expires_at' | 'deleted_at'>) {
+  if (upload.deleted_at) return 'Expirado e removido'
+  if (!upload.expires_at) return `Exclusão automática em ${GUEST_UPLOAD_RETENTION_DAYS} dias`
+
+  const expires = new Date(upload.expires_at).getTime()
+  if (Number.isNaN(expires)) return `Exclusão automática em ${GUEST_UPLOAD_RETENTION_DAYS} dias`
+
+  const diffMs = expires - Date.now()
+  if (diffMs <= 0) return 'Expira a qualquer momento'
+
+  const diffHours = Math.ceil(diffMs / (1000 * 60 * 60))
+  if (diffHours < 24) return `Expira em ${diffHours}h`
+
+  const diffDays = Math.ceil(diffHours / 24)
+  return `Expira em ${diffDays} dia${diffDays === 1 ? '' : 's'}`
 }
 
 export function getGuestUploadProcessingLabel(

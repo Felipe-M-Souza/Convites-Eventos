@@ -53,10 +53,11 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
         const { data, error: queryError } = await client
           .from('guest_uploads')
           .select(
-            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
+            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, expires_at, deleted_at, reviewed_at, reviewed_by, approved_at, rejected_at',
           )
           .eq('invite_slug', inviteSlug)
           .eq('status', 'approved')
+          .is('deleted_at', null)
           .order('created_at', { ascending: false })
 
         if (queryError) throw new Error(queryError.message)

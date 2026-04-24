@@ -16,6 +16,8 @@ const VIDEO_OUTPUT_MAX_WIDTH = Number(process.env.VIDEO_OUTPUT_MAX_WIDTH || 1280
 const VIDEO_OUTPUT_CRF = Number(process.env.VIDEO_OUTPUT_CRF || 28)
 const VIDEO_OUTPUT_PRESET = process.env.VIDEO_OUTPUT_PRESET || 'veryfast'
 const VIDEO_AUDIO_BITRATE = process.env.VIDEO_AUDIO_BITRATE || '128k'
+const CLEANUP_INTERVAL_MINUTES = Number(process.env.CLEANUP_INTERVAL_MINUTES || 60)
+const CLEANUP_BATCH_SIZE = Number(process.env.CLEANUP_BATCH_SIZE || 100)
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !VIDEO_WORKER_SECRET) {
   throw new Error(
@@ -134,6 +136,32 @@ async function markUploadFailed(uploadId, error) {
       originalError: message,
     })
   }
+}
+
+async function cleanupExpiredUploads() {
+  const nowIso = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('guest_uploads')
+    .select('id, storage_path, processed_storage_path, expires_at, deleted_at')
+    .is('deleted_at', null)
+    .lte('expires_at', nowIso)
+    .limit(CLEANUP_BATCH_SIZE)
+
+  if (error) throw new Error(error.message)
+  const rows = data ?? []
+  if (!rows.length) return { removed: 0 }
+
+  for (const row of rows) {
+    const paths = [row.storage_path, row.processed_storage_path].filter(Boolean)
+    if (paths.length) {
+      const { error: removeError } = await supabase.storage.from(BUCKET).remove(paths)
+      if (removeError) throw new Error(removeError.message)
+    }
+    await updateUpload(row.id, { deleted_at: new Date().toISOString() })
+  }
+
+  log('expired uploads cleaned up', { count: rows.length })
+  return { removed: rows.length }
 }
 
 function runFfmpeg(inputPath, outputPath) {
@@ -273,9 +301,37 @@ function dispatchProcessing(uploadId) {
     })
 }
 
+function scheduleCleanupLoop() {
+  const everyMs = Math.max(5, CLEANUP_INTERVAL_MINUTES) * 60 * 1000
+  void cleanupExpiredUploads().catch((error) => {
+    log('initial cleanup failed', { error: safeErrorMessage(error) })
+  })
+
+  setInterval(() => {
+    void cleanupExpiredUploads().catch((error) => {
+      log('scheduled cleanup failed', { error: safeErrorMessage(error) })
+    })
+  }, everyMs)
+}
+
 const server = http.createServer(async (request, response) => {
   if (request.method === 'GET' && request.url === '/health') {
     json(response, 200, { ok: true })
+    return
+  }
+
+  if (request.method === 'POST' && request.url === '/cleanup') {
+    if (!isAuthorized(request)) {
+      json(response, 401, { error: 'UNAUTHORIZED' })
+      return
+    }
+
+    try {
+      const result = await cleanupExpiredUploads()
+      json(response, 200, result)
+    } catch (error) {
+      json(response, 500, { error: safeErrorMessage(error) })
+    }
     return
   }
 
@@ -309,4 +365,5 @@ const server = http.createServer(async (request, response) => {
 
 server.listen(PORT, HOST, () => {
   log(`listening on http://${HOST}:${PORT}`)
+  scheduleCleanupLoop()
 })

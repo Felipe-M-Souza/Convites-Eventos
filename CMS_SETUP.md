@@ -33,6 +33,8 @@ Se você já ativou uploads de convidados e quiser guardar também a duração d
 
 Para **processamento assíncrono de vídeo**, execute também `supabase/migrations/008_guest_upload_video_processing.sql`.
 
+Para **retenção automática dos uploads de convidados**, execute também `supabase/migrations/009_guest_upload_retention.sql`.
+
 ## 3. Criar utilizador administrador
 
 **Authentication** → **Users** → **Add user** → email + password (ou convida por email).
@@ -109,6 +111,8 @@ VIDEO_OUTPUT_MAX_WIDTH=1280
 VIDEO_OUTPUT_CRF=28
 VIDEO_OUTPUT_PRESET=veryfast
 VIDEO_AUDIO_BITRATE=128k
+CLEANUP_INTERVAL_MINUTES=60
+CLEANUP_BATCH_SIZE=100
 ```
 
 5. Após o deploy, anota a URL pública do Railway. O endpoint de processamento será:
@@ -118,6 +122,7 @@ https://seu-servico.up.railway.app/process
 ```
 
 O worker também expõe `GET /health` para conferência rápida de disponibilidade.
+Além do endpoint de processamento, ele também executa uma limpeza periódica dos uploads expirados e aceita `POST /cleanup` para disparo manual autenticado.
 
 #### 4.2 Secrets da Edge Function
 
