@@ -44,6 +44,7 @@ export function AdminEditor({ onSignOut }: Props) {
   const [newSlugDraft, setNewSlugDraft] = useState('')
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [copiedShareLink, setCopiedShareLink] = useState(false)
 
   const loadInviteList = () => {
     if (!supabase) return
@@ -154,6 +155,16 @@ export function AdminEditor({ onSignOut }: Props) {
     'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-800 outline-none focus:border-[color:var(--color-gold)] focus:ring-1 focus:ring-[color:var(--color-gold)]'
   const shareUrl = buildSiteUrl(`/i/${encodeURIComponent(inviteSlug)}`)
 
+  const handleCopyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopiedShareLink(true)
+      window.setTimeout(() => setCopiedShareLink(false), 1800)
+    } catch {
+      setMessage({ type: 'err', text: 'Não foi possível copiar o link de partilha.' })
+    }
+  }
+
   if (isCmsConfigured && status === 'loading') {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-[color:var(--color-cream)] text-stone-500">
@@ -202,6 +213,13 @@ export function AdminEditor({ onSignOut }: Props) {
             <a className="font-mono text-[color:var(--color-gold)] underline" href={shareUrl} target="_blank" rel="noreferrer">
               /i/{inviteSlug}
             </a>
+            <button
+              type="button"
+              onClick={() => void handleCopyShareLink()}
+              className="ml-2 inline-flex rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
+            >
+              {copiedShareLink ? 'Copiado' : 'Copiar link'}
+            </button>
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
