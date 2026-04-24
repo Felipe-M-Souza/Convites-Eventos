@@ -52,6 +52,36 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 
 No **Render** (Static Site): define as mesmas variáveis em **Environment** e faz **redeploy** (o Vite injeta `VITE_*` no **build**).
 
+### Deploy automático na HostGator
+
+Se o frontend continuar hospedado na HostGator, o repositório já inclui o workflow `\.github/workflows/deploy-hostgator.yml` para publicar o conteúdo de `dist/` automaticamente a cada `push` na `main` (ou manualmente em `workflow_dispatch`).
+
+Antes de ativar esse fluxo, cadastra estes **GitHub Actions Secrets** no repositório:
+
+```text
+HOSTGATOR_FTP_HOST=ftp.seu-hostgator.com.br
+HOSTGATOR_FTP_USERNAME=seu-usuario-ftp
+HOSTGATOR_FTP_PASSWORD=sua-senha-ftp
+HOSTGATOR_FTP_PORT=21
+HOSTGATOR_FTP_SERVER_DIR=convitesdiversos.com.br/
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+Notas:
+
+- `HOSTGATOR_FTP_SERVER_DIR` deve ser a pasta onde hoje está o `index.html` do site. Se o primeiro deploy falhar por caminho, ajusta apenas este valor.
+- `VITE_GA_MEASUREMENT_ID` é opcional; pode ficar vazio se não estiver a usar GA4.
+- O deploy automático está configurado sem limpeza agressiva do diretório remoto (`dangerous-clean-slate: false`), para não apagar ficheiros do servidor fora do `dist/`.
+
+Depois de cadastrar os secrets:
+
+1. Vai em **GitHub → Settings → Secrets and variables → Actions**.
+2. Cria cada secret listado acima.
+3. Faz um novo `push` para a `main` ou executa manualmente o workflow em **Actions → Deploy HostGator**.
+4. Confirma nos logs que o build rodou com `npm ci && npm run build` e que o upload FTP concluiu sem erros.
+
 ### Processamento de vídeo (Supabase + Railway)
 
 O pipeline de vídeo agora fica dividido em duas partes:
