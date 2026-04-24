@@ -12,6 +12,8 @@ type Props = {
 }
 
 type MediaSource = HTMLImageElement | HTMLVideoElement
+const VIDEO_EXPORT_FPS = 30
+const VIDEO_EXPORT_BITRATE = 6_000_000
 
 function fitCover(
   sourceWidth: number,
@@ -67,14 +69,26 @@ async function loadVideoFrame(url: string) {
   })
 }
 
-async function mediaToDataUrl(upload: GuestUploadWithUrl, template: SouvenirTemplate, options: EditorState) {
-  if (!upload.signedUrl) throw new Error('Este arquivo ainda não está pronto para gerar lembrança.')
-  const canvas = document.createElement('canvas')
-  canvas.width = template.width
-  canvas.height = template.height
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas indisponível para gerar a lembrança.')
+async function loadVideo(url: string) {
+  return await new Promise<HTMLVideoElement>((resolve, reject) => {
+    const video = document.createElement('video')
+    video.crossOrigin = 'anonymous'
+    video.preload = 'auto'
+    video.muted = true
+    video.playsInline = true
+    video.onloadedmetadata = () => resolve(video)
+    video.onerror = () => reject(new Error('Não foi possível carregar o vídeo da lembrança.'))
+    video.src = url
+  })
+}
 
+function drawSouvenirFrame(
+  ctx: CanvasRenderingContext2D,
+  source: MediaSource,
+  upload: GuestUploadWithUrl,
+  template: SouvenirTemplate,
+  options: EditorState,
+) {
   const gradient = ctx.createLinearGradient(0, 0, 0, template.height)
   gradient.addColorStop(0, template.backgroundStart)
   gradient.addColorStop(1, template.backgroundEnd)
@@ -84,9 +98,6 @@ async function mediaToDataUrl(upload: GuestUploadWithUrl, template: SouvenirTemp
   ctx.fillStyle = template.surfaceColor
   roundedRect(ctx, 36, 36, template.width - 72, template.height - 72, 38)
   ctx.fill()
-
-  const source: MediaSource =
-    upload.file_type === 'video' ? await loadVideoFrame(upload.signedUrl) : await loadImage(upload.signedUrl)
 
   const mediaRect = template.media
   ctx.save()
@@ -147,8 +158,134 @@ async function mediaToDataUrl(upload: GuestUploadWithUrl, template: SouvenirTemp
   ctx.fillStyle = template.accentColor
   ctx.font = '500 28px Arial'
   ctx.fillText(options.footer || 'Obrigado por celebrar conosco', textX, template.text.footerY)
+}
 
+async function exportImageSouvenir(upload: GuestUploadWithUrl, template: SouvenirTemplate, options: EditorState) {
+  if (!upload.signedUrl) throw new Error('Este arquivo ainda não está pronto para gerar lembrança.')
+  const canvas = document.createElement('canvas')
+  canvas.width = template.width
+  canvas.height = template.height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas indisponível para gerar a lembrança.')
+
+  const source: MediaSource =
+    upload.file_type === 'video' ? await loadVideoFrame(upload.signedUrl) : await loadImage(upload.signedUrl)
+
+  drawSouvenirFrame(ctx, source, upload, template, options)
   return canvas.toDataURL('image/png')
+}
+
+function getSupportedVideoMimeType() {
+  if (typeof MediaRecorder === 'undefined') return null
+
+  const mimeTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+  return mimeTypes.find((mimeType) => MediaRecorder.isTypeSupported(mimeType)) ?? null
+}
+
+async function seekVideo(video: HTMLVideoElement, time: number) {
+  await new Promise<void>((resolve, reject) => {
+    const onSeeked = () => {
+      cleanup()
+      resolve()
+    }
+    const onError = () => {
+      cleanup()
+      reject(new Error('Não foi possível posicionar o vídeo para exportação.'))
+    }
+    const cleanup = () => {
+      video.removeEventListener('seeked', onSeeked)
+      video.removeEventListener('error', onError)
+    }
+
+    video.addEventListener('seeked', onSeeked)
+    video.addEventListener('error', onError)
+    video.currentTime = time
+  })
+}
+
+async function exportVideoSouvenir(upload: GuestUploadWithUrl, template: SouvenirTemplate, options: EditorState) {
+  if (!upload.signedUrl) throw new Error('Este vídeo ainda não está pronto para gerar lembrança.')
+  const mimeType = getSupportedVideoMimeType()
+  if (!mimeType) {
+    throw new Error('Este navegador não suporta exportação de vídeo da lembrança.')
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width = template.width
+  canvas.height = template.height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas indisponível para gerar a lembrança.')
+  if (typeof canvas.captureStream !== 'function') {
+    throw new Error('Este navegador não suporta exportação de vídeo em canvas.')
+  }
+
+  const video = await loadVideo(upload.signedUrl)
+  const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : Math.max(upload.duration_seconds ?? 1, 1)
+
+  await seekVideo(video, 0)
+  drawSouvenirFrame(ctx, video, upload, template, options)
+
+  const stream = canvas.captureStream(VIDEO_EXPORT_FPS)
+  const recorder = new MediaRecorder(stream, {
+    mimeType,
+    videoBitsPerSecond: VIDEO_EXPORT_BITRATE,
+  })
+  const chunks: BlobPart[] = []
+
+  recorder.ondataavailable = (event) => {
+    if (event.data.size > 0) chunks.push(event.data)
+  }
+
+  const finished = new Promise<Blob>((resolve, reject) => {
+    recorder.onerror = () => reject(new Error('Não foi possível gravar a lembrança em vídeo.'))
+    recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }))
+  })
+
+  recorder.start(250)
+
+  let rafId = 0
+  const renderFrame = () => {
+    drawSouvenirFrame(ctx, video, upload, template, options)
+    if (!video.paused && !video.ended) {
+      rafId = window.requestAnimationFrame(renderFrame)
+    }
+  }
+
+  try {
+    const playPromise = video.play()
+    if (playPromise) await playPromise
+    renderFrame()
+
+    await new Promise<void>((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        cleanup()
+        reject(new Error('A exportação do vídeo demorou mais do que o esperado.'))
+      }, Math.ceil(duration * 1000) + 5000)
+
+      const onEnded = () => {
+        cleanup()
+        resolve()
+      }
+      const onError = () => {
+        cleanup()
+        reject(new Error('Não foi possível reproduzir o vídeo para exportação.'))
+      }
+      const cleanup = () => {
+        window.clearTimeout(timeoutId)
+        video.removeEventListener('ended', onEnded)
+        video.removeEventListener('error', onError)
+      }
+
+      video.addEventListener('ended', onEnded)
+      video.addEventListener('error', onError)
+    })
+  } finally {
+    window.cancelAnimationFrame(rafId)
+    video.pause()
+    recorder.stop()
+  }
+
+  return await finished
 }
 
 type EditorState = {
@@ -192,6 +329,8 @@ export function SouvenirEditorModal({ upload, inviteSlug, isOpen, onClose }: Pro
     () => souvenirTemplates.find((item) => item.id === templateId) ?? souvenirTemplates[0],
     [templateId],
   )
+  const isVideoSouvenir = upload?.file_type === 'video'
+  const downloadLabel = isVideoSouvenir ? 'Baixar lembrança (.webm)' : 'Baixar lembrança (.png)'
 
   if (!isOpen || !upload || !template) return null
 
@@ -201,11 +340,20 @@ export function SouvenirEditorModal({ upload, inviteSlug, isOpen, onClose }: Pro
     setExporting(true)
     setError(null)
     try {
-      const dataUrl = await mediaToDataUrl(upload, template, state)
       const link = document.createElement('a')
-      link.href = dataUrl
-      link.download = `${inviteSlug}-lembranca-${upload.id.slice(0, 8)}.png`
-      link.click()
+      if (upload.file_type === 'video') {
+        const blob = await exportVideoSouvenir(upload, template, state)
+        const objectUrl = URL.createObjectURL(blob)
+        link.href = objectUrl
+        link.download = `${inviteSlug}-lembranca-${upload.id.slice(0, 8)}.webm`
+        link.click()
+        URL.revokeObjectURL(objectUrl)
+      } else {
+        const dataUrl = await exportImageSouvenir(upload, template, state)
+        link.href = dataUrl
+        link.download = `${inviteSlug}-lembranca-${upload.id.slice(0, 8)}.png`
+        link.click()
+      }
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Não foi possível exportar a lembrança.')
     } finally {
@@ -223,7 +371,7 @@ export function SouvenirEditorModal({ upload, inviteSlug, isOpen, onClose }: Pro
               Escolha um template, ajuste o texto e exporte uma arte pronta para compartilhar.
             </p>
             {upload.file_type === 'video' ? (
-              <p className="mt-2 text-xs text-stone-500">Nesta versão, vídeos viram uma lembrança em imagem usando o primeiro frame.</p>
+              <p className="mt-2 text-xs text-stone-500">Quando o upload for vídeo, a lembrança é exportada em `.webm` com a composição aplicada.</p>
             ) : null}
           </div>
 
@@ -316,7 +464,7 @@ export function SouvenirEditorModal({ upload, inviteSlug, isOpen, onClose }: Pro
               disabled={exporting || !previewUrl}
               className="rounded-full bg-[color:var(--color-gold)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
-              {exporting ? 'Gerando…' : 'Baixar lembrança (.png)'}
+              {exporting ? 'Gerando…' : downloadLabel}
             </button>
             <button
               type="button"
