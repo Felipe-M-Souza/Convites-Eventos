@@ -77,6 +77,7 @@ Notas:
 - `VITE_PUBLIC_SITE_URL` deve apontar para o domínio público usado no compartilhamento do convite. Ex.: `https://www.convitesdiversos.com.br`.
 - `VITE_GA_MEASUREMENT_ID` é opcional; pode ficar vazio se não estiver a usar GA4.
 - O deploy automático está configurado sem limpeza agressiva do diretório remoto (`dangerous-clean-slate: false`), para não apagar ficheiros do servidor fora do `dist/`.
+- O workflow também gera `dist/.env` no deploy para que o `preview.php` da prévia de WhatsApp consiga ler `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no servidor.
 
 Depois de cadastrar os secrets:
 
