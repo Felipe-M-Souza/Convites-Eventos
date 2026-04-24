@@ -102,9 +102,11 @@ function fetch_invite_payload(string $slug): ?array
     $endpoint = rtrim($url, '/') . '/rest/v1/invite_config?slug=eq.' . rawurlencode($slug) . '&select=payload&limit=1';
     $headers = [
         'apikey: ' . $anon,
-        'Authorization: Bearer ' . $anon,
         'Accept: application/json',
     ];
+    if (str_starts_with($anon, 'eyJ')) {
+        $headers[] = 'Authorization: Bearer ' . $anon;
+    }
 
     $raw = http_get($endpoint, $headers, 5);
     if (!is_string($raw) || $raw === '') return null;
