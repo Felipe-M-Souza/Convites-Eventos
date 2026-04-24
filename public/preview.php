@@ -64,36 +64,82 @@ function current_origin(): string
     return $scheme . '://' . $host;
 }
 
-function http_get(string $url, array $headers, int $timeout = 5): ?string
+function http_status_from_response_headers(array $headers): int
 {
+    foreach ($headers as $header) {
+        if (!is_string($header)) continue;
+        if (preg_match('/\s(\d{3})\s/', $header, $matches) === 1) {
+            return (int)$matches[1];
+        }
+    }
+    return 0;
+}
+
+function text_snippet(?string $value, int $limit = 280): string
+{
+    if (!is_string($value) || $value === '') return '';
+    $normalized = preg_replace('/\s+/u', ' ', $value) ?? '';
+    if ($normalized === '') return '';
+    return mb_strlen($normalized, 'UTF-8') > $limit
+        ? mb_substr($normalized, 0, $limit, 'UTF-8') . '...'
+        : $normalized;
+}
+
+function http_get(string $url, array $headers, int $timeout = 5): array
+{
+    $result = [
+        'transport' => 'none',
+        'status' => 0,
+        'body' => null,
+        'error' => '',
+    ];
+
     $headerRaw = implode("\r\n", $headers);
     $ctx = stream_context_create([
         'http' => [
             'method' => 'GET',
             'header' => $headerRaw,
             'timeout' => $timeout,
+            'ignore_errors' => true,
         ],
     ]);
 
+    $result['transport'] = 'file_get_contents';
     $raw = @file_get_contents($url, false, $ctx);
-    if (is_string($raw) && $raw !== '') return $raw;
+    $responseHeaders = isset($http_response_header) && is_array($http_response_header) ? $http_response_header : [];
+    $result['status'] = http_status_from_response_headers($responseHeaders);
+    if (is_string($raw)) {
+        $result['body'] = $raw;
+        return $result;
+    }
 
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
         if ($ch !== false) {
+            $result['transport'] = 'curl';
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_HEADER, false);
             $data = curl_exec($ch);
+            $result['status'] = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
-            if (is_string($data) && $data !== '') return $data;
+            if (is_string($data)) {
+                $result['body'] = $data;
+            }
+            if ($curlError !== '') {
+                $result['error'] = $curlError;
+            }
+            return $result;
         }
     }
-    return null;
+
+    return $result;
 }
 
-function fetch_invite_payload(string $slug): ?array
+function fetch_invite_payload(string $slug, ?array &$debug = null): ?array
 {
     $url = env_value('VITE_SUPABASE_URL');
     $anon = env_value('VITE_SUPABASE_ANON_KEY');
@@ -108,8 +154,18 @@ function fetch_invite_payload(string $slug): ?array
         $headers[] = 'Authorization: Bearer ' . $anon;
     }
 
-    $raw = http_get($endpoint, $headers, 5);
-    if (!is_string($raw) || $raw === '') return null;
+    $http = http_get($endpoint, $headers, 5);
+    $raw = is_string($http['body'] ?? null) ? $http['body'] : '';
+    if ($debug !== null) {
+        $debug = [
+            'endpoint' => $endpoint,
+            'transport' => (string) ($http['transport'] ?? 'none'),
+            'http_status' => (int) ($http['status'] ?? 0),
+            'http_error' => (string) ($http['error'] ?? ''),
+            'body_snippet' => text_snippet($raw),
+        ];
+    }
+    if ($raw === '') return null;
     $json = json_decode($raw, true);
     if (!is_array($json) || empty($json[0]['payload']) || !is_array($json[0]['payload'])) return null;
     return $json[0]['payload'];
@@ -123,7 +179,8 @@ $title = 'Convite digital';
 $description = 'Você recebeu um convite especial.';
 $image = $origin . '/images/hero-couple.jpg';
 
-$payload = fetch_invite_payload($slug);
+$debugInfo = [];
+$payload = fetch_invite_payload($slug, $debugInfo);
 if (is_array($payload)) {
     $couple = trim((string)($payload['coupleNames'] ?? ''));
     $message = trim(preg_replace('/\s+/u', ' ', (string)($payload['message'] ?? '')) ?? '');
@@ -143,6 +200,13 @@ if (debug_enabled()) {
     echo "has_supabase_url=" . ($hasUrl ? 'yes' : 'no') . "\n";
     echo "has_supabase_anon=" . ($hasAnon ? 'yes' : 'no') . "\n";
     echo "payload_found=" . (is_array($payload) ? 'yes' : 'no') . "\n";
+    if (!empty($debugInfo)) {
+        echo "endpoint=" . (string) ($debugInfo['endpoint'] ?? '') . "\n";
+        echo "transport=" . (string) ($debugInfo['transport'] ?? '') . "\n";
+        echo "http_status=" . (string) ($debugInfo['http_status'] ?? '') . "\n";
+        echo "http_error=" . (string) ($debugInfo['http_error'] ?? '') . "\n";
+        echo "body_snippet=" . (string) ($debugInfo['body_snippet'] ?? '') . "\n";
+    }
     if (is_array($payload)) {
         echo "coupleNames=" . (string)($payload['coupleNames'] ?? '') . "\n";
     }
