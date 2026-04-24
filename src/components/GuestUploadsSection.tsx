@@ -293,7 +293,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
           )}
         </div>
 
-        <form onSubmit={(event) => void handleSubmit(event)} className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+        <form onSubmit={(event) => void handleSubmit(event)} className="self-start rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
           <h3 className="font-display text-2xl text-stone-800">Enviar foto ou vídeo</h3>
           <p className="mt-2 text-sm leading-relaxed text-stone-500">
             Envie 1 arquivo por vez. Fotos em JPG, PNG ou WEBP. Vídeos em MP4, MOV ou WEBM.
