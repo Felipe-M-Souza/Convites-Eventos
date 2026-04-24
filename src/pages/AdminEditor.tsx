@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { eventData, type EventData } from '../data/eventData'
 import { useEventData } from '../contexts/useEventData'
@@ -6,10 +6,11 @@ import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
 import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
 import { OwnerAccessField } from '../components/admin/OwnerAccessField'
-import { removeGalleryFolderContents } from '../lib/galleryStorage'
+import { removeGalleryFolderContents, uploadGalleryJpeg } from '../lib/galleryStorage'
 import { removeGuestUploadFolderContents } from '../lib/guestUploads'
 import { buildSiteUrl } from '../lib/siteUrl'
 import { normalizeInviteSlug } from '../lib/inviteSlug'
+import { resizeImageToJpeg } from '../lib/imageResize'
 
 type Props = {
   onSignOut: () => void
@@ -34,6 +35,9 @@ function Field({
 
 type InviteRow = { id: string; slug: string }
 
+const COVER_MAX_EDGE = 1600
+const COVER_JPEG_QUALITY = 0.9
+
 export function AdminEditor({ onSignOut }: Props) {
   const navigate = useNavigate()
   const { data, refresh, inviteId, inviteSlug, inviteNotFound, status } = useEventData()
@@ -45,6 +49,9 @@ export function AdminEditor({ onSignOut }: Props) {
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [copiedShareLink, setCopiedShareLink] = useState(false)
+  const [coverUploading, setCoverUploading] = useState(false)
+  const [coverUploadError, setCoverUploadError] = useState<string | null>(null)
+  const coverFileRef = useRef<HTMLInputElement>(null)
 
   const loadInviteList = () => {
     if (!supabase) return
@@ -162,6 +169,22 @@ export function AdminEditor({ onSignOut }: Props) {
       window.setTimeout(() => setCopiedShareLink(false), 1800)
     } catch {
       setMessage({ type: 'err', text: 'Não foi possível copiar o link de partilha.' })
+    }
+  }
+
+  const handleCoverFile = async (file: File | null) => {
+    if (!supabase || !file) return
+    setCoverUploadError(null)
+    setCoverUploading(true)
+    try {
+      const jpeg = await resizeImageToJpeg(file, COVER_MAX_EDGE, COVER_JPEG_QUALITY)
+      const publicUrl = await uploadGalleryJpeg(supabase, jpeg, inviteSlug)
+      set('coverImageUrl')(publicUrl)
+    } catch (error) {
+      setCoverUploadError(error instanceof Error ? error.message : 'Não foi possível enviar a imagem de capa.')
+    } finally {
+      setCoverUploading(false)
+      if (coverFileRef.current) coverFileRef.current.value = ''
     }
   }
 
@@ -451,7 +474,42 @@ export function AdminEditor({ onSignOut }: Props) {
             />
           </Field>
           <Field label="URL imagem de capa (hero)">
-            <input className={inputClass} value={form.coverImageUrl} onChange={(e) => set('coverImageUrl')(e.target.value)} />
+            <div className="space-y-3">
+              <input className={inputClass} value={form.coverImageUrl} onChange={(e) => set('coverImageUrl')(e.target.value)} />
+              {supabase ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      ref={coverFileRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      disabled={coverUploading}
+                      onChange={(e) => void handleCoverFile(e.target.files?.[0] ?? null)}
+                    />
+                    <button
+                      type="button"
+                      disabled={coverUploading}
+                      onClick={() => coverFileRef.current?.click()}
+                      className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-50"
+                    >
+                      {coverUploading ? 'A enviar capa…' : 'Enviar imagem de capa'}
+                    </button>
+                    <p className="text-xs text-stone-500">
+                      A imagem é otimizada no navegador e enviada para o bucket `invite-gallery`.
+                    </p>
+                  </div>
+                  {coverUploadError ? <p className="mt-2 text-sm text-red-600">{coverUploadError}</p> : null}
+                  {form.coverImageUrl.trim() ? (
+                    <div className="mt-3 overflow-hidden rounded-xl border border-stone-200 bg-white">
+                      <div className="aspect-[4/5] max-w-[220px] bg-stone-100">
+                        <img src={form.coverImageUrl} alt="Pré-visualização da capa" className="h-full w-full object-cover" loading="lazy" />
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </Field>
           <Field label="Mensagem aos convidados">
             <textarea className={`${inputClass} min-h-[120px]`} value={form.message} onChange={(e) => set('message')(e.target.value)} />
