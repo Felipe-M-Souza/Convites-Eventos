@@ -37,7 +37,7 @@ jobs:
 
       - name: Write preview env file
         run: |
-          cat <<'EOF' > dist/.env
+          cat <<EOF > dist/.env
           VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
           VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
           VITE_PUBLIC_SITE_URL=${VITE_PUBLIC_SITE_URL}
