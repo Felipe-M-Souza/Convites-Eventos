@@ -26,6 +26,13 @@ Para **dono do convite + uploads de convidados**, executa `supabase/migrations/0
 - cria o bucket privado `invite-guest-uploads`;
 - cria a função RPC `claim_invite_owner(...)` para o primeiro acesso do dono.
 
+Se o teu projeto já tinha uma versão anterior da `005` aplicada, não precisas rodá-la de novo. Nesse caso, aplica só as migrations incrementais abaixo.
+
+Se você já ativou uploads de convidados e quiser guardar também a duração dos vídeos para validação/mobile, execute
+`supabase/migrations/007_guest_upload_video_metadata.sql`.
+
+Para **processamento assíncrono de vídeo**, execute também `supabase/migrations/008_guest_upload_video_processing.sql`.
+
 ## 3. Criar utilizador administrador
 
 **Authentication** → **Users** → **Add user** → email + password (ou convida por email).
@@ -44,6 +51,72 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
 
 No **Render** (Static Site): define as mesmas variáveis em **Environment** e faz **redeploy** (o Vite injeta `VITE_*` no **build**).
+
+### Processamento de vídeo (Supabase + Railway)
+
+O pipeline de vídeo agora fica dividido em duas partes:
+
+- a Edge Function `supabase/functions/process-guest-video` continua a receber `uploadId` do frontend e responder `202`;
+- o serviço `services/video-worker` roda no Railway com `ffmpeg` e faz a transcodificação real.
+
+#### 4.1 Deploy do worker no Railway
+
+1. No Railway, cria um novo serviço a partir deste mesmo repositório.
+2. Configura o **Root Directory** para `services/video-worker`.
+3. Usa o `Dockerfile` dessa pasta para o deploy.
+4. Define as variáveis de ambiente do worker:
+
+```env
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
+VIDEO_WORKER_SECRET=um-segredo-forte-e-unico
+GUEST_UPLOADS_BUCKET=invite-guest-uploads
+VIDEO_OUTPUT_MAX_WIDTH=1280
+VIDEO_OUTPUT_CRF=28
+VIDEO_OUTPUT_PRESET=veryfast
+VIDEO_AUDIO_BITRATE=128k
+```
+
+5. Após o deploy, anota a URL pública do Railway. O endpoint de processamento será:
+
+```text
+https://seu-servico.up.railway.app/process
+```
+
+O worker também expõe `GET /health` para conferência rápida de disponibilidade.
+
+#### 4.2 Secrets da Edge Function
+
+Na função `process-guest-video`, configura estes secrets:
+
+- `RAILWAY_VIDEO_WORKER_URL` com a URL completa do endpoint `/process`
+- `RAILWAY_VIDEO_WORKER_SECRET` com o mesmo valor de `VIDEO_WORKER_SECRET`
+
+Os secrets `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` continuam a ser usados pela Edge Function para marcar falhas de despacho no `guest_uploads`.
+
+#### 4.3 Publicar a Edge Function
+
+1. Faz o deploy da função em `supabase/functions/process-guest-video`.
+2. Garante que ela tenha acesso a:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `RAILWAY_VIDEO_WORKER_URL`
+   - `RAILWAY_VIDEO_WORKER_SECRET`
+3. A função responde imediatamente `202` e usa `EdgeRuntime.waitUntil(...)` só para despachar o job ao Railway sem bloquear o upload do convidado.
+
+#### 4.4 Fluxo final
+
+1. O convidado envia o vídeo pelo frontend.
+2. O frontend grava o ficheiro original no bucket `invite-guest-uploads` e cria a linha em `guest_uploads` com `processing_status = 'uploaded'`.
+3. O frontend chama a Edge Function `process-guest-video`.
+4. A Edge Function envia o `uploadId` para o Railway.
+5. O worker:
+   - baixa o original em `original/...`;
+   - converte para MP4 H.264/AAC com foco em mobile;
+   - grava o resultado em `processed/...`;
+   - atualiza `processing_status` para `ready` ou `failed`.
+
+Isto mantém o frontend e a moderação exatamente no contrato já existente: `uploaded`, `processing`, `ready` e `failed`.
 
 ### Rotas SPA (`/admin` em 404)
 
@@ -77,6 +150,26 @@ Depois da migration `005` e do bootstrap do admin:
 3. Envia o link de primeiro acesso ao responsável.
 4. O responsável entra em `/owner/claim?...`, cria a conta e conclui a vinculação.
 5. Depois disso, ele passa a usar `/owner` para aprovar ou rejeitar fotos e vídeos enviados pelos convidados.
+
+### Vídeos de convidados (mobile-first)
+
+- Fotos continuam com compressão leve no browser.
+- Vídeos são validados no navegador:
+  - até `120 MB`
+  - até `60 segundos`
+- Depois do upload, o vídeo entra em processamento assíncrono.
+- O responsável só aprova vídeos quando o estado estiver `Pronto para aprovação`.
+
+### Checklist de validação
+
+Depois de publicar a Edge Function e o worker no Railway, valida este fluxo:
+
+1. Envia um vídeo curto no convite público e confirma que a linha nasce com `processing_status = 'uploaded'`.
+2. Confirma que, poucos instantes depois, o estado muda para `processing`.
+3. Aguarda o fim da compressão e valida `processing_status = 'ready'`, `processed_storage_path` preenchido e `processed_file_size_bytes` menor que o original sempre que possível.
+4. Aprova o vídeo no `/owner` e confirma que ele aparece no convite público.
+5. Testa uma falha operacional (por exemplo, URL/secret do worker inválido) e confirma que o estado vira `failed` com mensagem em `processing_error`.
+6. Reenvia o mesmo ficheiro em novo upload e confirma que cada `uploadId` gera o seu próprio vídeo processado sem sobrescrever outro registo.
 
 ## 7. Portfólio e links por cliente
 

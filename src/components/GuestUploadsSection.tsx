@@ -4,8 +4,14 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import {
   createGuestUploadSignedUrls,
+  formatGuestUploadBytes,
+  formatGuestUploadDuration,
+  getGuestUploadPreviewPath,
   GUEST_UPLOAD_ACCEPT,
   type GuestUploadRecord,
+  requestGuestVideoProcessing,
+  readGuestUploadSelection,
+  type GuestUploadSelection,
   type GuestUploadWithUrl,
   uploadGuestUploadFile,
   validateGuestUploadFile,
@@ -25,9 +31,11 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
   const [approvedUploads, setApprovedUploads] = useState<GuestUploadWithUrl[]>([])
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [readingFile, setReadingFile] = useState(false)
   const [guestName, setGuestName] = useState('')
   const [caption, setCaption] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedUpload, setSelectedUpload] = useState<GuestUploadSelection | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -45,7 +53,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
         const { data, error: queryError } = await client
           .from('guest_uploads')
           .select(
-            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, file_type, mime_type, storage_path, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
+            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
           )
           .eq('invite_slug', inviteSlug)
           .eq('status', 'approved')
@@ -54,7 +62,10 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
         if (queryError) throw new Error(queryError.message)
 
         const records = (data ?? []) as GuestUploadRecord[]
-        const signedMap = await createGuestUploadSignedUrls(client, records.map((record) => record.storage_path))
+        const signedMap = await createGuestUploadSignedUrls(
+          client,
+          records.map((record) => getGuestUploadPreviewPath(record)).filter(Boolean),
+        )
 
         if (cancelled) return
 
@@ -62,7 +73,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
           records
             .map((record) => ({
               ...record,
-              signedUrl: signedMap[record.storage_path] ?? '',
+              signedUrl: signedMap[getGuestUploadPreviewPath(record)] ?? '',
             }))
             .filter((record) => record.signedUrl),
         )
@@ -90,6 +101,34 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
 
   if (!canRender) return null
 
+  const handleFileSelection = async (file: File | null) => {
+    setError(null)
+    setSuccess(null)
+    setSelectedFile(null)
+    setSelectedUpload(null)
+
+    if (!file) return
+
+    setReadingFile(true)
+    try {
+      const nextSelection = await readGuestUploadSelection(file)
+      const validation = validateGuestUploadFile(file, nextSelection)
+      if (!validation.ok) {
+        setError(validation.message)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        return
+      }
+
+      setSelectedFile(file)
+      setSelectedUpload(nextSelection)
+    } catch (selectionError) {
+      setError(selectionError instanceof Error ? selectionError.message : 'Não foi possível analisar o arquivo selecionado.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } finally {
+      setReadingFile(false)
+    }
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const client = supabase
@@ -98,7 +137,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
       return
     }
 
-    const validation = validateGuestUploadFile(selectedFile)
+    const validation = validateGuestUploadFile(selectedFile, selectedUpload)
     if (!validation.ok) {
       setError(validation.message)
       return
@@ -126,13 +165,38 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
         caption: caption.trim(),
         original_file_name: selectedFile.name,
         file_size_bytes: selectedFile.size,
+        original_file_size_bytes: selectedFile.size,
+        processed_file_size_bytes: null,
+        duration_seconds: selectedUpload?.durationSeconds ?? null,
         file_type: fileType,
         mime_type: selectedFile.type,
         storage_path: storagePath,
+        processed_storage_path: null,
+        processing_status: fileType === 'video' ? 'uploaded' : 'ready',
+        processing_error: null,
         status: 'pending',
       })
 
       if (insertError) throw new Error(insertError.message)
+
+      if (fileType === 'video') {
+        try {
+          await requestGuestVideoProcessing(client, uploadId)
+          trackEvent('guest_video_processing_started', {
+            invite_slug: inviteSlug,
+            upload_id: uploadId,
+          })
+        } catch (processingError) {
+          await client
+            .from('guest_uploads')
+            .update({
+              processing_status: 'failed',
+              processing_error:
+                processingError instanceof Error ? processingError.message : 'Não foi possível iniciar o processamento.',
+            })
+            .eq('id', uploadId)
+        }
+      }
 
       trackEvent('guest_upload_completed', {
         invite_slug: inviteSlug,
@@ -142,7 +206,12 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
       setGuestName('')
       setCaption('')
       setSelectedFile(null)
-      setSuccess('Arquivo enviado com sucesso. Ele ficará visível após aprovação do responsável.')
+      setSelectedUpload(null)
+      setSuccess(
+        fileType === 'video'
+          ? 'Vídeo enviado com sucesso. Ele será otimizado antes de ficar disponível para aprovação do responsável.'
+          : 'Arquivo enviado com sucesso. Ele ficará visível após aprovação do responsável.',
+      )
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Falha ao enviar o arquivo.')
@@ -181,18 +250,29 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
                 <article key={upload.id} className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
                   <div className="aspect-[4/5] bg-stone-100">
                     {upload.file_type === 'video' ? (
-                      <video
-                        className="h-full w-full object-cover"
-                        controls
-                        playsInline
-                        preload="metadata"
-                        src={upload.signedUrl}
-                      />
+                      upload.signedUrl ? (
+                        <video
+                          className="h-full w-full object-cover"
+                          controls
+                          playsInline
+                          preload="metadata"
+                          src={upload.signedUrl}
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center px-4 text-center text-xs text-stone-500">
+                          Vídeo em processamento.
+                        </div>
+                      )
                     ) : (
                       <img src={upload.signedUrl} alt={upload.caption || 'Registro enviado por convidado'} className="h-full w-full object-cover" loading="lazy" />
                     )}
                   </div>
                   <div className="space-y-2 p-4">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                      {upload.file_type === 'video'
+                        ? `Vídeo${upload.duration_seconds != null ? ` • ${formatGuestUploadDuration(upload.duration_seconds)}` : ''}`
+                        : 'Foto'}
+                    </p>
                     {upload.guest_name ? (
                       <p className="text-sm font-semibold text-stone-800">{upload.guest_name}</p>
                     ) : null}
@@ -216,6 +296,9 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
           <h3 className="font-display text-2xl text-stone-800">Enviar foto ou vídeo</h3>
           <p className="mt-2 text-sm leading-relaxed text-stone-500">
             Envie 1 arquivo por vez. Fotos em JPG, PNG ou WEBP. Vídeos em MP4, MOV ou WEBM.
+          </p>
+          <p className="mt-2 rounded-2xl bg-stone-50 px-4 py-3 text-xs leading-relaxed text-stone-600">
+            Em celular, vídeos curtos funcionam melhor. Recomendado: até 1 minuto e preferencialmente em uma conexão estável.
           </p>
 
           <div className="mt-6 space-y-4">
@@ -247,24 +330,27 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
                 name="guest-upload-file"
                 type="file"
                 accept={GUEST_UPLOAD_ACCEPT}
-                onChange={(event) => {
-                  setError(null)
-                  setSuccess(null)
-                  setSelectedFile(event.target.files?.[0] ?? null)
-                }}
+                onChange={(event) => void handleFileSelection(event.target.files?.[0] ?? null)}
                 className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-3 file:rounded-full file:border-0 file:bg-stone-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-stone-700"
               />
               <p className="mt-2 text-xs text-stone-500">
-                Fotos até 12 MB. Vídeos até 80 MB. O arquivo só aparece no convite depois da aprovação.
+                Fotos até 12 MB. Vídeos até 120 MB e 60 segundos. O arquivo só aparece no convite depois da aprovação.
               </p>
             </label>
           </div>
+
+          {readingFile ? (
+            <div className="mt-4 rounded-2xl bg-stone-50 px-4 py-3 text-xs text-stone-600">
+              Analisando arquivo para validar tamanho e duração…
+            </div>
+          ) : null}
 
           {selectedFile ? (
             <div className="mt-4 rounded-2xl bg-stone-50 px-4 py-3 text-xs text-stone-600">
               <strong className="font-semibold text-stone-700">{selectedFile.name}</strong>
               <br />
-              {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+              {selectedUpload?.kind === 'video' ? 'Vídeo' : 'Foto'} • {formatGuestUploadBytes(selectedFile.size)}
+              {selectedUpload?.durationSeconds != null ? ` • ${formatGuestUploadDuration(selectedUpload.durationSeconds)}` : ''}
             </div>
           ) : null}
 
@@ -273,10 +359,10 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || readingFile}
             className="mt-6 w-full rounded-full bg-[color:var(--color-gold)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-50"
           >
-            {submitting ? 'Enviando…' : 'Enviar para aprovação'}
+            {readingFile ? 'Validando arquivo…' : submitting ? 'Enviando…' : 'Enviar para aprovação'}
           </button>
         </form>
       </div>

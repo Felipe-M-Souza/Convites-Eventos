@@ -31,9 +31,15 @@ create table if not exists public.guest_uploads (
   caption text not null default '',
   original_file_name text not null default '',
   file_size_bytes bigint not null default 0 check (file_size_bytes >= 0),
+  original_file_size_bytes bigint not null default 0 check (original_file_size_bytes >= 0),
+  processed_file_size_bytes bigint check (processed_file_size_bytes is null or processed_file_size_bytes >= 0),
+  duration_seconds integer check (duration_seconds is null or duration_seconds >= 0),
   file_type text not null check (file_type in ('image', 'video')),
   mime_type text not null,
   storage_path text not null unique,
+  processed_storage_path text unique,
+  processing_status text not null default 'ready' check (processing_status in ('uploaded', 'processing', 'ready', 'failed')),
+  processing_error text,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   created_at timestamptz not null default timezone('utc', now()),
   reviewed_at timestamptz,
@@ -42,6 +48,28 @@ create table if not exists public.guest_uploads (
   rejected_at timestamptz
 );
 
+alter table public.guest_uploads
+add column if not exists original_file_size_bytes bigint not null default 0
+check (original_file_size_bytes >= 0);
+
+alter table public.guest_uploads
+add column if not exists processed_file_size_bytes bigint
+check (processed_file_size_bytes is null or processed_file_size_bytes >= 0);
+
+alter table public.guest_uploads
+add column if not exists duration_seconds integer
+check (duration_seconds is null or duration_seconds >= 0);
+
+alter table public.guest_uploads
+add column if not exists processed_storage_path text;
+
+alter table public.guest_uploads
+add column if not exists processing_status text not null default 'ready'
+check (processing_status in ('uploaded', 'processing', 'ready', 'failed'));
+
+alter table public.guest_uploads
+add column if not exists processing_error text;
+
 alter table public.guest_uploads enable row level security;
 
 create index if not exists app_account_roles_role_idx
@@ -49,6 +77,13 @@ create index if not exists app_account_roles_role_idx
 
 create index if not exists guest_uploads_invite_status_created_idx
   on public.guest_uploads (invite_slug, status, created_at desc);
+
+create index if not exists guest_uploads_processing_status_idx
+  on public.guest_uploads (processing_status);
+
+create unique index if not exists guest_uploads_processed_storage_path_key
+  on public.guest_uploads (processed_storage_path)
+  where processed_storage_path is not null;
 
 create or replace function public.set_updated_at_now()
 returns trigger
@@ -139,8 +174,9 @@ as $$
     or exists (
       select 1
       from public.guest_uploads gu
-      where gu.storage_path = p_storage_path
+      where (gu.storage_path = p_storage_path or gu.processed_storage_path = p_storage_path)
         and gu.status = 'approved'
+        and (gu.file_type <> 'video' or gu.processing_status = 'ready')
     );
 $$;
 
@@ -345,6 +381,7 @@ create policy "invite_guest_uploads_insert_public"
   with check (
     bucket_id = 'invite-guest-uploads'
     and public.is_guest_uploads_enabled(split_part(name, '/', 1))
+    and split_part(name, '/', 2) = 'original'
   );
 
 create policy "invite_guest_uploads_update_owner_or_admin"

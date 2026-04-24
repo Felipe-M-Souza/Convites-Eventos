@@ -4,10 +4,15 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { type AppRole, fetchCurrentAppRole } from '../lib/appRoles'
 import {
+  canApproveGuestUpload,
   createGuestUploadSignedUrls,
+  getGuestUploadDisplaySize,
+  getGuestUploadPreviewPath,
+  getGuestUploadProcessingLabel,
+  formatGuestUploadDuration,
   type GuestUploadRecord,
   type GuestUploadWithUrl,
-  removeGuestUploadObject,
+  removeGuestUploadAssets,
 } from '../lib/guestUploads'
 import { trackEvent } from '../lib/analytics'
 import { isCmsConfigured, supabase } from '../lib/supabase'
@@ -165,7 +170,7 @@ export function OwnerPanel() {
         const { data, error } = await client
           .from('guest_uploads')
           .select(
-            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, file_type, mime_type, storage_path, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
+            'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
           )
           .eq('invite_slug', selectedInviteSlug)
           .order('created_at', { ascending: false })
@@ -173,14 +178,17 @@ export function OwnerPanel() {
         if (error) throw new Error(error.message)
 
         const records = (data ?? []) as GuestUploadRecord[]
-        const signedMap = await createGuestUploadSignedUrls(client, records.map((record) => record.storage_path))
+        const signedMap = await createGuestUploadSignedUrls(
+          client,
+          records.map((record) => getGuestUploadPreviewPath(record)).filter(Boolean),
+        )
 
         if (cancelled) return
 
         setUploads(
           records.map((record) => ({
             ...record,
-            signedUrl: signedMap[record.storage_path] ?? '',
+            signedUrl: signedMap[getGuestUploadPreviewPath(record)] ?? '',
           })),
         )
       } catch (error) {
@@ -240,7 +248,7 @@ export function OwnerPanel() {
     const { data, error } = await client
       .from('guest_uploads')
       .select(
-        'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, file_type, mime_type, storage_path, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
+        'id, invite_slug, guest_name, caption, original_file_name, file_size_bytes, original_file_size_bytes, processed_file_size_bytes, duration_seconds, file_type, mime_type, storage_path, processed_storage_path, processing_status, processing_error, status, created_at, reviewed_at, reviewed_by, approved_at, rejected_at',
       )
       .eq('invite_slug', selectedInviteSlug)
       .order('created_at', { ascending: false })
@@ -248,12 +256,15 @@ export function OwnerPanel() {
     if (error) throw new Error(error.message)
 
     const records = (data ?? []) as GuestUploadRecord[]
-    const signedMap = await createGuestUploadSignedUrls(client, records.map((record) => record.storage_path))
+    const signedMap = await createGuestUploadSignedUrls(
+      client,
+      records.map((record) => getGuestUploadPreviewPath(record)).filter(Boolean),
+    )
 
     setUploads(
       records.map((record) => ({
         ...record,
-        signedUrl: signedMap[record.storage_path] ?? '',
+        signedUrl: signedMap[getGuestUploadPreviewPath(record)] ?? '',
       })),
     )
   }
@@ -311,7 +322,7 @@ export function OwnerPanel() {
     setActionInfo(null)
 
     try {
-      await removeGuestUploadObject(client, upload.storage_path)
+      await removeGuestUploadAssets(client, [upload.storage_path, upload.processed_storage_path])
       const { error } = await client.from('guest_uploads').delete().eq('id', upload.id)
       if (error) throw new Error(error.message)
       await reloadUploads()
@@ -533,17 +544,26 @@ export function OwnerPanel() {
           ) : (
             uploads.map((upload) => {
               const busy = actionUploadId === upload.id
+              const canApprove = canApproveGuestUpload(upload)
               return (
                 <article key={upload.id} className="grid gap-5 rounded-3xl border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-[220px_1fr]">
                   <div className="overflow-hidden rounded-2xl bg-stone-100">
                     {upload.file_type === 'video' ? (
-                      <video
-                        className="aspect-[4/5] h-full w-full object-cover"
-                        controls
-                        playsInline
-                        preload="metadata"
-                        src={upload.signedUrl}
-                      />
+                      upload.signedUrl ? (
+                        <video
+                          className="aspect-[4/5] h-full w-full object-cover"
+                          controls
+                          playsInline
+                          preload="metadata"
+                          src={upload.signedUrl}
+                        />
+                      ) : (
+                        <div className="flex aspect-[4/5] items-center justify-center px-4 text-center text-xs text-stone-500">
+                          {upload.processing_status === 'failed'
+                            ? 'Falha ao gerar a versão otimizada.'
+                            : 'Vídeo ainda em processamento.'}
+                        </div>
+                      )
                     ) : (
                       <img src={upload.signedUrl} alt={upload.caption || 'Upload do convidado'} className="aspect-[4/5] h-full w-full object-cover" loading="lazy" />
                     )}
@@ -556,11 +576,7 @@ export function OwnerPanel() {
                           {upload.guest_name || 'Convidado sem identificação'}
                         </p>
                         <p className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">
-                          {upload.status === 'pending'
-                            ? 'Pendente'
-                            : upload.status === 'approved'
-                              ? 'Aprovado'
-                              : 'Rejeitado'}
+                          {getGuestUploadProcessingLabel(upload)}
                         </p>
                       </div>
                       <div className="text-right text-xs text-stone-500">
@@ -575,16 +591,29 @@ export function OwnerPanel() {
                       </p>
                       <p>
                         <strong className="font-semibold text-stone-700">Tamanho:</strong>{' '}
-                        {(upload.file_size_bytes / (1024 * 1024)).toFixed(1)} MB
+                        {(getGuestUploadDisplaySize(upload) / (1024 * 1024)).toFixed(1)} MB
                       </p>
+                      <p>
+                        <strong className="font-semibold text-stone-700">Tipo:</strong>{' '}
+                        {upload.file_type === 'video' ? 'Vídeo' : 'Foto'}
+                      </p>
+                      {upload.file_type === 'video' ? (
+                        <p>
+                          <strong className="font-semibold text-stone-700">Duração:</strong>{' '}
+                          {upload.duration_seconds != null ? formatGuestUploadDuration(upload.duration_seconds) : 'Não informada'}
+                        </p>
+                      ) : null}
                     </div>
 
                     <p className="text-sm leading-relaxed text-stone-600">{upload.caption || 'Sem legenda enviada.'}</p>
+                    {upload.processing_error ? (
+                      <p className="text-sm text-red-600">{upload.processing_error}</p>
+                    ) : null}
 
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        disabled={busy || upload.status === 'approved'}
+                        disabled={busy || !canApprove}
                         onClick={() => void updateUploadStatus(upload, 'approved')}
                         className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                       >
