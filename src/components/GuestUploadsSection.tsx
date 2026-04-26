@@ -17,6 +17,7 @@ import {
   validateGuestUploadFile,
 } from '../lib/guestUploads'
 import { trackEvent } from '../lib/analytics'
+import { GuestApprovedGalleryModal } from './GuestApprovedGalleryModal'
 
 type Props = {
   inviteSlug: string
@@ -38,6 +39,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
   const [selectedUpload, setSelectedUpload] = useState<GuestUploadSelection | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [galleryOpen, setGalleryOpen] = useState(false)
 
   const canRender = enabled && Boolean(supabase)
 
@@ -95,10 +97,11 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
   }, [canRender, inviteSlug])
 
   const mediaCountLabel = useMemo(() => {
+    if (loading) return 'A carregar registos…'
     if (!approvedUploads.length) return 'Ainda não há registros publicados.'
     if (approvedUploads.length === 1) return '1 registro já aprovado'
     return `${approvedUploads.length} registros já aprovados`
-  }, [approvedUploads.length])
+  }, [approvedUploads.length, loading])
 
   if (!canRender) return null
 
@@ -236,64 +239,22 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
           {description.trim() ||
             'Envie uma foto ou vídeo deste momento. O responsável pelo convite aprova antes da publicação.'}
         </p>
-        <p className="mt-2 text-xs uppercase tracking-[0.18em] text-stone-500">{mediaCountLabel}</p>
+        <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
+          <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{mediaCountLabel}</p>
+          {!loading && approvedUploads.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setGalleryOpen(true)}
+              className="rounded-full border border-[color:var(--color-gold)]/45 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink)] shadow-sm transition hover:bg-[color:var(--color-blush)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-gold)]"
+            >
+              Galeria
+            </button>
+          ) : null}
+        </div>
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="space-y-4">
-          {loading ? (
-            <div className="rounded-3xl border border-stone-200 bg-white/80 p-8 text-center text-sm text-stone-500 shadow-sm">
-              Carregando registros aprovados…
-            </div>
-          ) : approvedUploads.length ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {approvedUploads.map((upload) => (
-                <article key={upload.id} className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
-                  <div className="aspect-[4/5] bg-stone-100">
-                    {upload.file_type === 'video' ? (
-                      upload.signedUrl ? (
-                        <video
-                          className="h-full w-full object-cover"
-                          controls
-                          playsInline
-                          preload="metadata"
-                          src={upload.signedUrl}
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center px-4 text-center text-xs text-stone-500">
-                          Vídeo em processamento.
-                        </div>
-                      )
-                    ) : (
-                      <img src={upload.signedUrl} alt={upload.caption || 'Registro enviado por convidado'} className="h-full w-full object-cover" loading="lazy" />
-                    )}
-                  </div>
-                  <div className="space-y-2 p-4">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
-                      {upload.file_type === 'video'
-                        ? `Vídeo${upload.duration_seconds != null ? ` • ${formatGuestUploadDuration(upload.duration_seconds)}` : ''}`
-                        : 'Foto'}
-                    </p>
-                    {upload.guest_name ? (
-                      <p className="text-sm font-semibold text-stone-800">{upload.guest_name}</p>
-                    ) : null}
-                    {upload.caption ? (
-                      <p className="text-sm leading-relaxed text-stone-600">{upload.caption}</p>
-                    ) : (
-                      <p className="text-sm text-stone-400">Sem legenda.</p>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-dashed border-stone-300 bg-white/70 p-8 text-center text-sm leading-relaxed text-stone-500 shadow-sm">
-              Os primeiros registros aprovados aparecerão aqui.
-            </div>
-          )}
-        </div>
-
-        <form onSubmit={(event) => void handleSubmit(event)} className="self-start rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="mt-10 mx-auto max-w-lg">
+        <form onSubmit={(event) => void handleSubmit(event)} className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
           <h3 className="font-display text-2xl text-stone-800">Enviar foto ou vídeo</h3>
           <p className="mt-2 text-sm leading-relaxed text-stone-500">
             Envie 1 arquivo por vez. Fotos em JPG, PNG ou WEBP. Vídeos em MP4, MOV ou WEBM.
@@ -335,7 +296,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
                 className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-3 file:rounded-full file:border-0 file:bg-stone-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-stone-700"
               />
               <p className="mt-2 text-xs text-stone-500">
-                Fotos até 12 MB. Vídeos até 120 MB e 60 segundos. O arquivo só aparece no convite depois da aprovação.
+                Fotos até 12 MB. Vídeos até 120 MB e 60 segundos. Depois da aprovação, os registos ficam disponíveis na Galeria.
               </p>
             </label>
           </div>
@@ -367,6 +328,13 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
           </button>
         </form>
       </div>
+
+      <GuestApprovedGalleryModal
+        inviteSlug={inviteSlug}
+        uploads={approvedUploads}
+        open={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+      />
     </motion.section>
   )
 }
