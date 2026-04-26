@@ -2,7 +2,19 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { applySeoMeta } from '../lib/seoMeta'
 import { applyStructuredData, clearStructuredData } from '../lib/structuredData'
-import { trackCtaClick } from '../lib/analytics'
+import { trackCtaClick, trackGoogleAdsConversion } from '../lib/analytics'
+
+const PORTFOLIO_CONTACT_EMAIL = 'contato@convitesdiversos.com.br'
+/** (11) 96581-4224 — wa.me sem espaços ou símbolos */
+const PORTFOLIO_CONTACT_WHATSAPP_E164 = '5511965814224'
+
+const portfolioContactMailtoHref = `mailto:${PORTFOLIO_CONTACT_EMAIL}?subject=${encodeURIComponent('Orçamento — convite digital')}&body=${encodeURIComponent(
+  'Olá,\n\nGostaria de solicitar um orçamento para convite digital.\n\nNome:\nData do evento:\nTipo de celebração:\n\nObrigado/a.',
+)}`
+
+const portfolioContactWhatsHref = `https://wa.me/${PORTFOLIO_CONTACT_WHATSAPP_E164}?text=${encodeURIComponent(
+  'Olá! Gostaria de um orçamento para convite digital pela Convites Diversos.',
+)}`
 
 export function PortfolioPage() {
   const highlights = [
@@ -168,6 +180,15 @@ export function PortfolioPage() {
                 Ver outros modelos
               </Link>
             </div>
+            <p className="mt-6 text-sm">
+              <Link
+                to="#contato"
+                onClick={() => trackCtaClick('portfolio_hero', 'link_secao_contato', '#contato')}
+                className="font-medium text-[color:var(--color-gold)] underline decoration-[color:var(--color-gold-soft)] underline-offset-4 transition hover:decoration-[color:var(--color-gold)]"
+              >
+                Pedir orçamento ou falar conosco
+              </Link>
+            </p>
             <p className="mt-8 text-sm text-[color:var(--color-ink-muted)]">
               Cada projeto pode ter seu próprio link, identidade visual e experiência personalizada para o tipo de evento.
             </p>
@@ -305,6 +326,43 @@ export function PortfolioPage() {
                 <p className="mt-3 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">{faq.answer}</p>
               </details>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="contato" className="border-t border-stone-200/80 bg-[color:var(--color-blush)]/60 px-6 py-16">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">Orçamento</p>
+          <h2 className="mt-3 font-display text-3xl font-semibold text-[color:var(--color-ink)] sm:text-4xl">
+            Fale conosco e peça o seu orçamento
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[color:var(--color-ink-muted)] sm:text-base">
+            Conte-nos a ocasião, a data aproximada e o que imagina para o convite. Respondemos por e-mail ou WhatsApp
+            para alinhar detalhes e valores.
+          </p>
+          <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+            <a
+              href={portfolioContactMailtoHref}
+              onClick={() => {
+                trackCtaClick('portfolio_contact', 'email_orcamento', portfolioContactMailtoHref)
+                trackGoogleAdsConversion()
+              }}
+              className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-7 py-3 text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-stone-50"
+            >
+              Enviar e-mail
+            </a>
+            <a
+              href={portfolioContactWhatsHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => {
+                trackCtaClick('portfolio_contact', 'whatsapp_orcamento', portfolioContactWhatsHref)
+                trackGoogleAdsConversion()
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-7 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
+            >
+              WhatsApp
+            </a>
           </div>
         </div>
       </section>
