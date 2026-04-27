@@ -16,6 +16,8 @@ const GOOGLE_ADS_ID = import.meta.env.VITE_GOOGLE_ADS_ID?.trim() || ''
  */
 const GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO =
   import.meta.env.VITE_GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO?.trim() || ''
+const GOOGLE_ADS_CONVERSION_CONTACT_EVENT_NAME =
+  import.meta.env.VITE_GOOGLE_ADS_CONVERSION_CONTACT_EVENT_NAME?.trim() || 'conversion_event_contact'
 
 let analyticsInitialized = false
 
@@ -104,6 +106,8 @@ export function trackEvent(name: string, params: AnalyticsParams = {}) {
 type GoogleAdsConversionParams = {
   /** Ex.: AW-123456789/Label_da_conversao (copiar do Google Ads) */
   send_to?: string
+  /** Ex.: conversion_event_contact (formato novo de evento criado pelo Google Ads) */
+  event_name?: string
   value?: number
   currency?: string
 }
@@ -114,8 +118,23 @@ type GoogleAdsConversionParams = {
  */
 export function trackGoogleAdsConversion(params: GoogleAdsConversionParams = {}) {
   const send_to = params.send_to?.trim() || GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO
-  if (!send_to) return
+  const eventName = params.event_name?.trim() || GOOGLE_ADS_CONVERSION_CONTACT_EVENT_NAME
+  if (!send_to && !eventName) return
   initAnalytics()
+
+  if (!send_to) {
+    window.gtag?.(
+      'event',
+      eventName,
+      sanitizeParams({
+        ...(params.value != null
+          ? { value: params.value, currency: params.currency?.trim() || 'BRL' }
+          : {}),
+      }),
+    )
+    return
+  }
+
   window.gtag?.(
     'event',
     'conversion',
