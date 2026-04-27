@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { formatGuestUploadDuration, type GuestUploadWithUrl } from '../lib/guestUploads'
 import { trackEvent } from '../lib/analytics'
+import { useI18n } from '../i18n/useI18n'
 
 const THUMBS_PER_PAGE = 15
 
@@ -13,6 +14,7 @@ type Props = {
 }
 
 export function GuestApprovedGalleryModal({ inviteSlug, uploads, open, onClose }: Props) {
+  const { t } = useI18n()
   const closeBtnRef = useRef<HTMLButtonElement>(null)
   const [page, setPage] = useState(0)
   const [focusId, setFocusId] = useState<string | null>(null)
@@ -98,7 +100,7 @@ export function GuestApprovedGalleryModal({ inviteSlug, uploads, open, onClose }
       <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col rounded-2xl border border-stone-200/90 bg-[color:var(--color-cream)] shadow-2xl">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-stone-200/80 px-4 py-3 sm:px-5">
           <h2 id="guest-gallery-title" className="font-display text-xl text-[color:var(--color-ink)] sm:text-2xl">
-            {focused ? 'Visualizar' : 'Galeria'}
+            {focused ? 'Visualizar' : t('invite.galleryHeading')}
           </h2>
           <button
             ref={closeBtnRef}
@@ -126,7 +128,7 @@ export function GuestApprovedGalleryModal({ inviteSlug, uploads, open, onClose }
                 ) : (
                   <img
                     src={focused.signedUrl}
-                    alt={focused.caption || 'Foto do convidado'}
+                    alt={focused.caption || t('guestUploads.photo')}
                     className="max-h-[min(70dvh,560px)] w-full object-contain"
                   />
                 )}
@@ -134,12 +136,12 @@ export function GuestApprovedGalleryModal({ inviteSlug, uploads, open, onClose }
               <div className="space-y-2 text-center sm:text-left">
                 <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
                   {focused.file_type === 'video'
-                    ? `Vídeo${focused.duration_seconds != null ? ` • ${formatGuestUploadDuration(focused.duration_seconds)}` : ''}`
-                    : 'Foto'}
+                    ? `${t('guestUploads.video')}${focused.duration_seconds != null ? ` • ${formatGuestUploadDuration(focused.duration_seconds)}` : ''}`
+                    : t('guestUploads.photo')}
                 </p>
                 {focused.guest_name ? <p className="font-semibold text-stone-800">{focused.guest_name}</p> : null}
                 <p className="text-sm leading-relaxed text-stone-600">
-                  {focused.caption?.trim() ? focused.caption : 'Sem legenda.'}
+                  {focused.caption?.trim() ? focused.caption : t('guestUploads.noCaption')}
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-2 pt-2">

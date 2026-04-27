@@ -10,6 +10,8 @@ import { OwnerClaimPage } from './pages/OwnerClaimPage'
 import { ServiceLandingPage } from './pages/ServiceLandingPage'
 import { serviceLandingPagesBySlug } from './data/serviceLandingPages'
 import { initAnalytics, trackPageView } from './lib/analytics'
+import { I18nProvider } from './i18n/I18nProvider'
+import { LanguageSwitcher } from './components/LanguageSwitcher'
 
 function InviteRoute() {
   const { slug } = useParams()
@@ -64,18 +66,21 @@ function AnalyticsListener() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AnalyticsListener />
-      <Routes>
-        <Route path="/" element={<PortfolioPage />} />
-        <Route path="/modelos" element={<ExamplesPage />} />
-        <Route path="/convite-digital/:serviceSlug" element={<ServiceLandingPage />} />
-        <Route path="/c/:slug" element={<InviteRoute />} />
-        <Route path="/i/:slug" element={<ShareInviteRedirectRoute />} />
-        <Route path="/admin" element={<AdminRoute />} />
-        <Route path="/owner" element={<OwnerPanel />} />
-        <Route path="/owner/claim" element={<OwnerClaimPage />} />
-        <Route path="/:slug" element={<LegacyInviteRedirectRoute />} />
-      </Routes>
+      <I18nProvider>
+        <AnalyticsListener />
+        <LanguageSwitcher />
+        <Routes>
+          <Route path="/" element={<PortfolioPage />} />
+          <Route path="/modelos" element={<ExamplesPage />} />
+          <Route path="/convite-digital/:serviceSlug" element={<ServiceLandingPage />} />
+          <Route path="/c/:slug" element={<InviteRoute />} />
+          <Route path="/i/:slug" element={<ShareInviteRedirectRoute />} />
+          <Route path="/admin" element={<AdminRoute />} />
+          <Route path="/owner" element={<OwnerPanel />} />
+          <Route path="/owner/claim" element={<OwnerClaimPage />} />
+          <Route path="/:slug" element={<LegacyInviteRedirectRoute />} />
+        </Routes>
+      </I18nProvider>
     </BrowserRouter>
   )
 }

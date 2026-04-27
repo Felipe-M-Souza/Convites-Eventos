@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   targetIso: string
@@ -11,6 +12,7 @@ function pad(n: number) {
 
 export function CountdownTimer({ targetIso }: Props) {
   const reduce = useReducedMotion()
+  const { t } = useI18n()
   const target = useMemo(() => new Date(targetIso).getTime(), [targetIso])
   const [now, setNow] = useState(() => Date.now())
 
@@ -26,10 +28,10 @@ export function CountdownTimer({ targetIso }: Props) {
   const seconds = Math.floor((diff / 1000) % 60)
 
   const items = [
-    { label: 'Dias', value: days },
-    { label: 'Horas', value: pad(hours) },
-    { label: 'Min', value: pad(minutes) },
-    { label: 'Seg', value: pad(seconds) },
+    { label: t('invite.countdown.days'), value: days },
+    { label: t('invite.countdown.hours'), value: pad(hours) },
+    { label: t('invite.countdown.minutes'), value: pad(minutes) },
+    { label: t('invite.countdown.seconds'), value: pad(seconds) },
   ]
 
   return (
@@ -42,10 +44,10 @@ export function CountdownTimer({ targetIso }: Props) {
     >
       <div className="mx-auto max-w-3xl text-center">
         <h2 className="font-display text-3xl text-[color:var(--color-ink)] md:text-4xl">
-          Contagem regressiva
+          {t('invite.countdownHeading')}
         </h2>
         <p className="mt-2 text-sm text-[color:var(--color-ink-muted)]">
-          Falta pouco para esse momento especial
+          {t('invite.countdownDescription')}
         </p>
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {items.map((item) => (

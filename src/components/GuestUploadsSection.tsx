@@ -18,6 +18,7 @@ import {
 } from '../lib/guestUploads'
 import { trackEvent } from '../lib/analytics'
 import { GuestApprovedGalleryModal } from './GuestApprovedGalleryModal'
+import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   inviteSlug: string
@@ -28,6 +29,7 @@ type Props = {
 
 export function GuestUploadsSection({ inviteSlug, enabled, title, description }: Props) {
   const reduce = useReducedMotion()
+  const { t } = useI18n()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [approvedUploads, setApprovedUploads] = useState<GuestUploadWithUrl[]>([])
   const [loading, setLoading] = useState(false)
@@ -82,7 +84,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
         )
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar os registros aprovados.')
+          setError(loadError instanceof Error ? loadError.message : t('guestUploads.errorLoad'))
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -94,14 +96,14 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
     return () => {
       cancelled = true
     }
-  }, [canRender, inviteSlug])
+  }, [canRender, inviteSlug, t])
 
   const mediaCountLabel = useMemo(() => {
-    if (loading) return 'A carregar registos…'
-    if (!approvedUploads.length) return 'Ainda não há registros publicados.'
-    if (approvedUploads.length === 1) return '1 registro já aprovado'
-    return `${approvedUploads.length} registros já aprovados`
-  }, [approvedUploads.length, loading])
+    if (loading) return t('guestUploads.loading')
+    if (!approvedUploads.length) return t('guestUploads.emptyCount')
+    if (approvedUploads.length === 1) return t('guestUploads.singleCount')
+    return t('guestUploads.multipleCount', { count: approvedUploads.length })
+  }, [approvedUploads.length, loading, t])
 
   if (!canRender) return null
 
@@ -137,7 +139,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
     event.preventDefault()
     const client = supabase
     if (!client || !selectedFile) {
-      setError('Escolha um arquivo para enviar.')
+      setError(t('guestUploads.errorChooseFile'))
       return
     }
 
@@ -213,12 +215,12 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
       setSelectedUpload(null)
       setSuccess(
         fileType === 'video'
-          ? 'Vídeo enviado com sucesso. Ele será otimizado antes de ficar disponível para aprovação do responsável.'
-          : 'Arquivo enviado com sucesso. Ele ficará visível após aprovação do responsável.',
+          ? t('guestUploads.successVideo')
+          : t('guestUploads.successImage'),
       )
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Falha ao enviar o arquivo.')
+      setError(submitError instanceof Error ? submitError.message : t('guestUploads.errorSubmit'))
     } finally {
       setSubmitting(false)
     }
@@ -234,10 +236,10 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
       transition={{ duration: 0.65 }}
     >
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="font-display text-3xl text-[color:var(--color-ink)] md:text-4xl">{title.trim() || 'Registros dos convidados'}</h2>
+        <h2 className="font-display text-3xl text-[color:var(--color-ink)] md:text-4xl">{title.trim() || t('guestUploads.defaultTitle')}</h2>
         <p className="mt-3 text-sm leading-relaxed text-[color:var(--color-ink-muted)]">
           {description.trim() ||
-            'Envie uma foto ou vídeo deste momento. O responsável pelo convite aprova antes da publicação.'}
+            t('guestUploads.defaultDescription')}
         </p>
         <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
           <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{mediaCountLabel}</p>
@@ -247,7 +249,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
               onClick={() => setGalleryOpen(true)}
               className="rounded-full border border-[color:var(--color-gold)]/45 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink)] shadow-sm transition hover:bg-[color:var(--color-blush)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-gold)]"
             >
-              Galeria
+              {t('invite.galleryHeading')}
             </button>
           ) : null}
         </div>
@@ -255,38 +257,38 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
 
       <div className="mt-10 mx-auto max-w-lg">
         <form onSubmit={(event) => void handleSubmit(event)} className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h3 className="font-display text-2xl text-stone-800">Enviar foto ou vídeo</h3>
+          <h3 className="font-display text-2xl text-stone-800">{t('guestUploads.formTitle')}</h3>
           <p className="mt-2 text-sm leading-relaxed text-stone-500">
-            Envie 1 arquivo por vez. Fotos em JPG, PNG ou WEBP. Vídeos em MP4, MOV ou WEBM.
+            {t('guestUploads.formDescription')}
           </p>
           <p className="mt-2 rounded-2xl bg-stone-50 px-4 py-3 text-xs leading-relaxed text-stone-600">
-            Em celular, vídeos curtos funcionam melhor. Recomendado: até 1 minuto e preferencialmente em uma conexão estável.
+            {t('guestUploads.mobileHint')}
           </p>
 
           <div className="mt-6 space-y-4">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">Seu nome</span>
+              <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">{t('guestUploads.name')}</span>
               <input
                 type="text"
                 value={guestName}
                 onChange={(event) => setGuestName(event.target.value)}
                 className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm outline-none focus:border-[color:var(--color-gold)]"
-                placeholder="Opcional"
+                placeholder={t('guestUploads.optional')}
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">Legenda</span>
+              <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">{t('guestUploads.caption')}</span>
               <textarea
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
                 className="min-h-[110px] w-full rounded-xl border border-stone-300 px-3 py-2 text-sm outline-none focus:border-[color:var(--color-gold)]"
-                placeholder="Opcional"
+                placeholder={t('guestUploads.optional')}
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">Arquivo</span>
+              <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">{t('guestUploads.file')}</span>
               <input
                 ref={fileInputRef}
                 name="guest-upload-file"
@@ -296,14 +298,14 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
                 className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-3 file:rounded-full file:border-0 file:bg-stone-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-stone-700"
               />
               <p className="mt-2 text-xs text-stone-500">
-                Fotos até 12 MB. Vídeos até 120 MB e 60 segundos. Depois da aprovação, os registos ficam disponíveis na Galeria.
+                {t('guestUploads.constraints')}
               </p>
             </label>
           </div>
 
           {readingFile ? (
             <div className="mt-4 rounded-2xl bg-stone-50 px-4 py-3 text-xs text-stone-600">
-              Analisando arquivo para validar tamanho e duração…
+              {t('guestUploads.readingFile')}
             </div>
           ) : null}
 
@@ -311,7 +313,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
             <div className="mt-4 rounded-2xl bg-stone-50 px-4 py-3 text-xs text-stone-600">
               <strong className="font-semibold text-stone-700">{selectedFile.name}</strong>
               <br />
-              {selectedUpload?.kind === 'video' ? 'Vídeo' : 'Foto'} • {formatGuestUploadBytes(selectedFile.size)}
+              {selectedUpload?.kind === 'video' ? t('guestUploads.video') : t('guestUploads.photo')} • {formatGuestUploadBytes(selectedFile.size)}
               {selectedUpload?.durationSeconds != null ? ` • ${formatGuestUploadDuration(selectedUpload.durationSeconds)}` : ''}
             </div>
           ) : null}
@@ -324,7 +326,7 @@ export function GuestUploadsSection({ inviteSlug, enabled, title, description }:
             disabled={submitting || readingFile}
             className="mt-6 w-full rounded-full bg-[color:var(--color-gold)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-50"
           >
-            {readingFile ? 'Validando arquivo…' : submitting ? 'Enviando…' : 'Enviar para aprovação'}
+            {readingFile ? t('guestUploads.readingFile') : submitting ? t('guestUploads.submitting') : t('guestUploads.submit')}
           </button>
         </form>
       </div>

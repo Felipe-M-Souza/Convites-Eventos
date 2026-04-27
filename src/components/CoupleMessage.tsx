@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { EventData } from '../data/eventData'
+import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
@@ -7,6 +8,7 @@ type Props = {
 
 export function CoupleMessage({ data }: Props) {
   const reduce = useReducedMotion()
+  const { t } = useI18n()
 
   return (
     <motion.section
@@ -18,7 +20,7 @@ export function CoupleMessage({ data }: Props) {
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
     >
       <p className="mb-4 font-display text-2xl text-[color:var(--color-gold)] md:text-3xl">
-        Uma mensagem especial
+        {t('invite.messageHeading')}
       </p>
       <p className="text-base leading-relaxed text-[color:var(--color-ink-muted)] md:text-lg">
         {data.message}

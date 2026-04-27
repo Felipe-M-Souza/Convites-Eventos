@@ -16,15 +16,19 @@ import { EnvelopeOpening } from '../components/EnvelopeOpening'
 import { applySeoMeta } from '../lib/seoMeta'
 import { trackEvent } from '../lib/analytics'
 import { buildSiteUrl } from '../lib/siteUrl'
+import { useI18n } from '../i18n/useI18n'
+import { resolveEventDataForLocale } from '../data/eventData'
 
-function buildInviteDescription(message: string): string {
+function buildInviteDescription(message: string, fallback: string): string {
   const text = message.trim().replace(/\s+/g, ' ')
-  if (!text) return 'Você recebeu um convite especial.'
+  if (!text) return fallback
   return text.length > 170 ? `${text.slice(0, 167)}...` : text
 }
 
 export function Home() {
-  const { data: eventData, status, inviteNotFound, inviteSlug } = useEventData()
+  const { data: baseEventData, status, inviteNotFound, inviteSlug } = useEventData()
+  const { locale, t } = useI18n()
+  const eventData = resolveEventDataForLocale(baseEventData, locale)
   const [inviteUnlocked, setInviteUnlocked] = useState(false)
   const musicRef = useRef<MusicToggleHandle>(null)
 
@@ -55,17 +59,17 @@ export function Home() {
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
     const title = eventData.seoTitle.trim() || `${eventData.coupleNames} | Convite digital`
-    const description = eventData.seoDescription.trim() || buildInviteDescription(eventData.message)
+    const description = eventData.seoDescription.trim() || buildInviteDescription(eventData.message, t('invite.openingFallback'))
     const image = eventData.coverImageUrl?.trim() || buildSiteUrl('/images/hero-couple.jpg')
     const url = buildSiteUrl(`/c/${encodeURIComponent(inviteSlug)}`)
 
     applySeoMeta({ title, description, image, url })
-  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.seoDescription, eventData.seoTitle, inviteSlug, status])
+  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.seoDescription, eventData.seoTitle, inviteSlug, status, t])
 
   if (isCmsConfigured && status === 'loading') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-[color:var(--color-cream)] text-stone-500">
-        <p className="font-display text-lg">A carregar o convite…</p>
+        <p className="font-display text-lg">{t('common.loadingInvite')}</p>
       </div>
     )
   }
@@ -73,16 +77,16 @@ export function Home() {
   if (isCmsConfigured && inviteNotFound) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[color:var(--color-cream)] px-6 text-center">
-        <p className="font-display text-2xl text-[color:var(--color-ink)]">Convite não encontrado</p>
+        <p className="font-display text-2xl text-[color:var(--color-ink)]">{t('common.inviteNotFound')}</p>
         <p className="max-w-md text-sm text-[color:var(--color-ink-muted)]">
-          Não há nenhum convite com o slug <span className="font-mono font-medium text-stone-700">{inviteSlug}</span>.
-          Confirma o link ou pede um novo ao organizador.
+          {t('common.inviteNotFoundDescription')}{' '}
+          <span className="font-mono font-medium text-stone-700">{inviteSlug}</span>
         </p>
         <Link
           to="/"
           className="rounded-full border border-stone-300 bg-white px-6 py-2.5 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
         >
-          Voltar ao início
+          {t('common.backHome')}
         </Link>
       </div>
     )

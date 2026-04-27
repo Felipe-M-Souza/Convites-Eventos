@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { EventData } from '../data/eventData'
+import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
@@ -8,6 +9,7 @@ type Props = {
 
 export function HeroSection({ data, onContinue }: Props) {
   const reduce = useReducedMotion()
+  const { t } = useI18n()
 
   return (
     <header className="relative isolate flex min-h-[100dvh] flex-col items-center justify-end overflow-hidden px-6 pb-14 pt-24 text-center text-white">
@@ -46,7 +48,7 @@ export function HeroSection({ data, onContinue }: Props) {
           className="mt-4 rounded-full border border-white/40 bg-white/10 px-8 py-3 text-sm font-medium uppercase tracking-widest text-white backdrop-blur-sm transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           whileTap={{ scale: reduce ? 1 : 0.97 }}
         >
-          {data.heroContinueLabel?.trim() || 'Ver convite'}
+          {data.heroContinueLabel?.trim() || t('invite.heroContinue')}
         </motion.button>
       </motion.div>
     </header>

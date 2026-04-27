@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { EventData } from '../data/eventData'
+import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   photos: EventData['galleryPhotos']
@@ -7,6 +8,7 @@ type Props = {
 
 export function PhotoGallery({ photos }: Props) {
   const reduce = useReducedMotion()
+  const { t } = useI18n()
 
   if (!photos.length) return null
 
@@ -20,10 +22,10 @@ export function PhotoGallery({ photos }: Props) {
       transition={{ duration: 0.65 }}
     >
       <h2 className="text-center font-display text-3xl text-[color:var(--color-ink)] md:text-4xl">
-        Momentos
+        {t('invite.galleryHeading')}
       </h2>
       <p className="mx-auto mt-2 max-w-lg text-center text-sm text-[color:var(--color-ink-muted)]">
-        Alguns registros que ajudam a contar a historia desse momento.
+        {t('invite.galleryDescription')}
       </p>
       <div className="mt-10 columns-2 gap-3 sm:columns-3 sm:gap-4">
         {photos.map((src, i) => {

@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import type { EventData } from '../data/eventData'
 import { buildRsvpWhatsappHref } from '../lib/whatsappLink'
 import { getCurrentPagePath, trackEvent } from '../lib/analytics'
+import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
@@ -27,8 +28,9 @@ function withUtm(href: string, campaign: string): string {
 
 export function ActionButtons({ data }: Props) {
   const reduce = useReducedMotion()
+  const { t } = useI18n()
   const giftsIntro = data.giftsIntro?.trim() ?? ''
-  const giftsButtonLabel = data.giftsButtonLabel?.trim() || 'Lista de presentes'
+  const giftsButtonLabel = data.giftsButtonLabel?.trim() || t('invite.giftsButton')
   const giftsQrCode = data.giftsQrCodeImageUrl?.trim() ?? ''
   const giftsQrCodeSizePx = Math.min(320, Math.max(96, Number(data.giftsQrCodeSizePx) || 180))
   const mapsHref = withUtm(data.mapsLink, 'maps_click')
@@ -56,7 +58,7 @@ export function ActionButtons({ data }: Props) {
             })
           }
         >
-          {data.mapsButtonLabel?.trim() || 'Ver no mapa'}
+          {data.mapsButtonLabel?.trim() || t('invite.mapButton')}
         </a>
         <a
           className={btn}
@@ -70,7 +72,7 @@ export function ActionButtons({ data }: Props) {
             })
           }
         >
-          {data.rsvpButtonLabel?.trim() || 'Confirmar presença'}
+          {data.rsvpButtonLabel?.trim() || t('invite.rsvpButton')}
         </a>
       </div>
       {giftsIntro ? (

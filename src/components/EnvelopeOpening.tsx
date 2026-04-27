@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { resolveSealMark, type EventData } from '../data/eventData'
+import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
@@ -353,6 +354,7 @@ function OpeningEnvelope({
 
 export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
   const reduce = useReducedMotion()
+  const { t } = useI18n()
   const [phase, setPhase] = useState<OpeningPhase>('idle')
   const frameSrc = data.openingFrameImageUrl?.trim() || OPENING_FRAME_SRC
   const backdropColor = data.openingBackdropColor?.trim()
@@ -372,7 +374,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
       ? data.openingSealAnchorX
       : SEAL_ANCHOR_X
   const sealAnchorX = Math.min(0.92, Math.max(0.08, sealAnchorXRaw))
-  const previewTitle = data.openingPreviewTitle?.trim() || 'Convite especial'
+  const previewTitle = data.openingPreviewTitle?.trim() || t('invite.openingFallback')
 
   const envBoxWMax =
     typeof data.openingEnvelopeBoxWidthMaxPx === 'number' &&

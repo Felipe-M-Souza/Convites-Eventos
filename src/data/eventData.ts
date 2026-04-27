@@ -1,4 +1,39 @@
 import { parseWaMeLink } from '../lib/whatsappLink'
+import type { Locale } from '../i18n/locales'
+
+export const inviteTranslationLocales = ['en', 'es'] as const
+export type InviteTranslationLocale = (typeof inviteTranslationLocales)[number]
+
+export const inviteTranslatableFields = [
+  'openingSealHint',
+  'openingPreviewTitle',
+  'eventDetailsHeading',
+  'dressCodeLabel',
+  'mapsButtonLabel',
+  'rsvpButtonLabel',
+  'heroContinueLabel',
+  'seoTitle',
+  'seoDescription',
+  'coupleNames',
+  'verse',
+  'weddingDateLabel',
+  'message',
+  'venue',
+  'address',
+  'time',
+  'dressCode',
+  'notes',
+  'rsvpWhatsappMessage',
+  'giftsButtonLabel',
+  'giftsIntro',
+  'guestUploadsTitle',
+  'guestUploadsDescription',
+  'footerThanks',
+  'footerContact',
+] as const
+
+export type InviteTranslatableField = (typeof inviteTranslatableFields)[number]
+export type InviteTranslations = Partial<Record<InviteTranslationLocale, Partial<Record<InviteTranslatableField, string>>>>
 
 /** Primeira letra de cada nome quando o formato é «Nome & Nome» ou «Nome e Nome». */
 export function initialsFromCoupleNames(names: string): string {
@@ -155,11 +190,46 @@ export const eventData = {
   backgroundAudioUrl: '/audio/velha-infancia.mp3',
   footerThanks: 'Obrigado por fazer parte da nossa história.',
   footerContact: 'Dúvidas? Fale com os noivos pelo WhatsApp do RSVP.',
+  translations: {} as InviteTranslations,
 }
 
 export type EventData = typeof eventData
 
 type StoredPayload = Partial<EventData> & { rsvpWhatsappLink?: string }
+
+function normalizeInviteTranslations(value: unknown): InviteTranslations {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const raw = value as Record<string, unknown>
+  const next: InviteTranslations = {}
+
+  for (const locale of inviteTranslationLocales) {
+    const localeValue = raw[locale]
+    if (!localeValue || typeof localeValue !== 'object' || Array.isArray(localeValue)) continue
+    const translation: Partial<Record<InviteTranslatableField, string>> = {}
+    const fields = localeValue as Record<string, unknown>
+    for (const field of inviteTranslatableFields) {
+      if (typeof fields[field] === 'string') translation[field] = fields[field]
+    }
+    next[locale] = translation
+  }
+
+  return next
+}
+
+export function resolveEventDataForLocale(data: EventData, locale: Locale): EventData {
+  if (locale === 'pt-BR') return data
+  const translation = data.translations?.[locale]
+  if (!translation) return data
+
+  const localized = { ...data }
+  for (const field of inviteTranslatableFields) {
+    const value = translation[field]?.trim()
+    if (value) {
+      localized[field] = value as never
+    }
+  }
+  return localized
+}
 
 /** Galeria demo antiga (Unsplash) ainda gravada no CMS. */
 const LEGACY_GALLERY_PHOTOS = [
@@ -183,6 +253,7 @@ export function mergeInvitePayload(stored: unknown): EventData {
 
   const s = stored as StoredPayload
   const merged = { ...defaults, ...s } as EventData & { rsvpWhatsappLink?: string }
+  merged.translations = normalizeInviteTranslations(s.translations)
 
   /** Payloads antigos ainda apontam para a demo; alinhar à faixa por omissão do código. */
   if (merged.backgroundAudioUrl.trim() === '/audio/from-this-moment-on.mp3') {

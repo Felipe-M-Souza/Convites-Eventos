@@ -1,6 +1,13 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { eventData, type EventData } from '../data/eventData'
+import {
+  eventData,
+  inviteTranslationLocales,
+  inviteTranslatableFields,
+  type EventData,
+  type InviteTranslatableField,
+  type InviteTranslationLocale,
+} from '../data/eventData'
 import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
@@ -38,6 +45,50 @@ type InviteRow = { id: string; slug: string }
 const COVER_MAX_EDGE = 1600
 const COVER_JPEG_QUALITY = 0.9
 
+const translationLocaleLabels: Record<InviteTranslationLocale, string> = {
+  en: 'Inglês',
+  es: 'Espanhol',
+}
+
+const translationFieldLabels: Record<InviteTranslatableField, string> = {
+  openingSealHint: 'Abertura — texto de ajuda',
+  openingPreviewTitle: 'Abertura — título de prévia',
+  eventDetailsHeading: 'Detalhes — título',
+  dressCodeLabel: 'Detalhes — label de traje',
+  mapsButtonLabel: 'Botão mapa',
+  rsvpButtonLabel: 'Botão RSVP',
+  heroContinueLabel: 'Botão continuar',
+  seoTitle: 'SEO — title',
+  seoDescription: 'SEO — meta description',
+  coupleNames: 'Nomes exibidos',
+  verse: 'Frase / versículo',
+  weddingDateLabel: 'Data exibida',
+  message: 'Mensagem aos convidados',
+  venue: 'Local',
+  address: 'Endereço',
+  time: 'Hora exibida',
+  dressCode: 'Traje',
+  notes: 'Observações',
+  rsvpWhatsappMessage: 'Mensagem WhatsApp',
+  giftsButtonLabel: 'Botão lista de presentes',
+  giftsIntro: 'Texto lista de presentes',
+  guestUploadsTitle: 'Uploads — título',
+  guestUploadsDescription: 'Uploads — descrição',
+  footerThanks: 'Rodapé — agradecimento',
+  footerContact: 'Rodapé — contato/nota',
+}
+
+const longTranslationFields = new Set<InviteTranslatableField>([
+  'seoDescription',
+  'verse',
+  'message',
+  'notes',
+  'rsvpWhatsappMessage',
+  'giftsIntro',
+  'guestUploadsDescription',
+  'footerContact',
+])
+
 export function AdminEditor({ onSignOut }: Props) {
   const navigate = useNavigate()
   const { data, refresh, inviteId, inviteSlug, inviteNotFound, status } = useEventData()
@@ -51,6 +102,7 @@ export function AdminEditor({ onSignOut }: Props) {
   const [copiedShareLink, setCopiedShareLink] = useState(false)
   const [coverUploading, setCoverUploading] = useState(false)
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null)
+  const [activeTranslationLocale, setActiveTranslationLocale] = useState<InviteTranslationLocale>('en')
   const coverFileRef = useRef<HTMLInputElement>(null)
 
   const loadInviteList = () => {
@@ -76,6 +128,21 @@ export function AdminEditor({ onSignOut }: Props) {
     <K extends keyof EventData>(key: K) =>
     (value: EventData[K]) => {
       setForm((f) => ({ ...f, [key]: value }))
+    }
+
+  const setTranslation =
+    (locale: InviteTranslationLocale, key: InviteTranslatableField) =>
+    (value: string) => {
+      setForm((f) => ({
+        ...f,
+        translations: {
+          ...(f.translations ?? {}),
+          [locale]: {
+            ...(f.translations?.[locale] ?? {}),
+            [key]: value,
+          },
+        },
+      }))
     }
 
   const handleSave = async () => {
@@ -552,6 +619,55 @@ export function AdminEditor({ onSignOut }: Props) {
               onChange={(e) => set('guestUploadsDescription')(e.target.value)}
             />
           </Field>
+        </fieldset>
+
+        <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
+          <legend className="px-1 font-display text-lg text-stone-800">Traduções do convite</legend>
+          <p className="text-sm leading-relaxed text-stone-500">
+            O português continua como conteúdo principal. Preencha apenas os campos que precisam mudar no idioma escolhido;
+            campos vazios usam automaticamente o texto em português.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {inviteTranslationLocales.map((locale) => (
+              <button
+                key={locale}
+                type="button"
+                onClick={() => setActiveTranslationLocale(locale)}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                  activeTranslationLocale === locale
+                    ? 'border-[color:var(--color-gold)] bg-[color:var(--color-blush)] text-stone-900'
+                    : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-50'
+                }`}
+              >
+                {translationLocaleLabels[locale]}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-4 border-t border-stone-100 pt-4">
+            {inviteTranslatableFields.map((field) => {
+              const value = form.translations?.[activeTranslationLocale]?.[field] ?? ''
+              const baseValue = form[field]
+              const placeholder = typeof baseValue === 'string' ? baseValue : ''
+              const commonProps = {
+                className: longTranslationFields.has(field) ? `${inputClass} min-h-[76px]` : inputClass,
+                value,
+                placeholder,
+                onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  setTranslation(activeTranslationLocale, field)(event.target.value),
+              }
+
+              return (
+                <Field key={field} label={translationFieldLabels[field]}>
+                  {longTranslationFields.has(field) ? <textarea {...commonProps} /> : <input {...commonProps} />}
+                  {placeholder ? (
+                    <p className="mt-1 text-xs text-stone-400">
+                      Fallback pt-BR: {placeholder.length > 140 ? `${placeholder.slice(0, 137)}...` : placeholder}
+                    </p>
+                  ) : null}
+                </Field>
+              )
+            })}
+          </div>
         </fieldset>
 
         {supabase ? (
