@@ -71,6 +71,8 @@ VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 VITE_PUBLIC_SITE_URL=https://www.convitesdiversos.com.br
 VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+VITE_GOOGLE_ADS_ID=AW-XXXXXXXXXX
+VITE_GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO=AW-XXXXXXXXXX/xxxxxxxxxx
 ```
 
 Notas:
@@ -78,6 +80,8 @@ Notas:
 - `HOSTGATOR_FTP_SERVER_DIR` deve ser a pasta onde hoje está o `index.html` do site. Se o primeiro deploy falhar por caminho, ajusta apenas este valor.
 - `VITE_PUBLIC_SITE_URL` deve apontar para o domínio público usado no compartilhamento do convite. Ex.: `https://www.convitesdiversos.com.br`.
 - `VITE_GA_MEASUREMENT_ID` é opcional; pode ficar vazio se não estiver a usar GA4.
+- `VITE_GOOGLE_ADS_ID` é opcional; use o ID base da Google tag do Ads. Ex.: `AW-17639334282`.
+- `VITE_GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO` é opcional; preencha quando criar a ação de conversão de contato/orçamento no Google Ads.
 - O deploy automático está configurado sem limpeza agressiva do diretório remoto (`dangerous-clean-slate: false`), para não apagar ficheiros do servidor fora do `dist/`.
 - O workflow também gera `dist/.env` no deploy para que o `preview.php` da prévia de WhatsApp consiga ler `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no servidor.
 
