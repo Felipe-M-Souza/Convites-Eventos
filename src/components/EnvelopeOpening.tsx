@@ -510,6 +510,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const shouldMultiplyEnvelope = Boolean(backdropColor) || soccerGoalMode
   const openingStagePaperBg = soccerGoalMode && !backdropColor ? 'transparent' : backdropColor || 'var(--color-cream)'
   const darkOpeningBackdrop = Boolean(backdropColor)
+  const soccerOpeningTextClass = soccerGoalMode && !darkOpeningBackdrop
   const layoutOffsetTop = data.openingLayoutOffsetTop?.trim()
   const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim()
   const envelopeSrc = data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
@@ -745,6 +746,10 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 ? inProgress
                   ? 'text-red-500/30'
                   : 'text-red-500/95'
+                : soccerOpeningTextClass
+                  ? inProgress
+                    ? 'text-rose-950/35'
+                    : 'text-rose-950/75'
                 : inProgress
                   ? 'text-rose-900/15'
                   : 'text-rose-900/40'
@@ -758,6 +763,10 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 ? inProgress
                   ? 'text-red-400/35'
                   : 'text-red-400'
+                : soccerOpeningTextClass
+                  ? inProgress
+                    ? 'text-rose-950/35'
+                    : 'text-rose-950/70'
                 : inProgress
                   ? 'text-rose-900/20'
                   : 'text-rose-900/45'
@@ -771,6 +780,10 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 ? inProgress
                   ? 'text-red-400/30'
                   : 'text-red-400/95'
+                : soccerOpeningTextClass
+                  ? inProgress
+                    ? 'text-rose-950/30'
+                    : 'text-rose-950/65'
                 : inProgress
                   ? 'text-rose-900/18'
                   : 'text-rose-900/40'
@@ -784,6 +797,10 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 ? inProgress
                   ? 'text-red-300/30'
                   : 'text-red-300'
+                : soccerOpeningTextClass
+                  ? inProgress
+                    ? 'text-rose-950/30'
+                    : 'text-rose-950/65'
                 : inProgress
                   ? 'text-rose-900/18'
                   : 'text-rose-900/40'
