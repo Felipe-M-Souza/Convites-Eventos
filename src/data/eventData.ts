@@ -100,6 +100,10 @@ export const eventData = {
   openingTextColor: '',
   /** Opacidade opcional dos textos abaixo do envelope (0 a 1). null = estilo do tema. */
   openingTextOpacity: null as number | null,
+  /** Estilos opcionais dos textos abaixo do envelope. */
+  openingTextBold: false,
+  openingTextItalic: false,
+  openingTextUnderline: false,
   /** Imagem do envelope na abertura (ficheiro em `public/images/`). */
   openingEnvelopeImageUrl: '/images/envelope-burgundy.png',
   /** Envelope já aberto (aba para cima); mostrado após rasgar o selo. `public/images/`. */

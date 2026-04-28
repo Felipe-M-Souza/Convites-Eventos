@@ -684,6 +684,37 @@ export function AdminEditor({ onSignOut }: Props) {
               }}
             />
           </Field>
+          <Field label="Estilo dos textos abaixo do envelope">
+            <div className="flex flex-wrap gap-3">
+              <label className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700">
+                <input
+                  type="checkbox"
+                  checked={form.openingTextBold}
+                  onChange={(e) => set('openingTextBold')(e.target.checked)}
+                  className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+                />
+                Negrito
+              </label>
+              <label className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700">
+                <input
+                  type="checkbox"
+                  checked={form.openingTextItalic}
+                  onChange={(e) => set('openingTextItalic')(e.target.checked)}
+                  className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+                />
+                Itálico
+              </label>
+              <label className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700">
+                <input
+                  type="checkbox"
+                  checked={form.openingTextUnderline}
+                  onChange={(e) => set('openingTextUnderline')(e.target.checked)}
+                  className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+                />
+                Sublinhado
+              </label>
+            </div>
+          </Field>
           <Field label="Lacre manual (vazio = iniciais dos nomes)">
             <input className={inputClass} value={form.openingSealMark} onChange={(e) => set('openingSealMark')(e.target.value)} />
           </Field>

@@ -722,11 +722,22 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
       ? Math.min(1, Math.max(0, data.openingTextOpacity))
       : null
   const openingTextStyle = (): CSSProperties | undefined => {
-    if (!customOpeningTextColor && customOpeningTextOpacity == null) return undefined
+    if (
+      !customOpeningTextColor &&
+      customOpeningTextOpacity == null &&
+      !data.openingTextBold &&
+      !data.openingTextItalic &&
+      !data.openingTextUnderline
+    ) {
+      return undefined
+    }
     const opacity = customOpeningTextOpacity ?? 1
     return {
       ...(customOpeningTextColor ? { color: customOpeningTextColor } : {}),
       opacity: inProgress ? opacity * 0.45 : opacity,
+      ...(data.openingTextBold ? { fontWeight: 700 } : {}),
+      ...(data.openingTextItalic ? { fontStyle: 'italic' as const } : {}),
+      ...(data.openingTextUnderline ? { textDecorationLine: 'underline' as const } : {}),
     }
   }
 
