@@ -11,9 +11,17 @@ const PORTFOLIO_CONTACT_EMAIL = 'contato@convitesdiversos.com.br'
 /** (11) 96581-4224 — wa.me sem espaços ou símbolos */
 const PORTFOLIO_CONTACT_WHATSAPP_E164 = '5511965814224'
 
+type ApprovedPortfolioTestimonial = {
+  id: string
+  quote: string
+  name: string
+  context: string
+}
+
 export function PortfolioPage() {
   const { locale, t } = useI18n()
   const content = getPortfolioContent(locale)
+  const [approvedTestimonials, setApprovedTestimonials] = useState<ApprovedPortfolioTestimonial[]>([])
   const [testimonialName, setTestimonialName] = useState('')
   const [testimonialContext, setTestimonialContext] = useState('')
   const [testimonialMessage, setTestimonialMessage] = useState('')
@@ -25,6 +33,14 @@ export function PortfolioPage() {
   const portfolioContactWhatsHref = `https://wa.me/${PORTFOLIO_CONTACT_WHATSAPP_E164}?text=${encodeURIComponent(
     content.contactWhatsappMessage,
   )}`
+  const visibleTestimonials: ApprovedPortfolioTestimonial[] = approvedTestimonials.length
+    ? approvedTestimonials
+    : content.testimonials.map((testimonial) => ({
+        id: `${testimonial.name}-${testimonial.context}`,
+        quote: testimonial.quote,
+        name: testimonial.name,
+        context: testimonial.context,
+      }))
 
   useEffect(() => {
     const siteUrl = window.location.origin
@@ -71,6 +87,26 @@ export function PortfolioPage() {
 
     return () => clearStructuredData('website-org')
   }, [content.faqs, t])
+
+  useEffect(() => {
+    if (!supabase) return
+    void supabase
+      .from('portfolio_testimonials')
+      .select('id, client_name, event_context, message')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(6)
+      .then(({ data }) => {
+        setApprovedTestimonials(
+          (data ?? []).map((row) => ({
+            id: row.id as string,
+            quote: row.message as string,
+            name: ((row.client_name as string) || '').trim() || 'Cliente Convites Diversos',
+            context: ((row.event_context as string) || '').trim() || 'Convite digital personalizado',
+          })),
+        )
+      })
+  }, [])
 
   const handleTestimonialSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -219,9 +255,9 @@ export function PortfolioPage() {
           </div>
 
           <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {content.testimonials.map((testimonial) => (
+            {visibleTestimonials.map((testimonial) => (
               <figure
-                key={`${testimonial.name}-${testimonial.context}`}
+                key={testimonial.id}
                 className="flex h-full flex-col rounded-[1.6rem] border border-stone-200 bg-white p-6 shadow-sm"
               >
                 <blockquote className="flex-1 font-display text-2xl leading-snug text-ink">

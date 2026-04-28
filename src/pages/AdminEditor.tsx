@@ -42,6 +42,17 @@ function Field({
 }
 
 type InviteRow = { id: string; slug: string }
+type PortfolioTestimonialStatus = 'pending' | 'approved' | 'rejected'
+type PortfolioTestimonialRow = {
+  id: string
+  client_name: string
+  event_context: string
+  message: string
+  source_path: string
+  status: PortfolioTestimonialStatus
+  created_at: string
+  reviewed_at: string | null
+}
 
 const COVER_MAX_EDGE = 1600
 const COVER_JPEG_QUALITY = 0.9
@@ -112,6 +123,11 @@ export function AdminEditor({ onSignOut }: Props) {
   const openingAudioRef = useRef<HTMLInputElement>(null)
   const [openingAssetBusy, setOpeningAssetBusy] = useState<null | 'closed' | 'open' | 'frame' | 'audio'>(null)
   const [openingAssetError, setOpeningAssetError] = useState<string | null>(null)
+  const [testimonials, setTestimonials] = useState<PortfolioTestimonialRow[]>([])
+  const [testimonialsLoading, setTestimonialsLoading] = useState(false)
+  const [testimonialActionId, setTestimonialActionId] = useState<string | null>(null)
+  const [testimonialsError, setTestimonialsError] = useState<string | null>(null)
+  const [copiedTestimonialId, setCopiedTestimonialId] = useState<string | null>(null)
 
   const loadInviteList = () => {
     if (!supabase) return
@@ -124,6 +140,25 @@ export function AdminEditor({ onSignOut }: Props) {
       })
   }
 
+  const loadTestimonials = () => {
+    if (!supabase) return
+    setTestimonialsLoading(true)
+    setTestimonialsError(null)
+    void supabase
+      .from('portfolio_testimonials')
+      .select('id, client_name, event_context, message, source_path, status, created_at, reviewed_at')
+      .order('created_at', { ascending: false })
+      .limit(80)
+      .then(({ data: rows, error }) => {
+        setTestimonialsLoading(false)
+        if (error) {
+          setTestimonialsError(error.message)
+          return
+        }
+        setTestimonials((rows ?? []) as PortfolioTestimonialRow[])
+      })
+  }
+
   useEffect(() => {
     setForm(structuredClone(data))
   }, [data])
@@ -131,6 +166,10 @@ export function AdminEditor({ onSignOut }: Props) {
   useEffect(() => {
     loadInviteList()
   }, [inviteSlug, status])
+
+  useEffect(() => {
+    loadTestimonials()
+  }, [])
 
   const set =
     <K extends keyof EventData>(key: K) =>
@@ -244,6 +283,45 @@ export function AdminEditor({ onSignOut }: Props) {
       window.setTimeout(() => setCopiedShareLink(false), 1800)
     } catch {
       setMessage({ type: 'err', text: 'Não foi possível copiar o link de partilha.' })
+    }
+  }
+
+  const handleUpdateTestimonialStatus = async (id: string, nextStatus: PortfolioTestimonialStatus) => {
+    if (!supabase) return
+    setTestimonialActionId(id)
+    setTestimonialsError(null)
+    const { error } = await supabase
+      .from('portfolio_testimonials')
+      .update({
+        status: nextStatus,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+
+    setTestimonialActionId(null)
+    if (error) {
+      setTestimonialsError(error.message)
+      return
+    }
+    setTestimonials((rows) =>
+      rows.map((row) =>
+        row.id === id ? { ...row, status: nextStatus, reviewed_at: new Date().toISOString() } : row,
+      ),
+    )
+  }
+
+  const handleCopyTestimonial = async (testimonial: PortfolioTestimonialRow) => {
+    const parts = [
+      `“${testimonial.message}”`,
+      testimonial.client_name.trim() ? testimonial.client_name.trim() : null,
+      testimonial.event_context.trim() ? testimonial.event_context.trim() : null,
+    ].filter(Boolean)
+    try {
+      await navigator.clipboard.writeText(parts.join('\n'))
+      setCopiedTestimonialId(testimonial.id)
+      window.setTimeout(() => setCopiedTestimonialId(null), 1800)
+    } catch {
+      setTestimonialsError('Não foi possível copiar o depoimento.')
     }
   }
 
@@ -940,6 +1018,107 @@ export function AdminEditor({ onSignOut }: Props) {
           <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
             <legend className="px-1 font-display text-lg text-stone-800">Dono do convite e uploads</legend>
             <OwnerAccessField supabase={supabase} inviteSlug={inviteSlug} inputClass={inputClass} />
+          </fieldset>
+        ) : null}
+
+        {supabase ? (
+          <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <legend className="px-1 font-display text-lg text-stone-800">Depoimentos da página inicial</legend>
+              <button
+                type="button"
+                onClick={loadTestimonials}
+                disabled={testimonialsLoading}
+                className="self-start rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-50 sm:self-auto"
+              >
+                {testimonialsLoading ? 'A carregar…' : 'Atualizar lista'}
+              </button>
+            </div>
+            <p className="text-sm leading-relaxed text-stone-500">
+              Os depoimentos enviados pela home chegam como pendentes. Aprove para publicar depois, rejeite se não for usar
+              ou copie o texto para editar nos cards fixos.
+            </p>
+            {testimonialsError ? <p className="text-sm text-red-600">{testimonialsError}</p> : null}
+            {testimonials.length ? (
+              <div className="space-y-3">
+                {testimonials.map((testimonial) => {
+                  const statusLabel =
+                    testimonial.status === 'approved'
+                      ? 'Aprovado'
+                      : testimonial.status === 'rejected'
+                        ? 'Rejeitado'
+                        : 'Pendente'
+                  const statusClass =
+                    testimonial.status === 'approved'
+                      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                      : testimonial.status === 'rejected'
+                        ? 'bg-red-50 text-red-700 ring-red-200'
+                        : 'bg-amber-50 text-amber-700 ring-amber-200'
+
+                  return (
+                    <article key={testimonial.id} className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass}`}>
+                              {statusLabel}
+                            </span>
+                            <span className="text-xs text-stone-500">
+                              {new Date(testimonial.created_at).toLocaleString('pt-BR')}
+                            </span>
+                          </div>
+                          <p className="mt-3 text-sm font-semibold text-stone-800">
+                            {testimonial.client_name.trim() || 'Sem nome'}
+                          </p>
+                          {testimonial.event_context.trim() ? (
+                            <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">
+                              {testimonial.event_context}
+                            </p>
+                          ) : null}
+                        </div>
+                        {testimonial.source_path ? (
+                          <span className="rounded-full bg-white px-3 py-1 text-xs text-stone-500">
+                            {testimonial.source_path}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-4 whitespace-pre-wrap rounded-xl bg-white p-3 text-sm leading-7 text-stone-700">
+                        {testimonial.message}
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={testimonialActionId === testimonial.id || testimonial.status === 'approved'}
+                          onClick={() => void handleUpdateTestimonialStatus(testimonial.id, 'approved')}
+                          className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          Aprovar
+                        </button>
+                        <button
+                          type="button"
+                          disabled={testimonialActionId === testimonial.id || testimonial.status === 'rejected'}
+                          onClick={() => void handleUpdateTestimonialStatus(testimonial.id, 'rejected')}
+                          className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Rejeitar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleCopyTestimonial(testimonial)}
+                          className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
+                        >
+                          {copiedTestimonialId === testimonial.id ? 'Copiado' : 'Copiar texto'}
+                        </button>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/80 p-4 text-sm text-stone-500">
+                {testimonialsLoading ? 'A carregar depoimentos…' : 'Ainda não há depoimentos recebidos.'}
+              </p>
+            )}
           </fieldset>
         ) : null}
 
