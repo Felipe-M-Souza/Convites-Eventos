@@ -25,6 +25,8 @@ const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 
 /** Slugs que usam abertura «bola no gol» mesmo sem `openingInteractionMode` no JSON guardado. */
 const SOCCER_GOAL_SLUG_FALLBACKS: readonly string[] = ['san-barssoti']
+/** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
+const ENVELOPE_BLEND_SLUG_FALLBACKS: readonly string[] = ['fernando-correia']
 
 /**
  * Centro vertical do selo (% da altura da caixa do envelope fechado).
@@ -310,6 +312,8 @@ type OpeningEnvelopeProps = {
   textureOffsetY?: number
   /** Máscara opcional só para a arte aberta (ex.: remover cantos brancos da aba). */
   openClipPath?: string
+  /** Máscara opcional só para a arte fechada (ex.: remover moldura clara do arquivo). */
+  closedClipPath?: string
   /** Centraliza o crop do zoom para cortar canvas branco tanto acima como abaixo. */
   centerTextureCrop?: boolean
   /** Moldura escura: mistura multiplicativa suavisa halos claros residuais no PNG. */
@@ -347,6 +351,7 @@ function OpeningEnvelope({
   textureOffsetX = 0,
   textureOffsetY = 0,
   openClipPath,
+  closedClipPath,
   centerTextureCrop = false,
   multiplyBlend,
   showOpenArt,
@@ -432,6 +437,10 @@ function OpeningEnvelope({
     ...imgZoomStyle,
     ...(openClipPath ? { clipPath: openClipPath } : {}),
   }
+  const closedImgZoomStyle = {
+    ...imgZoomStyle,
+    ...(closedClipPath ? { clipPath: closedClipPath } : {}),
+  }
 
   const fade = reduce ? 0.16 : ENVELOPE_CROSSFADE_S
 
@@ -458,7 +467,7 @@ function OpeningEnvelope({
           decoding="async"
           fetchPriority="high"
           className={imgShared}
-          style={imgZoomStyle}
+          style={closedImgZoomStyle}
           initial={false}
           animate={{ opacity: showOpenArt ? 0 : 1 }}
           transition={{ duration: fade, ease: [0.22, 1, 0.36, 1] }}
@@ -501,17 +510,20 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const soccerGoalMode =
     data.openingInteractionMode === 'soccer_goal' ||
     (typeof inviteSlug === 'string' && SOCCER_GOAL_SLUG_FALLBACKS.includes(inviteSlug))
+  const envelopeBlendMode =
+    typeof inviteSlug === 'string' && ENVELOPE_BLEND_SLUG_FALLBACKS.includes(inviteSlug)
   const frameSrc = data.openingFrameImageUrl?.trim() || OPENING_FRAME_SRC
   const backdropColor = data.openingBackdropColor?.trim()
   /**
    * Em convites com envelopes JPG (ex.: futebol), a margem clara vem dentro da própria imagem.
    * Deixar a camada transparente + multiply faz o branco do JPG assumir a textura real da moldura.
    */
-  const shouldMultiplyEnvelope = Boolean(backdropColor) || soccerGoalMode
-  const openingStagePaperBg = soccerGoalMode && !backdropColor ? 'transparent' : backdropColor || 'var(--color-cream)'
+  const shouldMultiplyEnvelope = Boolean(backdropColor) || soccerGoalMode || envelopeBlendMode
+  const openingStagePaperBg =
+    (soccerGoalMode || envelopeBlendMode) && !backdropColor ? 'transparent' : backdropColor || 'var(--color-cream)'
   const darkOpeningBackdrop = Boolean(backdropColor)
   const soccerOpeningTextClass = soccerGoalMode && !darkOpeningBackdrop
-  const layoutOffsetTop = data.openingLayoutOffsetTop?.trim()
+  const layoutOffsetTop = data.openingLayoutOffsetTop?.trim() || (envelopeBlendMode ? 'clamp(2rem, 5vh, 3.75rem)' : '')
   const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim()
   const envelopeSrc = data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
   const envelopeOpenSrc = data.openingEnvelopeOpenImageUrl?.trim() || '/images/envelope-open.png'
@@ -702,8 +714,11 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 openClipPath={
                   soccerGoalMode
                     ? 'polygon(50% 0%, 94.5% 35%, 94.5% 100%, 5.5% 100%, 5.5% 35%)'
+                    : envelopeBlendMode
+                      ? 'polygon(50% 5%, 88% 34%, 88% 90%, 12% 90%, 12% 34%)'
                     : undefined
                 }
+                closedClipPath={envelopeBlendMode ? 'inset(12% 7% 8% 7%)' : undefined}
                 centerTextureCrop={soccerGoalMode}
                 boxWidthMaxPx={envBoxWMax}
                 boxHeightVhCap={envBoxVhCap}
