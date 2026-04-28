@@ -290,6 +290,109 @@ function SoccerGoalKick({ reduce, torn, onUserGesture, onScored, ariaLabel }: So
   )
 }
 
+type RockGuitarSealProps = {
+  reduce: boolean
+  torn: boolean
+  onUserGesture?: () => void
+  onStrummed: () => void
+  ariaLabel: string
+}
+
+function RockGuitarSeal({ reduce, torn, onUserGesture, onStrummed, ariaLabel }: RockGuitarSealProps) {
+  const [strummed, setStrummed] = useState(false)
+  const completedRef = useRef(false)
+
+  useEffect(() => {
+    if (!strummed || completedRef.current) return undefined
+    const id = window.setTimeout(() => {
+      completedRef.current = true
+      onStrummed()
+    }, reduce ? 0 : 720)
+    return () => window.clearTimeout(id)
+  }, [onStrummed, reduce, strummed])
+
+  const handleActivate = () => {
+    if (torn || strummed || completedRef.current) return
+    onUserGesture?.()
+    if (reduce) {
+      completedRef.current = true
+      onStrummed()
+      return
+    }
+    setStrummed(true)
+  }
+
+  const notes = [
+    { label: '♪', x: -26, y: -58, delay: 0 },
+    { label: '♫', x: 4, y: -72, delay: 0.08 },
+    { label: '♪', x: 30, y: -52, delay: 0.16 },
+  ]
+
+  return (
+    <motion.div
+      className="relative h-20 w-20 select-none"
+      animate={{ opacity: torn ? 0 : 1, scale: torn ? 0.88 : strummed ? 1.05 : 1 }}
+      transition={{ duration: reduce ? 0.12 : 0.22 }}
+    >
+      {strummed
+        ? notes.map((note) => (
+            <motion.span
+              key={`${note.label}-${note.x}`}
+              className="pointer-events-none absolute left-1/2 top-1/2 z-20 font-display text-2xl font-bold text-red-700 drop-shadow-[0_2px_5px_rgba(0,0,0,0.35)]"
+              initial={{ opacity: 0, x: -4, y: -12, scale: 0.65, rotate: -8 }}
+              animate={{ opacity: [0, 1, 0], x: note.x, y: note.y, scale: [0.65, 1, 1.08], rotate: 10 }}
+              transition={{ duration: 0.78, delay: note.delay, ease: 'easeOut' }}
+              aria-hidden
+            >
+              {note.label}
+            </motion.span>
+          ))
+        : null}
+
+      <motion.svg
+        viewBox="0 0 96 96"
+        className="pointer-events-none absolute inset-0 z-10 drop-shadow-[0_8px_12px_rgba(0,0,0,0.45)]"
+        aria-hidden
+        animate={strummed ? { rotate: [-18, -28, -16], scale: [1, 1.08, 1.02] } : { rotate: -18, scale: 1 }}
+        transition={{ duration: reduce ? 0 : 0.42, ease: 'easeOut' }}
+      >
+        <g transform="translate(1 3)">
+          <path d="M51 42 L77 13" stroke="#15100e" strokeWidth="11" strokeLinecap="round" />
+          <path d="M51 42 L77 13" stroke="#d8c4a0" strokeWidth="5" strokeLinecap="round" />
+          <path d="M74 6 L90 5 L87 21 L79 24 L70 15 Z" fill="#16110f" stroke="#c7a45e" strokeWidth="2" />
+          <path
+            d="M47 39 L20 82 L43 67 L50 90 L57 67 L80 82 L54 39 Z"
+            fill="#7b0d12"
+            stroke="#d8c4a0"
+            strokeWidth="3"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M47 46 L33 72 L45 63 L50 77 L55 63 L68 72 L54 46 Z"
+            fill="#17110f"
+            opacity="0.88"
+          />
+          <circle cx="50" cy="53" r="6" fill="#0f0d0c" stroke="#f5e8c8" strokeWidth="2" />
+          <rect x="42" y="61" width="16" height="4" rx="1.5" fill="#d8c4a0" />
+          <path d="M39 52 L76 15 M44 55 L79 18 M49 58 L82 21" stroke="#f5e8c8" strokeWidth="1" opacity="0.78" />
+          <circle cx="84" cy="8" r="2" fill="#d8c4a0" />
+          <circle cx="88" cy="13" r="2" fill="#d8c4a0" />
+          <circle cx="78" cy="19" r="2" fill="#d8c4a0" />
+        </g>
+      </motion.svg>
+
+      <button
+        type="button"
+        disabled={torn || strummed}
+        onClick={handleActivate}
+        className="absolute inset-0 z-30 cursor-pointer rounded-full border-0 bg-transparent p-0 outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-red-700/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none"
+        style={{ touchAction: 'manipulation' }}
+        aria-label={ariaLabel}
+      />
+    </motion.div>
+  )
+}
+
 type OpeningEnvelopeProps = {
   closedSrc: string
   openSrc: string
@@ -512,6 +615,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
     (typeof inviteSlug === 'string' && SOCCER_GOAL_SLUG_FALLBACKS.includes(inviteSlug))
   const envelopeBlendMode =
     typeof inviteSlug === 'string' && ENVELOPE_BLEND_SLUG_FALLBACKS.includes(inviteSlug)
+  const rockGuitarSealMode = envelopeBlendMode
   const frameSrc = data.openingFrameImageUrl?.trim() || OPENING_FRAME_SRC
   const backdropColor = data.openingBackdropColor?.trim()
   /**
@@ -597,6 +701,11 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const handleSealClick = () => {
     if (phase !== 'idle') return
     if (!soccerGoalMode) onSealUserGesture?.()
+    setPhase('seal')
+  }
+
+  const handleRockStrum = () => {
+    if (phase !== 'idle') return
     setPhase('seal')
   }
 
@@ -736,6 +845,14 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                       torn={sealTorn}
                       onUserGesture={onSealUserGesture}
                       onScored={handleSealClick}
+                      ariaLabel={data.openingSealHint?.trim() || t('invite.openingFallback')}
+                    />
+                  ) : rockGuitarSealMode ? (
+                    <RockGuitarSeal
+                      reduce={Boolean(reduce)}
+                      torn={sealTorn}
+                      onUserGesture={onSealUserGesture}
+                      onStrummed={handleRockStrum}
                       ariaLabel={data.openingSealHint?.trim() || t('invite.openingFallback')}
                     />
                   ) : (
