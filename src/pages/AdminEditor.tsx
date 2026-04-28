@@ -196,10 +196,20 @@ export function AdminEditor({ onSignOut }: Props) {
     if (!supabase || !inviteId) return
     setSaving(true)
     setMessage(null)
-    const { error } = await supabase.from('invite_config').upsert(
-      { id: inviteId, slug: inviteSlug, payload: form },
-      { onConflict: 'id' },
-    )
+    const payload: EventData = {
+      ...form,
+      openingTextColor: form.openingTextColor.trim(),
+      openingTextOpacity:
+        typeof form.openingTextOpacity === 'number' && Number.isFinite(form.openingTextOpacity)
+          ? Math.min(1, Math.max(0, form.openingTextOpacity))
+          : null,
+    }
+    const { error } = await supabase
+      .from('invite_config')
+      .update({ slug: inviteSlug, payload })
+      .eq('id', inviteId)
+      .select('id')
+      .single()
     setSaving(false)
     if (error) {
       setMessage({ type: 'err', text: error.message })

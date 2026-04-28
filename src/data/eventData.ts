@@ -314,6 +314,12 @@ function normalizeInviteTranslations(value: unknown): InviteTranslations {
   return next
 }
 
+function normalizeOpeningTextOpacity(value: unknown): number | null {
+  if (value == null || value === '') return null
+  const numeric = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN
+  return Number.isFinite(numeric) ? Math.min(1, Math.max(0, numeric)) : null
+}
+
 export function resolveEventDataForLocale(data: EventData, locale: Locale): EventData {
   if (locale === 'pt-BR') return data
   const translation = data.translations?.[locale]
@@ -352,6 +358,8 @@ export function mergeInvitePayload(stored: unknown): EventData {
   const s = stored as StoredPayload
   const merged = { ...defaults, ...s } as EventData & { rsvpWhatsappLink?: string }
   merged.translations = normalizeInviteTranslations(s.translations)
+  merged.openingTextColor = typeof s.openingTextColor === 'string' ? s.openingTextColor.trim() : ''
+  merged.openingTextOpacity = normalizeOpeningTextOpacity(s.openingTextOpacity)
 
   /** Payloads antigos ainda apontam para a demo; alinhar à faixa por omissão do código. */
   if (merged.backgroundAudioUrl.trim() === '/audio/from-this-moment-on.mp3') {
