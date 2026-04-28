@@ -107,6 +107,7 @@ export function Home() {
           <EnvelopeOpening
             key="envelope-opening"
             data={eventData}
+            inviteSlug={inviteSlug}
             onOpen={() => {
               trackEvent('invite_opened', {
                 invite_slug: inviteSlug,

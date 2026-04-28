@@ -219,7 +219,7 @@ Depois de publicar a Edge Function e o worker no Railway, valida este fluxo:
 - **`/`** — página de portfólio (apresentação + atalhos).
 - **`/c/<slug>`** — convite público (ex.: `/c/default`, `/c/maria-joao`). Partilhas este URL com os convidados.
 - **`/admin`** — painel do convite com `slug = default`.
-- **`/admin?slug=maria-joao`** — edita outro convite. No painel podes **mudar o convite** no menu, **criar novo** (slug em minúsculas, hífens) e ver o link público.
+- **`/admin?slug=maria-joao`** — edita outro convite. No painel podes **mudar o convite** no menu, **criar novo** (escolhe o **modelo** inicial: casamento, aniversário/50 anos ou neutro; o **slug** é só o URL, ex. `50-anos-maria`, em minúsculas e hífens) e ver o link público.
 - **`/owner`** — área do dono do convite para moderar uploads.
 - **`/owner/claim?slug=...&code=...`** — link de primeiro acesso do dono do convite.
 

@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { applySeoMeta } from '../lib/seoMeta'
 import { applyStructuredData, clearStructuredData } from '../lib/structuredData'
-import { trackCtaClick, trackGoogleAdsConversion } from '../lib/analytics'
+import { trackCtaClick, trackEvent, trackGoogleAdsConversion } from '../lib/analytics'
 import { useI18n } from '../i18n/useI18n'
 import { getPortfolioContent } from '../i18n/portfolioContent'
+import { supabase } from '../lib/supabase'
 
 const PORTFOLIO_CONTACT_EMAIL = 'contato@convitesdiversos.com.br'
 /** (11) 96581-4224 — wa.me sem espaços ou símbolos */
@@ -13,6 +14,11 @@ const PORTFOLIO_CONTACT_WHATSAPP_E164 = '5511965814224'
 export function PortfolioPage() {
   const { locale, t } = useI18n()
   const content = getPortfolioContent(locale)
+  const [testimonialName, setTestimonialName] = useState('')
+  const [testimonialContext, setTestimonialContext] = useState('')
+  const [testimonialMessage, setTestimonialMessage] = useState('')
+  const [testimonialSubmitting, setTestimonialSubmitting] = useState(false)
+  const [testimonialStatus, setTestimonialStatus] = useState<null | { type: 'success' | 'error'; text: string }>(null)
   const portfolioContactMailtoHref = `mailto:${PORTFOLIO_CONTACT_EMAIL}?subject=${encodeURIComponent(content.contactEmailSubject)}&body=${encodeURIComponent(
     content.contactEmailBody,
   )}`
@@ -65,6 +71,47 @@ export function PortfolioPage() {
 
     return () => clearStructuredData('website-org')
   }, [content.faqs, t])
+
+  const handleTestimonialSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const message = testimonialMessage.trim()
+    if (message.length < 12) {
+      setTestimonialStatus({ type: 'error', text: t('portfolio.testimonialErrorRequired') })
+      return
+    }
+
+    if (!supabase) {
+      setTestimonialStatus({ type: 'error', text: t('portfolio.testimonialErrorUnavailable') })
+      return
+    }
+
+    setTestimonialSubmitting(true)
+    setTestimonialStatus(null)
+
+    try {
+      const { error } = await supabase.from('portfolio_testimonials').insert({
+        client_name: testimonialName.trim(),
+        event_context: testimonialContext.trim(),
+        message,
+        source_path: `${window.location.pathname}${window.location.search}`,
+        status: 'pending',
+      })
+
+      if (error) throw new Error(error.message)
+
+      trackEvent('portfolio_testimonial_submitted', {
+        source_path: window.location.pathname,
+      })
+      setTestimonialName('')
+      setTestimonialContext('')
+      setTestimonialMessage('')
+      setTestimonialStatus({ type: 'success', text: t('portfolio.testimonialSuccess') })
+    } catch {
+      setTestimonialStatus({ type: 'error', text: t('portfolio.testimonialErrorGeneric') })
+    } finally {
+      setTestimonialSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-cream)] text-[color:var(--color-ink)]">
@@ -136,7 +183,7 @@ export function PortfolioPage() {
       <section id="portfolio" className="border-y border-stone-200/80 bg-white/70 px-6 py-18">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-2xl">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-ink-muted">
               {t('portfolio.portfolioEyebrow')}
             </p>
             <h2 className="mt-4 font-display text-4xl font-semibold sm:text-5xl">
@@ -154,6 +201,97 @@ export function PortfolioPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-18">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-3xl">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-ink-muted">
+              {t('portfolio.testimonialsEyebrow')}
+            </p>
+            <h2 className="mt-4 font-display text-4xl font-semibold sm:text-5xl">
+              {t('portfolio.testimonialsTitle')}
+            </h2>
+            <p className="mt-5 text-sm leading-7 text-ink-muted sm:text-base">
+              {t('portfolio.testimonialsDescription')}
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {content.testimonials.map((testimonial) => (
+              <figure
+                key={`${testimonial.name}-${testimonial.context}`}
+                className="flex h-full flex-col rounded-[1.6rem] border border-stone-200 bg-white p-6 shadow-sm"
+              >
+                <blockquote className="flex-1 font-display text-2xl leading-snug text-ink">
+                  “{testimonial.quote}”
+                </blockquote>
+                <figcaption className="mt-6 border-t border-stone-200 pt-4">
+                  <p className="text-sm font-semibold text-ink">{testimonial.name}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-ink-muted">
+                    {testimonial.context}
+                  </p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+
+          <form
+            onSubmit={handleTestimonialSubmit}
+            className="mt-8 rounded-[1.8rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8"
+          >
+            <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+              <div>
+                <h3 className="font-display text-3xl font-semibold text-ink">{t('portfolio.testimonialFormTitle')}</h3>
+                <p className="mt-3 text-sm leading-7 text-ink-muted">{t('portfolio.testimonialFormDescription')}</p>
+              </div>
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-medium text-ink">
+                    {t('portfolio.testimonialNameLabel')}
+                    <input
+                      className="mt-2 w-full rounded-2xl border border-stone-200 bg-cream px-4 py-3 text-sm text-ink outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
+                      value={testimonialName}
+                      onChange={(event) => setTestimonialName(event.target.value)}
+                      maxLength={120}
+                    />
+                  </label>
+                  <label className="block text-sm font-medium text-ink">
+                    {t('portfolio.testimonialContextLabel')}
+                    <input
+                      className="mt-2 w-full rounded-2xl border border-stone-200 bg-cream px-4 py-3 text-sm text-ink outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
+                      value={testimonialContext}
+                      onChange={(event) => setTestimonialContext(event.target.value)}
+                      maxLength={160}
+                    />
+                  </label>
+                </div>
+                <label className="block text-sm font-medium text-ink">
+                  {t('portfolio.testimonialMessageLabel')}
+                  <textarea
+                    className="mt-2 min-h-[132px] w-full resize-y rounded-2xl border border-stone-200 bg-cream px-4 py-3 text-sm leading-7 text-ink outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
+                    value={testimonialMessage}
+                    onChange={(event) => setTestimonialMessage(event.target.value)}
+                    maxLength={1200}
+                    required
+                  />
+                </label>
+                {testimonialStatus ? (
+                  <p className={`text-sm ${testimonialStatus.type === 'success' ? 'text-emerald-700' : 'text-red-600'}`}>
+                    {testimonialStatus.text}
+                  </p>
+                ) : null}
+                <button
+                  type="submit"
+                  disabled={testimonialSubmitting}
+                  className="inline-flex rounded-full bg-gold px-7 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {testimonialSubmitting ? t('portfolio.testimonialSubmitting') : t('portfolio.testimonialSubmit')}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </section>
 

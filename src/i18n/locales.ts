@@ -92,6 +92,20 @@ export type TranslationKey =
   | 'portfolio.portfolioTitle'
   | 'portfolio.processEyebrow'
   | 'portfolio.processTitle'
+  | 'portfolio.testimonialsEyebrow'
+  | 'portfolio.testimonialsTitle'
+  | 'portfolio.testimonialsDescription'
+  | 'portfolio.testimonialFormTitle'
+  | 'portfolio.testimonialFormDescription'
+  | 'portfolio.testimonialNameLabel'
+  | 'portfolio.testimonialContextLabel'
+  | 'portfolio.testimonialMessageLabel'
+  | 'portfolio.testimonialSubmit'
+  | 'portfolio.testimonialSubmitting'
+  | 'portfolio.testimonialSuccess'
+  | 'portfolio.testimonialErrorRequired'
+  | 'portfolio.testimonialErrorUnavailable'
+  | 'portfolio.testimonialErrorGeneric'
   | 'portfolio.step'
   | 'portfolio.valueEyebrow'
   | 'portfolio.valueTitle'
@@ -200,6 +214,22 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.portfolioTitle': 'Uma vitrine digital refinada para transformar convite em experiência.',
     'portfolio.processEyebrow': 'Processo',
     'portfolio.processTitle': 'Como funciona o desenvolvimento',
+    'portfolio.testimonialsEyebrow': 'Depoimentos',
+    'portfolio.testimonialsTitle': 'Clientes que transformaram o convite em experiência.',
+    'portfolio.testimonialsDescription':
+      'Alguns retornos de quem escolheu um convite digital personalizado para organizar as informações e encantar os convidados.',
+    'portfolio.testimonialFormTitle': 'Deixe seu depoimento',
+    'portfolio.testimonialFormDescription':
+      'Recebeu seu convite? Escreva aqui como foi a experiência. O depoimento fica guardado para revisão antes de ser publicado.',
+    'portfolio.testimonialNameLabel': 'Seu nome',
+    'portfolio.testimonialContextLabel': 'Tipo de convite ou evento',
+    'portfolio.testimonialMessageLabel': 'Depoimento',
+    'portfolio.testimonialSubmit': 'Enviar depoimento',
+    'portfolio.testimonialSubmitting': 'Enviando...',
+    'portfolio.testimonialSuccess': 'Depoimento enviado com sucesso. Obrigado pelo carinho!',
+    'portfolio.testimonialErrorRequired': 'Escreva um depoimento com pelo menos 12 caracteres.',
+    'portfolio.testimonialErrorUnavailable': 'O envio de depoimentos ainda não está configurado.',
+    'portfolio.testimonialErrorGeneric': 'Não foi possível enviar o depoimento agora.',
     'portfolio.step': 'Etapa',
     'portfolio.valueEyebrow': 'Prova de valor',
     'portfolio.valueTitle': 'O que faz o convite digital transmitir mais cuidado e profissionalismo.',
@@ -305,6 +335,22 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.portfolioTitle': 'A refined digital showcase that turns an invitation into an experience.',
     'portfolio.processEyebrow': 'Process',
     'portfolio.processTitle': 'How development works',
+    'portfolio.testimonialsEyebrow': 'Testimonials',
+    'portfolio.testimonialsTitle': 'Clients who turned invitations into an experience.',
+    'portfolio.testimonialsDescription':
+      'A few notes from people who chose a custom digital invitation to organize details and delight their guests.',
+    'portfolio.testimonialFormTitle': 'Leave your testimonial',
+    'portfolio.testimonialFormDescription':
+      'Received your invitation? Write how the experience felt. The testimonial is saved for review before publication.',
+    'portfolio.testimonialNameLabel': 'Your name',
+    'portfolio.testimonialContextLabel': 'Invitation or event type',
+    'portfolio.testimonialMessageLabel': 'Testimonial',
+    'portfolio.testimonialSubmit': 'Send testimonial',
+    'portfolio.testimonialSubmitting': 'Sending...',
+    'portfolio.testimonialSuccess': 'Testimonial sent successfully. Thank you for your kind words!',
+    'portfolio.testimonialErrorRequired': 'Write a testimonial with at least 12 characters.',
+    'portfolio.testimonialErrorUnavailable': 'Testimonial submission is not configured yet.',
+    'portfolio.testimonialErrorGeneric': 'Could not send the testimonial right now.',
     'portfolio.step': 'Step',
     'portfolio.valueEyebrow': 'Value proof',
     'portfolio.valueTitle': 'Why digital invitations feel more thoughtful and professional.',
@@ -410,6 +456,22 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.portfolioTitle': 'Una vitrina digital refinada para transformar la invitación en experiencia.',
     'portfolio.processEyebrow': 'Proceso',
     'portfolio.processTitle': 'Cómo funciona el desarrollo',
+    'portfolio.testimonialsEyebrow': 'Testimonios',
+    'portfolio.testimonialsTitle': 'Clientes que transformaron la invitación en una experiencia.',
+    'portfolio.testimonialsDescription':
+      'Algunos comentarios de quienes eligieron una invitación digital personalizada para organizar la información y encantar a sus invitados.',
+    'portfolio.testimonialFormTitle': 'Deja tu testimonio',
+    'portfolio.testimonialFormDescription':
+      '¿Recibiste tu invitación? Escribe cómo fue la experiencia. El testimonio queda guardado para revisión antes de publicarse.',
+    'portfolio.testimonialNameLabel': 'Tu nombre',
+    'portfolio.testimonialContextLabel': 'Tipo de invitación o evento',
+    'portfolio.testimonialMessageLabel': 'Testimonio',
+    'portfolio.testimonialSubmit': 'Enviar testimonio',
+    'portfolio.testimonialSubmitting': 'Enviando...',
+    'portfolio.testimonialSuccess': 'Testimonio enviado con éxito. ¡Gracias por el cariño!',
+    'portfolio.testimonialErrorRequired': 'Escribe un testimonio con al menos 12 caracteres.',
+    'portfolio.testimonialErrorUnavailable': 'El envío de testimonios aún no está configurado.',
+    'portfolio.testimonialErrorGeneric': 'No fue posible enviar el testimonio ahora.',
     'portfolio.step': 'Paso',
     'portfolio.valueEyebrow': 'Prueba de valor',
     'portfolio.valueTitle': 'Por qué la invitación digital transmite más cuidado y profesionalismo.',

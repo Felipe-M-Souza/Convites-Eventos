@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  eventData,
+  getNewInvitePayload,
   inviteTranslationLocales,
   inviteTranslatableFields,
   type EventData,
+  type InviteCreationTemplate,
   type InviteTranslatableField,
   type InviteTranslationLocale,
 } from '../data/eventData'
@@ -13,7 +14,7 @@ import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
 import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
 import { OwnerAccessField } from '../components/admin/OwnerAccessField'
-import { removeGalleryFolderContents, uploadGalleryJpeg } from '../lib/galleryStorage'
+import { removeGalleryFolderContents, removeGalleryObject, uploadGalleryBlob, uploadGalleryJpeg } from '../lib/galleryStorage'
 import { removeGuestUploadFolderContents } from '../lib/guestUploads'
 import { buildSiteUrl } from '../lib/siteUrl'
 import { normalizeInviteSlug } from '../lib/inviteSlug'
@@ -97,6 +98,7 @@ export function AdminEditor({ onSignOut }: Props) {
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [inviteRows, setInviteRows] = useState<InviteRow[]>([])
   const [newSlugDraft, setNewSlugDraft] = useState('')
+  const [newInviteTemplate, setNewInviteTemplate] = useState<InviteCreationTemplate>('wedding')
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [copiedShareLink, setCopiedShareLink] = useState(false)
@@ -104,6 +106,12 @@ export function AdminEditor({ onSignOut }: Props) {
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null)
   const [activeTranslationLocale, setActiveTranslationLocale] = useState<InviteTranslationLocale>('en')
   const coverFileRef = useRef<HTMLInputElement>(null)
+  const openingEnvelopeClosedRef = useRef<HTMLInputElement>(null)
+  const openingEnvelopeOpenRef = useRef<HTMLInputElement>(null)
+  const openingFrameRef = useRef<HTMLInputElement>(null)
+  const openingAudioRef = useRef<HTMLInputElement>(null)
+  const [openingAssetBusy, setOpeningAssetBusy] = useState<null | 'closed' | 'open' | 'frame' | 'audio'>(null)
+  const [openingAssetError, setOpeningAssetError] = useState<string | null>(null)
 
   const loadInviteList = () => {
     if (!supabase) return
@@ -173,7 +181,7 @@ export function AdminEditor({ onSignOut }: Props) {
     setCreating(true)
     setMessage(null)
     const id = crypto.randomUUID()
-    const payload = structuredClone(eventData)
+    const payload = getNewInvitePayload(newInviteTemplate)
     const { error } = await supabase.from('invite_config').insert({ id, slug, payload })
     setCreating(false)
     if (error) {
@@ -252,6 +260,106 @@ export function AdminEditor({ onSignOut }: Props) {
     } finally {
       setCoverUploading(false)
       if (coverFileRef.current) coverFileRef.current.value = ''
+    }
+  }
+
+  const removeGalleryAssetIfStored = async (publicUrl: string) => {
+    if (!supabase || !publicUrl.trim()) return
+    try {
+      await removeGalleryObject(supabase, publicUrl)
+    } catch {
+      /* URL externa ou ficheiro já removido */
+    }
+  }
+
+  const handleOpeningImageUpload = async (which: 'closed' | 'open' | 'frame', file: File | null) => {
+    if (!supabase || !file) return
+    const field =
+      which === 'closed'
+        ? 'openingEnvelopeImageUrl'
+        : which === 'open'
+          ? 'openingEnvelopeOpenImageUrl'
+          : 'openingFrameImageUrl'
+    const fileRef =
+      which === 'closed' ? openingEnvelopeClosedRef : which === 'open' ? openingEnvelopeOpenRef : openingFrameRef
+    const maxBytes = 12 * 1024 * 1024
+    if (file.size > maxBytes) {
+      setOpeningAssetError('Imagem: tamanho máximo 12 MB.')
+      return
+    }
+    setOpeningAssetError(null)
+    setOpeningAssetBusy(which === 'closed' ? 'closed' : which === 'open' ? 'open' : 'frame')
+    const prevUrl = form[field]
+    try {
+      let publicUrl: string
+      if (file.type === 'image/png' || file.type === 'image/webp') {
+        const ext = file.type === 'image/png' ? 'png' : 'webp'
+        publicUrl = await uploadGalleryBlob(
+          supabase,
+          file,
+          inviteSlug,
+          `opening-${which}-${crypto.randomUUID()}.${ext}`,
+          file.type,
+        )
+      } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+        const jpeg = await resizeImageToJpeg(file, 2400, 0.92)
+        publicUrl = await uploadGalleryJpeg(supabase, jpeg, inviteSlug)
+      } else {
+        throw new Error('Formato não suportado. Use PNG, WebP ou JPEG.')
+      }
+      set(field)(publicUrl)
+      void removeGalleryAssetIfStored(prevUrl)
+    } catch (error) {
+      setOpeningAssetError(
+        error instanceof Error ? error.message : 'Não foi possível enviar a imagem.',
+      )
+    } finally {
+      setOpeningAssetBusy(null)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  const handleOpeningAudioUpload = async (file: File | null) => {
+    if (!supabase || !file) return
+    const maxBytes = 35 * 1024 * 1024
+    if (file.size > maxBytes) {
+      setOpeningAssetError('Áudio: tamanho máximo 35 MB.')
+      return
+    }
+    const name = file.name.toLowerCase()
+    const ext = name.endsWith('.mp3')
+      ? 'mp3'
+      : name.endsWith('.wav')
+        ? 'wav'
+        : name.endsWith('.webm')
+          ? 'webm'
+          : name.endsWith('.ogg')
+            ? 'ogg'
+            : null
+    if (!ext) {
+      setOpeningAssetError('Áudio: use ficheiro MP3, WAV, WebM ou OGG.')
+      return
+    }
+    const contentType =
+      ext === 'mp3' ? 'audio/mpeg' : ext === 'wav' ? 'audio/wav' : ext === 'webm' ? 'audio/webm' : 'audio/ogg'
+    setOpeningAssetError(null)
+    setOpeningAssetBusy('audio')
+    const prevUrl = form.backgroundAudioUrl
+    try {
+      const publicUrl = await uploadGalleryBlob(
+        supabase,
+        file,
+        inviteSlug,
+        `bg-audio-${crypto.randomUUID()}.${ext}`,
+        contentType,
+      )
+      set('backgroundAudioUrl')(publicUrl)
+      void removeGalleryAssetIfStored(prevUrl)
+    } catch (error) {
+      setOpeningAssetError(error instanceof Error ? error.message : 'Não foi possível enviar o áudio.')
+    } finally {
+      setOpeningAssetBusy(null)
+      if (openingAudioRef.current) openingAudioRef.current.value = ''
     }
   }
 
@@ -358,14 +466,29 @@ export function AdminEditor({ onSignOut }: Props) {
                 )}
               </select>
             </label>
-            <div className="flex flex-1 flex-wrap items-end gap-2">
+            <div className="flex w-full flex-col gap-3 sm:flex-1">
+              <label className="block w-full sm:max-w-md">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">
+                  Modelo ao criar (só texto inicial — o slug é livre)
+                </span>
+                <select
+                  className={inputClass}
+                  value={newInviteTemplate}
+                  onChange={(e) => setNewInviteTemplate(e.target.value as InviteCreationTemplate)}
+                >
+                  <option value="wedding">Casamento (exemplo Maria e João)</option>
+                  <option value="birthday_milestone">Aniversário / 50 anos / bodas (textos ajustados)</option>
+                  <option value="neutral">Neutro (mínimo para qualquer ocasião)</option>
+                </select>
+              </label>
+              <div className="flex flex-1 flex-wrap items-end gap-2">
               <label className="min-w-[160px] flex-1">
                 <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">
                   Novo slug
                 </span>
                 <input
                   className={inputClass}
-                  placeholder="ex.: maria-joao"
+                  placeholder="ex.: 50-anos-maria ou bodas-prata"
                   value={newSlugDraft}
                   onChange={(e) => setNewSlugDraft(e.target.value)}
                 />
@@ -378,6 +501,7 @@ export function AdminEditor({ onSignOut }: Props) {
               >
                 {creating ? 'A criar…' : 'Criar convite'}
               </button>
+              </div>
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-2 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -422,6 +546,18 @@ export function AdminEditor({ onSignOut }: Props) {
           </Field>
           <Field label="Lacre manual (vazio = iniciais dos nomes)">
             <input className={inputClass} value={form.openingSealMark} onChange={(e) => set('openingSealMark')(e.target.value)} />
+          </Field>
+          <Field label="Abertura temática futebol (trave + bola)">
+            <label className="inline-flex items-center gap-3 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={form.openingInteractionMode === 'soccer_goal'}
+                onChange={(e) => set('openingInteractionMode')(e.target.checked ? 'soccer_goal' : 'seal')}
+                className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+              />
+              Trave em vez do selo; o convidado toca na bola para a animação ao golo (ajuste o texto de ajuda em cima,
+              ex.: «Toque na bola para abrir o convite»).
+            </label>
           </Field>
           <Field label="Selo — posição vertical (0 = topo, 1 = base; ~0,8 = ponta do aba)">
             <input
@@ -478,14 +614,133 @@ export function AdminEditor({ onSignOut }: Props) {
             />
           </Field>
           <Field label="URL imagem envelope fechado">
-            <input className={inputClass} value={form.openingEnvelopeImageUrl} onChange={(e) => set('openingEnvelopeImageUrl')(e.target.value)} />
+            <div className="space-y-3">
+              <input
+                className={inputClass}
+                value={form.openingEnvelopeImageUrl}
+                onChange={(e) => set('openingEnvelopeImageUrl')(e.target.value)}
+              />
+              {supabase ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-3">
+                  <input
+                    ref={openingEnvelopeClosedRef}
+                    type="file"
+                    accept="image/png,image/webp,image/jpeg,image/jpg"
+                    className="hidden"
+                    disabled={openingAssetBusy !== null}
+                    onChange={(e) => void handleOpeningImageUpload('closed', e.target.files?.[0] ?? null)}
+                  />
+                  <button
+                    type="button"
+                    disabled={openingAssetBusy !== null}
+                    onClick={() => openingEnvelopeClosedRef.current?.click()}
+                    className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-50"
+                  >
+                    {openingAssetBusy === 'closed' ? 'A enviar…' : 'Anexar envelope fechado'}
+                  </button>
+                  <p className="mt-2 text-xs text-stone-500">
+                    PNG ou WebP (com transparência) ou JPEG. Vai para o bucket <code className="rounded bg-stone-200/80 px-1">invite-gallery</code>.
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </Field>
           <Field label="URL imagem envelope aberto">
-            <input className={inputClass} value={form.openingEnvelopeOpenImageUrl} onChange={(e) => set('openingEnvelopeOpenImageUrl')(e.target.value)} />
+            <div className="space-y-3">
+              <input
+                className={inputClass}
+                value={form.openingEnvelopeOpenImageUrl}
+                onChange={(e) => set('openingEnvelopeOpenImageUrl')(e.target.value)}
+              />
+              {supabase ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-3">
+                  <input
+                    ref={openingEnvelopeOpenRef}
+                    type="file"
+                    accept="image/png,image/webp,image/jpeg,image/jpg"
+                    className="hidden"
+                    disabled={openingAssetBusy !== null}
+                    onChange={(e) => void handleOpeningImageUpload('open', e.target.files?.[0] ?? null)}
+                  />
+                  <button
+                    type="button"
+                    disabled={openingAssetBusy !== null}
+                    onClick={() => openingEnvelopeOpenRef.current?.click()}
+                    className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-50"
+                  >
+                    {openingAssetBusy === 'open' ? 'A enviar…' : 'Anexar envelope aberto'}
+                  </button>
+                  <p className="mt-2 text-xs text-stone-500">Mesmos formatos que o envelope fechado.</p>
+                </div>
+              ) : null}
+            </div>
           </Field>
-          <Field label="URL áudio de fundo (ficheiro em /public)">
-            <input className={inputClass} value={form.backgroundAudioUrl} onChange={(e) => set('backgroundAudioUrl')(e.target.value)} />
+          <Field label="URL áudio de fundo (URL ou ficheiro)">
+            <div className="space-y-3">
+              <input
+                className={inputClass}
+                value={form.backgroundAudioUrl}
+                onChange={(e) => set('backgroundAudioUrl')(e.target.value)}
+                placeholder="/audio/exemplo.mp3 ou URL pública"
+              />
+              {supabase ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-3">
+                  <input
+                    ref={openingAudioRef}
+                    type="file"
+                    accept=".mp3,.wav,.webm,.ogg,audio/mpeg,audio/wav,audio/webm,audio/ogg"
+                    className="hidden"
+                    disabled={openingAssetBusy !== null}
+                    onChange={(e) => void handleOpeningAudioUpload(e.target.files?.[0] ?? null)}
+                  />
+                  <button
+                    type="button"
+                    disabled={openingAssetBusy !== null}
+                    onClick={() => openingAudioRef.current?.click()}
+                    className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-50"
+                  >
+                    {openingAssetBusy === 'audio' ? 'A enviar…' : 'Anexar música'}
+                  </button>
+                  <p className="mt-2 text-xs text-stone-500">MP3, WAV, WebM ou OGG (máx. 35 MB). URL relativa a /public continua válida.</p>
+                </div>
+              ) : null}
+            </div>
           </Field>
+          <Field label="URL imagem moldura (abertura)">
+            <div className="space-y-3">
+              <input
+                className={inputClass}
+                value={form.openingFrameImageUrl}
+                onChange={(e) => set('openingFrameImageUrl')(e.target.value)}
+                placeholder="/images/moldura-elegante-aliancas.png"
+              />
+              {supabase ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-3">
+                  <input
+                    ref={openingFrameRef}
+                    type="file"
+                    accept="image/png,image/webp,image/jpeg,image/jpg"
+                    className="hidden"
+                    disabled={openingAssetBusy !== null}
+                    onChange={(e) => void handleOpeningImageUpload('frame', e.target.files?.[0] ?? null)}
+                  />
+                  <button
+                    type="button"
+                    disabled={openingAssetBusy !== null}
+                    onClick={() => openingFrameRef.current?.click()}
+                    className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-50"
+                  >
+                    {openingAssetBusy === 'frame' ? 'A enviar…' : 'Anexar moldura'}
+                  </button>
+                  <p className="mt-2 text-xs text-stone-500">
+                    Moldura por cima do conteúdo na animação de abertura. Mesmos formatos que o envelope; deixe vazio
+                    para usar a imagem por defeito.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </Field>
+          {openingAssetError ? <p className="text-sm text-red-600">{openingAssetError}</p> : null}
         </fieldset>
 
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
@@ -510,6 +765,17 @@ export function AdminEditor({ onSignOut }: Props) {
           </Field>
           <Field label="Morada">
             <input className={inputClass} value={form.address} onChange={(e) => set('address')(e.target.value)} />
+          </Field>
+          <Field label="Traje / dress code no convite">
+            <label className="inline-flex items-center gap-3 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={form.dressCodeEnabled !== false}
+                onChange={(e) => set('dressCodeEnabled')(e.target.checked)}
+                className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+              />
+              Mostrar o bloco de traje na secção «Detalhes do evento»
+            </label>
           </Field>
           <Field label="Dress code">
             <input className={inputClass} value={form.dressCode} onChange={(e) => set('dressCode')(e.target.value)} />
@@ -679,6 +945,17 @@ export function AdminEditor({ onSignOut }: Props) {
 
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Links</legend>
+          <Field label="Lista de presentes no convite">
+            <label className="inline-flex items-center gap-3 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={form.giftsSectionEnabled !== false}
+                onChange={(e) => set('giftsSectionEnabled')(e.target.checked)}
+                className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
+              />
+              Mostrar botão, texto intro e QR da lista de presentes (abaixo de mapa e RSVP)
+            </label>
+          </Field>
           <Field label="WhatsApp — número (só dígitos, com DDI)">
             <input
               className={inputClass}

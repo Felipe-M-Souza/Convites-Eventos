@@ -1,10 +1,20 @@
-import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { resolveSealMark, type EventData } from '../data/eventData'
 import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
+  /** Slug do convite (`/c/:slug`) — usado só para fallback do modo futebol. */
+  inviteSlug?: string
   onOpen: () => void
   onSealUserGesture?: () => void
 }
@@ -12,6 +22,9 @@ type Props = {
 type OpeningPhase = 'idle' | 'seal' | 'flap' | 'card'
 
 const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
+
+/** Slugs que usam abertura «bola no gol» mesmo sem `openingInteractionMode` no JSON guardado. */
+const SOCCER_GOAL_SLUG_FALLBACKS: readonly string[] = ['san-barssoti']
 
 /**
  * Centro vertical do selo (% da altura da caixa do envelope fechado).
@@ -194,6 +207,87 @@ function TearingGoldSeal({ torn, reduce, mark }: TearingGoldSealProps) {
   )
 }
 
+type SoccerGoalKickProps = {
+  reduce: boolean
+  torn: boolean
+  /** Primeiro gesto do convidado (ex.: dar play ao áudio) — no início do toque, não só ao golo. */
+  onUserGesture?: () => void
+  onScored: () => void
+  ariaLabel: string
+}
+
+/** Trave + bola: o toque dispara a animação até à baliza e chama `onScored` (abre o envelope). */
+function SoccerGoalKick({ reduce, torn, onUserGesture, onScored, ariaLabel }: SoccerGoalKickProps) {
+  const [kickStarted, setKickStarted] = useState(false)
+  const scoredRef = useRef(false)
+
+  const handleActivate = () => {
+    if (torn || kickStarted || scoredRef.current) return
+    onUserGesture?.()
+    if (reduce) {
+      scoredRef.current = true
+      onScored()
+      return
+    }
+    setKickStarted(true)
+  }
+
+  const handleAnimComplete = () => {
+    if (scoredRef.current || !kickStarted) return
+    scoredRef.current = true
+    onScored()
+  }
+
+  return (
+    <motion.div
+      className="relative select-none"
+      style={{ width: 96, height: 84 }}
+      animate={{ opacity: torn ? 0 : 1, scale: torn ? 0.88 : 1 }}
+      transition={{ duration: reduce ? 0.12 : 0.22 }}
+    >
+      <svg
+        viewBox="0 0 88 52"
+        className="pointer-events-none absolute bottom-5 left-1/2 w-[88px] -translate-x-1/2 drop-shadow-[0_4px_10px_rgba(0,0,0,0.4)]"
+        aria-hidden
+      >
+        <path d="M12 10 V46" stroke="#f8fafc" strokeWidth="4" strokeLinecap="round" />
+        <path d="M76 10 V46" stroke="#f8fafc" strokeWidth="4" strokeLinecap="round" />
+        <path d="M12 10 H76" stroke="#f8fafc" strokeWidth="4" strokeLinecap="round" />
+        <path
+          d="M16 14 H72 M20 20 H68 M24 26 H64"
+          stroke="rgba(255,255,255,0.4)"
+          strokeWidth="1.2"
+        />
+      </svg>
+
+      <motion.div
+        className="pointer-events-none absolute left-[6px] top-[36px] flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-[1.85rem] leading-none shadow-md ring-1 ring-black/10"
+        initial={false}
+        animate={
+          kickStarted
+            ? { x: 44, y: -36, rotate: 96, scale: 0.92 }
+            : { x: 0, y: 0, rotate: 0, scale: 1 }
+        }
+        transition={{ duration: reduce ? 0 : 0.82, ease: [0.22, 0.58, 0.36, 1] }}
+        onAnimationComplete={handleAnimComplete}
+      >
+        <span className="select-none" aria-hidden>
+          ⚽
+        </span>
+      </motion.div>
+
+      <button
+        type="button"
+        disabled={torn || kickStarted}
+        onClick={handleActivate}
+        className="absolute inset-0 z-10 cursor-pointer rounded-2xl border-0 bg-transparent p-0 outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-emerald-500/75 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none disabled:opacity-55"
+        style={{ touchAction: 'manipulation' }}
+        aria-label={ariaLabel}
+      />
+    </motion.div>
+  )
+}
+
 type OpeningEnvelopeProps = {
   closedSrc: string
   openSrc: string
@@ -206,6 +300,18 @@ type OpeningEnvelopeProps = {
   sealAnchorY: number
   /** null/omitido: zoom por viewport; número (ex.: 1) evita cortar bordas em PNGs sensíveis. */
   textureZoomOverride: number | null | undefined
+  /** Zoom mínimo forçado para artes JPG com canvas branco à volta (ex.: envelope futebol). */
+  textureZoomMin?: number
+  /** Proporção visual forçada (largura / altura) para artes com canvas grande à volta. */
+  visualAspectRatio?: number
+  /** Ajuste fino horizontal do crop, em px CSS (negativo mostra mais à direita da imagem). */
+  textureOffsetX?: number
+  /** Ajuste fino vertical do crop, em px CSS (positivo desce a imagem). */
+  textureOffsetY?: number
+  /** Máscara opcional só para a arte aberta (ex.: remover cantos brancos da aba). */
+  openClipPath?: string
+  /** Centraliza o crop do zoom para cortar canvas branco tanto acima como abaixo. */
+  centerTextureCrop?: boolean
   /** Moldura escura: mistura multiplicativa suavisa halos claros residuais no PNG. */
   multiplyBlend: boolean
   showOpenArt: boolean
@@ -218,6 +324,11 @@ type OpeningEnvelopeProps = {
   boxHeightVhCap?: number
   /** Omite = 440 — `openingEnvelopeBoxMaxHeightPx`. */
   boxMaxHeightPx?: number
+  /**
+   * Fundo por detrás das texturas (letterbox / camadas GPU).
+   * Usar a cor do pergaminho ou `openingBackdropColor` evita o halo branco no Chrome com 3D/transform.
+   */
+  paperBackgroundColor: string
 }
 
 /** Envelope fechado (uma textura) → após o selo, crossfade para PNG do envelope aberto. */
@@ -231,6 +342,12 @@ function OpeningEnvelope({
   sealAnchorX,
   sealAnchorY,
   textureZoomOverride,
+  textureZoomMin,
+  visualAspectRatio,
+  textureOffsetX = 0,
+  textureOffsetY = 0,
+  openClipPath,
+  centerTextureCrop = false,
   multiplyBlend,
   showOpenArt,
   cardOut,
@@ -239,18 +356,23 @@ function OpeningEnvelope({
   boxWidthMaxPx = 400,
   boxHeightVhCap = 42,
   boxMaxHeightPx = 440,
+  paperBackgroundColor,
 }: OpeningEnvelopeProps) {
   const compact = useSyncExternalStore(
     subscribeOpeningCompactViewport,
     isOpeningCompactViewport,
     () => false,
   )
-  const textureZoom =
+  const requestedTextureZoom =
     typeof textureZoomOverride === 'number' && Number.isFinite(textureZoomOverride) && textureZoomOverride > 0
       ? textureZoomOverride
       : compact
         ? ENVELOPE_TEXTURE_ZOOM_COMPACT
         : ENVELOPE_TEXTURE_ZOOM_DESKTOP
+  const textureZoom =
+    typeof textureZoomMin === 'number' && Number.isFinite(textureZoomMin) && textureZoomMin > 0
+      ? Math.max(requestedTextureZoom, textureZoomMin)
+      : requestedTextureZoom
   const envelopeVw = compact ? ENVELOPE_WIDTH_VW_COMPACT : ENVELOPE_WIDTH_VW_DESKTOP
 
   const rClosed = naturalHeight / naturalWidth
@@ -264,7 +386,10 @@ function OpeningEnvelope({
       ? openNaturalHeight / openNaturalWidth
       : rClosed
   /** Inclui a arte aberta mais alta (ex. aba) quando os PNGs têm proporções diferentes. */
-  const boxHeightOverWidth = Math.max(rClosed, rOpen)
+  const useVisualCrop =
+    typeof visualAspectRatio === 'number' && Number.isFinite(visualAspectRatio) && visualAspectRatio > 0
+  const visualBoxHeightOverWidth = useVisualCrop ? 1 / visualAspectRatio : undefined
+  const boxHeightOverWidth = visualBoxHeightOverWidth ?? Math.max(rClosed, rOpen)
 
   const hasDistinctOpenDims =
     typeof openNaturalWidth === 'number' &&
@@ -280,35 +405,52 @@ function OpeningEnvelope({
   const vhCap = boxHeightVhCap > 0 ? boxHeightVhCap : 42
   const pxCap = boxMaxHeightPx > 0 ? boxMaxHeightPx : 440
 
-  const boxStyle = {
+  const boxStyle: CSSProperties = {
     width: `min(${envelopeVw}vw, ${wMax}px)`,
     /** Tecto vh/px: artes 1∶1; altura efetiva também limitada por largura × proporção. */
     height: `min(min(${vhCap}vh, ${pxCap}px), calc(min(${envelopeVw}vw, ${wMax}px) * ${boxHeightOverWidth}))`,
+    backgroundColor: paperBackgroundColor,
   }
 
-  const imgShared = useObjectContain
+  const imgShared = useVisualCrop
+    ? 'pointer-events-none absolute left-1/2 top-0 block h-full w-full select-none object-cover object-center'
+    : useObjectContain
     ? 'pointer-events-none absolute left-1/2 top-0 block h-full w-full max-w-full select-none bg-transparent object-contain object-center'
     : 'pointer-events-none absolute left-1/2 top-0 block h-full max-w-none select-none bg-transparent object-cover object-center'
 
   const imgZoomStyle = {
-    width: (useObjectContain ? '100%' : 'auto') as '100%' | 'auto',
-    minWidth: useObjectContain ? ('auto' as const) : '100%',
-    transform: `translateX(-50%) scale(${textureZoom})`,
-    transformOrigin: 'top center' as const,
+    top: centerTextureCrop ? '50%' : 0,
+    width: (useVisualCrop || useObjectContain ? '100%' : 'auto') as '100%' | 'auto',
+    minWidth: useVisualCrop || useObjectContain ? ('auto' as const) : '100%',
+    transform: centerTextureCrop
+      ? `translate(calc(-50% + ${textureOffsetX}px), calc(-50% + ${textureOffsetY}px)) scale(${textureZoom})`
+      : `translateX(calc(-50% + ${textureOffsetX}px)) scale(${textureZoom})`,
+    transformOrigin: centerTextureCrop ? ('center center' as const) : ('top center' as const),
     ...(multiplyBlend ? { mixBlendMode: 'multiply' as const } : {}),
+  }
+  const openImgZoomStyle = {
+    ...imgZoomStyle,
+    ...(openClipPath ? { clipPath: openClipPath } : {}),
   }
 
   const fade = reduce ? 0.16 : ENVELOPE_CROSSFADE_S
 
   return (
     <motion.div
-      className="relative mx-auto bg-transparent"
+      className="relative mx-auto"
       style={boxStyle}
       initial={false}
       animate={{ opacity: cardOut ? 0 : 1 }}
       transition={{ duration: reduce ? 0.2 : 0.48, ease: 'easeOut' }}
     >
-      <div className="pointer-events-none absolute inset-0 z-[1] isolate overflow-hidden bg-transparent">
+      {/*
+        Sem `isolate`: com `mix-blend-mode: multiply` no PNG, `isolate` fazia o blend
+        só contra o interior do grupo (transparente ≈ branco), gerando moldura branca à volta do envelope.
+      */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
+        style={{ backgroundColor: paperBackgroundColor }}
+      >
         <motion.img
           src={closedSrc}
           alt=""
@@ -327,7 +469,7 @@ function OpeningEnvelope({
           draggable={false}
           decoding="async"
           className={imgShared}
-          style={imgZoomStyle}
+          style={openImgZoomStyle}
           initial={false}
           animate={{ opacity: showOpenArt ? 1 : 0 }}
           transition={{ duration: fade, ease: [0.22, 1, 0.36, 1] }}
@@ -352,12 +494,21 @@ function OpeningEnvelope({
   )
 }
 
-export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
+export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }: Props) {
   const reduce = useReducedMotion()
   const { t } = useI18n()
   const [phase, setPhase] = useState<OpeningPhase>('idle')
+  const soccerGoalMode =
+    data.openingInteractionMode === 'soccer_goal' ||
+    (typeof inviteSlug === 'string' && SOCCER_GOAL_SLUG_FALLBACKS.includes(inviteSlug))
   const frameSrc = data.openingFrameImageUrl?.trim() || OPENING_FRAME_SRC
   const backdropColor = data.openingBackdropColor?.trim()
+  /**
+   * Em convites com envelopes JPG (ex.: futebol), a margem clara vem dentro da própria imagem.
+   * Deixar a camada transparente + multiply faz o branco do JPG assumir a textura real da moldura.
+   */
+  const shouldMultiplyEnvelope = Boolean(backdropColor) || soccerGoalMode
+  const openingStagePaperBg = soccerGoalMode && !backdropColor ? 'transparent' : backdropColor || 'var(--color-cream)'
   const darkOpeningBackdrop = Boolean(backdropColor)
   const layoutOffsetTop = data.openingLayoutOffsetTop?.trim()
   const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim()
@@ -403,12 +554,13 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
 
   const timing = useMemo(
     () => ({
-      sealToFlapMs: reduce ? 220 : 780,
+      /** No modo futebol o «rasgar» do selo não existe — abre um pouco mais cedo. */
+      sealToFlapMs: reduce ? 220 : soccerGoalMode ? 420 : 780,
       /** Após mostrar o envelope aberto (crossfade + pausa), o cartão sobe. */
       flapToCardMs: reduce ? 200 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
       cardToLeaveMs: reduce ? 480 : 2200,
     }),
-    [reduce],
+    [reduce, soccerGoalMode],
   )
 
   useEffect(() => {
@@ -431,7 +583,7 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
 
   const handleSealClick = () => {
     if (phase !== 'idle') return
-    onSealUserGesture?.()
+    if (!soccerGoalMode) onSealUserGesture?.()
     setPhase('seal')
   }
 
@@ -468,7 +620,8 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
               {
                 ['--opening-env-w-max' as string]: `${envBoxWMax}px`,
                 transformStyle: 'preserve-3d',
-              } as React.CSSProperties
+                backgroundColor: openingStagePaperBg,
+              } as CSSProperties
             }
           >
             <motion.div
@@ -528,29 +681,46 @@ export function EnvelopeOpening({ data, onOpen, onSealUserGesture }: Props) {
                 sealAnchorX={sealAnchorX}
                 sealAnchorY={sealAnchorY}
                 textureZoomOverride={data.openingEnvelopeTextureZoom}
+                textureZoomMin={soccerGoalMode ? (flapOpen ? 1.1 : 1.17) : undefined}
+                visualAspectRatio={soccerGoalMode ? (flapOpen ? 1.36 : 1.9) : undefined}
+                textureOffsetX={soccerGoalMode && !flapOpen ? -6 : 0}
+                textureOffsetY={soccerGoalMode && flapOpen ? 5 : 0}
+                openClipPath={
+                  soccerGoalMode
+                    ? 'polygon(50% 0%, 94.5% 35%, 94.5% 100%, 5.5% 100%, 5.5% 35%)'
+                    : undefined
+                }
+                centerTextureCrop={soccerGoalMode}
                 boxWidthMaxPx={envBoxWMax}
                 boxHeightVhCap={envBoxVhCap}
                 boxMaxHeightPx={envBoxPxCap}
-                multiplyBlend={Boolean(backdropColor)}
+                multiplyBlend={shouldMultiplyEnvelope}
+                paperBackgroundColor={openingStagePaperBg}
                 showOpenArt={flapOpen}
                 cardOut={cardOut}
                 reduce={Boolean(reduce)}
               >
                 <div className="pointer-events-auto">
-                  <button
-                    type="button"
-                    disabled={inProgress}
-                    onClick={handleSealClick}
-                    className="cursor-pointer rounded-full border-0 bg-transparent p-1 outline-none transition hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-amber-600/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none"
-                    style={{ touchAction: 'manipulation' }}
-                    aria-label={data.openingSealHint}
-                  >
-                    <TearingGoldSeal
-                      torn={sealTorn}
+                  {soccerGoalMode ? (
+                    <SoccerGoalKick
                       reduce={Boolean(reduce)}
-                      mark={sealMark}
+                      torn={sealTorn}
+                      onUserGesture={onSealUserGesture}
+                      onScored={handleSealClick}
+                      ariaLabel={data.openingSealHint?.trim() || t('invite.openingFallback')}
                     />
-                  </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={inProgress}
+                      onClick={handleSealClick}
+                      className="cursor-pointer rounded-full border-0 bg-transparent p-1 outline-none transition hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-amber-600/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none"
+                      style={{ touchAction: 'manipulation' }}
+                      aria-label={data.openingSealHint}
+                    >
+                      <TearingGoldSeal torn={sealTorn} reduce={Boolean(reduce)} mark={sealMark} />
+                    </button>
+                  )}
                 </div>
               </OpeningEnvelope>
             </div>

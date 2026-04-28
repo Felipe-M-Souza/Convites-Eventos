@@ -42,12 +42,14 @@ export function EventDetails({ data }: Props) {
             {data.address}
           </dd>
         </div>
-        <div className="rounded-2xl border border-stone-200/80 bg-white/70 p-6 shadow-sm">
-          <dt className="text-xs font-medium uppercase tracking-widest text-[color:var(--color-gold)]">
-            {data.dressCodeLabel?.trim() || t('invite.detailsDressCode')}
-          </dt>
-          <dd className="mt-2 text-[color:var(--color-ink)]">{data.dressCode}</dd>
-        </div>
+        {data.dressCodeEnabled !== false ? (
+          <div className="rounded-2xl border border-stone-200/80 bg-white/70 p-6 shadow-sm">
+            <dt className="text-xs font-medium uppercase tracking-widest text-[color:var(--color-gold)]">
+              {data.dressCodeLabel?.trim() || t('invite.detailsDressCode')}
+            </dt>
+            <dd className="mt-2 text-[color:var(--color-ink)]">{data.dressCode}</dd>
+          </div>
+        ) : null}
         {data.notes ? (
           <div className="rounded-2xl border border-dashed border-stone-300 bg-[color:var(--color-blush)]/50 p-6">
             <dt className="text-xs font-medium uppercase tracking-widest text-[color:var(--color-gold)]">

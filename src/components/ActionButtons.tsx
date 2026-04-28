@@ -29,6 +29,7 @@ function withUtm(href: string, campaign: string): string {
 export function ActionButtons({ data }: Props) {
   const reduce = useReducedMotion()
   const { t } = useI18n()
+  const giftsSectionEnabled = data.giftsSectionEnabled !== false
   const giftsIntro = data.giftsIntro?.trim() ?? ''
   const giftsButtonLabel = data.giftsButtonLabel?.trim() || t('invite.giftsButton')
   const giftsQrCode = data.giftsQrCodeImageUrl?.trim() ?? ''
@@ -75,39 +76,43 @@ export function ActionButtons({ data }: Props) {
           {data.rsvpButtonLabel?.trim() || t('invite.rsvpButton')}
         </a>
       </div>
-      {giftsIntro ? (
-        <p className="max-w-xl text-center text-sm leading-relaxed text-[color:var(--color-ink-muted)]">{giftsIntro}</p>
-      ) : null}
-      <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row sm:items-end">
-        <a
-          className={btn}
-          href={giftsHref}
-          target="_blank"
-          rel="noreferrer"
-          onClick={() =>
-            trackEvent('invite_action_click', {
-              action_type: 'gifts',
-              page_path: getCurrentPagePath(),
-            })
-          }
-        >
-          {giftsButtonLabel}
-        </a>
-        {giftsQrCode ? (
-          <div className="inline-flex flex-col items-center justify-center gap-2 rounded-2xl border border-[color:var(--color-gold)]/35 bg-white/90 p-3 shadow-sm">
-            <img
-              src={giftsQrCode}
-              alt="QR Code para lista de presentes"
-              className="rounded-md object-contain"
-              style={{ width: `${giftsQrCodeSizePx}px`, height: `${giftsQrCodeSizePx}px` }}
-              loading="lazy"
-            />
-            <p className="text-center text-xs font-medium tracking-wide text-[color:var(--color-ink-muted)]">
-              Escaneie para presentear
-            </p>
+      {giftsSectionEnabled ? (
+        <>
+          {giftsIntro ? (
+            <p className="max-w-xl text-center text-sm leading-relaxed text-[color:var(--color-ink-muted)]">{giftsIntro}</p>
+          ) : null}
+          <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row sm:items-end">
+            <a
+              className={btn}
+              href={giftsHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() =>
+                trackEvent('invite_action_click', {
+                  action_type: 'gifts',
+                  page_path: getCurrentPagePath(),
+                })
+              }
+            >
+              {giftsButtonLabel}
+            </a>
+            {giftsQrCode ? (
+              <div className="inline-flex flex-col items-center justify-center gap-2 rounded-2xl border border-[color:var(--color-gold)]/35 bg-white/90 p-3 shadow-sm">
+                <img
+                  src={giftsQrCode}
+                  alt="QR Code para lista de presentes"
+                  className="rounded-md object-contain"
+                  style={{ width: `${giftsQrCodeSizePx}px`, height: `${giftsQrCodeSizePx}px` }}
+                  loading="lazy"
+                />
+                <p className="text-center text-xs font-medium tracking-wide text-[color:var(--color-ink-muted)]">
+                  Escaneie para presentear
+                </p>
+              </div>
+            ) : null}
           </div>
-        ) : null}
-      </div>
+        </>
+      ) : null}
     </motion.div>
   )
 }

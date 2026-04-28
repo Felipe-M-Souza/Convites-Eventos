@@ -4,6 +4,7 @@ type PortfolioContent = {
   highlights: Array<{ title: string; description: string }>
   sections: string[]
   process: string[]
+  testimonials: Array<{ quote: string; name: string; context: string }>
   seoOccasions: Array<{ label: string; href: string }>
   trustSignals: Array<{ title: string; description: string }>
   faqs: Array<{ question: string; answer: string }>
@@ -37,6 +38,26 @@ const content: Record<Locale, PortfolioContent> = {
       'Definimos o estilo visual e reunimos textos, fotos e referências para a ocasião.',
       'Montamos o convite com navegação fluida, identidade personalizada, contagem regressiva e versão para celular.',
       'Entrego o link final pronto para compartilhamento com convidados, familiares ou homenageados, com fotos, música e recursos do evento.',
+    ],
+    testimonials: [
+      {
+        quote:
+          'O convite ficou delicado, fácil de enviar e todo mundo conseguiu acessar sem dificuldade. A abertura deu um charme especial.',
+        name: 'Cliente de casamento',
+        context: 'Convite com envelope animado e RSVP',
+      },
+      {
+        quote:
+          'A experiência ficou muito mais completa do que um convite em imagem. Reuniu data, mapa, fotos e confirmação no mesmo link.',
+        name: 'Cliente de aniversário',
+        context: 'Convite digital temático',
+      },
+      {
+        quote:
+          'Gostamos muito da personalização. O convite combinou com a identidade da festa e funcionou muito bem no celular.',
+        name: 'Cliente de celebração familiar',
+        context: 'Convite responsivo personalizado',
+      },
     ],
     seoOccasions: [
       { label: 'Convite digital aniversário infantil', href: '/convite-digital/aniversario-infantil' },
@@ -117,6 +138,26 @@ const content: Record<Locale, PortfolioContent> = {
       'We build the invitation with fluid navigation, custom identity, countdown and mobile experience.',
       'You receive the final link ready to share with guests, family or honorees, including photos, music and event resources.',
     ],
+    testimonials: [
+      {
+        quote:
+          'The invitation felt delicate, easy to share and simple for everyone to access. The opening added a special touch.',
+        name: 'Wedding client',
+        context: 'Invitation with animated envelope and RSVP',
+      },
+      {
+        quote:
+          'The experience felt much more complete than a static image. Date, map, photos and RSVP were all in one link.',
+        name: 'Birthday client',
+        context: 'Themed digital invitation',
+      },
+      {
+        quote:
+          'We loved the customization. The invitation matched the party identity and worked very well on mobile.',
+        name: 'Family celebration client',
+        context: 'Custom responsive invitation',
+      },
+    ],
     seoOccasions: [
       { label: 'Kids birthday digital invitation', href: '/convite-digital/aniversario-infantil' },
       { label: 'Quinceañera digital invitation', href: '/convite-digital/15-anos' },
@@ -195,6 +236,26 @@ const content: Record<Locale, PortfolioContent> = {
       'Definimos el estilo visual y reunimos textos, fotos y referencias para la ocasión.',
       'Montamos la invitación con navegación fluida, identidad personalizada, cuenta regresiva y versión móvil.',
       'Entregamos el enlace final listo para compartir con invitados, familiares u homenajeados, con fotos, música y recursos del evento.',
+    ],
+    testimonials: [
+      {
+        quote:
+          'La invitación quedó delicada, fácil de enviar y todos pudieron acceder sin dificultad. La apertura le dio un toque especial.',
+        name: 'Cliente de boda',
+        context: 'Invitación con sobre animado y RSVP',
+      },
+      {
+        quote:
+          'La experiencia quedó mucho más completa que una invitación en imagen. Reunió fecha, mapa, fotos y confirmación en un solo enlace.',
+        name: 'Cliente de cumpleaños',
+        context: 'Invitación digital temática',
+      },
+      {
+        quote:
+          'Nos gustó mucho la personalización. La invitación combinó con la identidad de la fiesta y funcionó muy bien en celular.',
+        name: 'Cliente de celebración familiar',
+        context: 'Invitación responsive personalizada',
+      },
     ],
     seoOccasions: [
       { label: 'Invitación digital cumpleaños infantil', href: '/convite-digital/aniversario-infantil' },

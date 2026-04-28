@@ -75,6 +75,11 @@ export const eventData = {
    */
   openingSealMark: '',
   /**
+   * `seal` = selo dourado clássico; `soccer_goal` = trave + animação de bola ao golo (mesma âncora do selo).
+   * O slug `san-barssoti` também ativa este modo no código até gravares a opção no CMS.
+   */
+  openingInteractionMode: 'seal' as 'seal' | 'soccer_goal',
+  /**
    * Moldura de fundo na abertura (PNG em `public/images/frames/`).
    * Vazio = usa a moldura padrão do casamento.
    */
@@ -156,6 +161,8 @@ export const eventData = {
   address: 'Rua das Flores, 123 — São Paulo/SP',
   time: '16h00',
   dressCode: 'Esporte fino',
+  /** Mostrar o cartão de traje / dress code em «Detalhes do evento». */
+  dressCodeEnabled: true,
   notes: 'Estacionamento no local. Cerimônia e festa no mesmo endereço.',
   mapsLink:
     'https://www.google.com/maps/search/?api=1&query=Espa%C3%A7o+Jardim+Imperial+S%C3%A3o+Paulo',
@@ -164,6 +171,8 @@ export const eventData = {
   /** Texto pré-preenchido no WhatsApp (acentos ok; o link é montado em código). */
   rsvpWhatsappMessage: 'Olá, confirmo minha presença no casamento!',
   giftsLink: 'https://www.example.com/lista-de-presentes',
+  /** Mostrar botão, texto intro e QR da lista de presentes abaixo do mapa/RSVP. */
+  giftsSectionEnabled: true,
   /** Texto do terceiro botão de ação. */
   giftsButtonLabel: 'Lista de presentes',
   /** Texto opcional acima do botão «Lista de presentes». Vazio = não mostra. */
@@ -194,6 +203,91 @@ export const eventData = {
 }
 
 export type EventData = typeof eventData
+
+/** Modelo de conteúdo ao criar um convite novo no /admin (o slug continua livre: letras, números e hífens). */
+export const inviteCreationTemplates = ['wedding', 'birthday_milestone', 'neutral'] as const
+export type InviteCreationTemplate = (typeof inviteCreationTemplates)[number]
+
+/**
+ * Payload inicial para `invite_config.insert`.
+ * - `wedding`: exemplo atual (Maria & João).
+ * - `birthday_milestone`: textos em tom de aniversário / 50 anos (substituir nomes e datas).
+ * - `neutral`: campos mínimos para personalizar qualquer ocasião.
+ */
+export function getNewInvitePayload(template: InviteCreationTemplate): EventData {
+  const base = structuredClone(eventData) as EventData
+
+  if (template === 'wedding') {
+    return base
+  }
+
+  if (template === 'neutral') {
+    return {
+      ...base,
+      openingEyebrow: '',
+      openingPreviewTitle: 'Convite especial',
+      eventDetailsHeading: 'Detalhes do evento',
+      dressCodeLabel: 'Vestimenta',
+      seoTitle: '',
+      seoDescription: '',
+      coupleNames: 'Nome do evento ou anfitrião',
+      verse: '',
+      weddingDateLabel: 'Data do evento',
+      weddingDateTime: '2030-06-15T19:00:00',
+      coverImageUrl:
+        'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
+      message: 'Substitua este texto por uma mensagem de convite aos seus convidados.',
+      venue: 'Local da festa',
+      address: 'Endereço completo — Cidade/UF',
+      time: '19h00',
+      dressCode: 'A combinar com o anfitrião',
+      notes: '',
+      mapsLink: 'https://www.google.com/maps',
+      rsvpWhatsappMessage: 'Olá! Confirmo a minha presença.',
+      guestUploadsTitle: 'Compartilhe fotos e vídeos do evento',
+      guestUploadsDescription:
+        'Envie um registro deste momento. O conteúdo será publicado no convite após aprovação do responsável.',
+      galleryPhotos: [],
+      footerThanks: 'Obrigado por fazer parte deste momento.',
+      footerContact: 'Dúvidas? Contacte o anfitrião pelo WhatsApp do RSVP.',
+      translations: {},
+    }
+  }
+
+  return {
+    ...base,
+    openingPreviewTitle: '50 anos — uma festa à altura',
+    eventDetailsHeading: 'Detalhes da festa',
+    dressCodeLabel: 'Vestimenta',
+    seoTitle: 'Convite digital aniversário 50 anos | Convites Diversos',
+    seoDescription:
+      'Convite digital para celebrar os 50 anos: data, local, mapa e confirmação por WhatsApp num único link.',
+    coupleNames: 'Nome do aniversariante',
+    verse: 'A vida é feita de momentos que merecem ser celebrados com quem amamos.',
+    weddingDateLabel: '20 de junho de 2026',
+    weddingDateTime: '2026-06-20T19:00:00',
+    coverImageUrl:
+      'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1200&q=80',
+    message:
+      'Com alegria no coração, convidamos você para celebrar conosco esta data tão especial. Sua presença será a melhor companhia!',
+    venue: 'Salão de festas (substitua pelo nome real)',
+    address: 'Endereço completo — São Paulo/SP',
+    time: '19h00',
+    dressCode: 'Esporte fino',
+    notes: 'Substitua ou remova estas notas.',
+    mapsLink: 'https://www.google.com/maps/search/?api=1&query=S%C3%A3o+Paulo',
+    rsvpWhatsappMessage: 'Olá! Confirmo minha presença na festa de aniversário.',
+    guestUploadsTitle: 'Compartilhe fotos e vídeos da festa',
+    guestUploadsDescription:
+      'Envie um registro desta celebração. O conteúdo será publicado no convite após aprovação do responsável.',
+    galleryPhotos: [
+      'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=900&q=80',
+    ],
+    footerThanks: 'Obrigado por fazer parte desta celebração.',
+    footerContact: 'Dúvidas? Fale com a organização pelo WhatsApp do RSVP.',
+    translations: {},
+  }
+}
 
 type StoredPayload = Partial<EventData> & { rsvpWhatsappLink?: string }
 

@@ -45,6 +45,24 @@ export async function uploadGalleryJpeg(
   return getGalleryPublicUrl(supabase, path)
 }
 
+/** Upload genérico (PNG/WebP/áudio, etc.) para o bucket `invite-gallery`. */
+export async function uploadGalleryBlob(
+  supabase: SupabaseClient,
+  body: Blob,
+  folder: string,
+  fileName: string,
+  contentType: string,
+): Promise<string> {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || `${crypto.randomUUID()}.bin`
+  const path = galleryObjectPath(folder, safe)
+  const { error } = await supabase.storage.from(GALLERY_BUCKET).upload(path, body, {
+    contentType: contentType || 'application/octet-stream',
+    upsert: false,
+  })
+  if (error) throw new Error(error.message)
+  return getGalleryPublicUrl(supabase, path)
+}
+
 export async function removeGalleryObject(
   supabase: SupabaseClient,
   publicUrl: string,
