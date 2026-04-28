@@ -96,6 +96,10 @@ export const eventData = {
   openingLayoutOffsetTop: '',
   /** Margem só no envelope; o bloco de dicas/data compensa para não subir/descer junto. Vazio = sem. */
   openingEnvelopeMarginTop: '',
+  /** Cor CSS opcional dos textos abaixo do envelope. Vazio = estilo do tema. */
+  openingTextColor: '',
+  /** Opacidade opcional dos textos abaixo do envelope (0 a 1). null = estilo do tema. */
+  openingTextOpacity: null as number | null,
   /** Imagem do envelope na abertura (ficheiro em `public/images/`). */
   openingEnvelopeImageUrl: '/images/envelope-burgundy.png',
   /** Envelope já aberto (aba para cima); mostrado após rasgar o selo. `public/images/`. */

@@ -622,6 +622,50 @@ export function AdminEditor({ onSignOut }: Props) {
           <Field label="Texto de ajuda (selo)">
             <input className={inputClass} value={form.openingSealHint} onChange={(e) => set('openingSealHint')(e.target.value)} />
           </Field>
+          <Field label="Cor dos textos abaixo do envelope">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                type="color"
+                value={form.openingTextColor.trim() || '#5f1733'}
+                onChange={(e) => set('openingTextColor')(e.target.value)}
+                className="h-10 w-16 rounded-lg border border-stone-300 bg-white p-1"
+                aria-label="Escolher cor dos textos da abertura"
+              />
+              <input
+                className={inputClass}
+                placeholder="Vazio = cor padrão. Ex.: #5f1733"
+                value={form.openingTextColor}
+                onChange={(e) => set('openingTextColor')(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => set('openingTextColor')('')}
+                className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+              >
+                Usar padrão
+              </button>
+            </div>
+          </Field>
+          <Field label="Opacidade dos textos abaixo do envelope (0 = invisível, 1 = sólido)">
+            <input
+              type="number"
+              className={inputClass}
+              min={0}
+              max={1}
+              step={0.05}
+              placeholder="Padrão do tema"
+              value={form.openingTextOpacity ?? ''}
+              onChange={(e) => {
+                const raw = e.target.value.trim()
+                if (raw === '') {
+                  set('openingTextOpacity')(null)
+                  return
+                }
+                const v = Number(raw)
+                if (Number.isFinite(v)) set('openingTextOpacity')(Math.min(1, Math.max(0, v)))
+              }}
+            />
+          </Field>
           <Field label="Lacre manual (vazio = iniciais dos nomes)">
             <input className={inputClass} value={form.openingSealMark} onChange={(e) => set('openingSealMark')(e.target.value)} />
           </Field>

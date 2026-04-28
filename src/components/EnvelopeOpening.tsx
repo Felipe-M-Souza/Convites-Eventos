@@ -595,6 +595,19 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const cardDur = reduce ? 0.22 : 0.72
   const sealMark = resolveSealMark(data)
   const inProgress = phase !== 'idle'
+  const customOpeningTextColor = data.openingTextColor?.trim()
+  const customOpeningTextOpacity =
+    typeof data.openingTextOpacity === 'number' && Number.isFinite(data.openingTextOpacity)
+      ? Math.min(1, Math.max(0, data.openingTextOpacity))
+      : null
+  const openingTextStyle = (): CSSProperties | undefined => {
+    if (!customOpeningTextColor && customOpeningTextOpacity == null) return undefined
+    const opacity = customOpeningTextOpacity ?? 1
+    return {
+      ...(customOpeningTextColor ? { color: customOpeningTextColor } : {}),
+      opacity: inProgress ? opacity * 0.45 : opacity,
+    }
+  }
 
   return (
     <motion.div
@@ -754,6 +767,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                   ? 'text-rose-900/15'
                   : 'text-rose-900/40'
             }`}
+            style={openingTextStyle()}
           >
             {data.openingSealHint}
           </p>
@@ -771,6 +785,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                   ? 'text-rose-900/20'
                   : 'text-rose-900/45'
             }`}
+            style={openingTextStyle()}
           >
             {data.weddingDateLabel}
           </p>
@@ -788,6 +803,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                   ? 'text-rose-900/18'
                   : 'text-rose-900/40'
             }`}
+            style={openingTextStyle()}
           >
             {data.venue}
           </p>
@@ -805,6 +821,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                   ? 'text-rose-900/18'
                   : 'text-rose-900/40'
             }`}
+            style={openingTextStyle()}
           >
             {data.time}
           </p>
