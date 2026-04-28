@@ -632,6 +632,14 @@ export function AdminEditor({ onSignOut }: Props) {
           <Field label="Texto de ajuda (selo)">
             <input className={inputClass} value={form.openingSealHint} onChange={(e) => set('openingSealHint')(e.target.value)} />
           </Field>
+          <Field label="Título do cartão que sai do envelope">
+            <input
+              className={inputClass}
+              value={form.openingPreviewTitle}
+              onChange={(e) => set('openingPreviewTitle')(e.target.value)}
+              placeholder="Ex.: 60 anos — keep rocking on!"
+            />
+          </Field>
           <Field label="Cor dos textos abaixo do envelope">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
