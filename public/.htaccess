@@ -1,14 +1,14 @@
 # Convite SPA (Vite) + Apache. Em subpasta, ajuste RewriteBase (ex.: /clientes/convite/).
 <IfModule mod_headers.c>
-# HTML/PHP carregam o bundle atual; evita celular preso em JS antigo após deploy.
-<FilesMatch "\.(html|php)$">
+# HTML/PHP/JS/CSS carregam sempre a versão atual; evita celular preso em bundle antigo.
+<FilesMatch "\.(html|php|js|css|json|map)$">
 Header set Cache-Control "no-cache, no-store, must-revalidate"
 Header set Pragma "no-cache"
 Header set Expires "0"
 </FilesMatch>
 
-# Assets do Vite têm hash no nome e podem ficar em cache por mais tempo.
-<FilesMatch "\.(js|css|png|jpg|jpeg|webp|gif|svg|ico|mp3|wav|ogg|webm|mp4)$">
+# Media pesada pode ficar em cache para preservar a velocidade dos convites.
+<FilesMatch "\.(png|jpg|jpeg|webp|gif|svg|ico|mp3|wav|ogg|webm|mp4)$">
 Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
 </IfModule>
