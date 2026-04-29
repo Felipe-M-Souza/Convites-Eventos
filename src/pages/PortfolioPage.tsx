@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase'
 const PORTFOLIO_CONTACT_EMAIL = 'contato@convitesdiversos.com.br'
 /** (11) 96581-4224 — wa.me sem espaços ou símbolos */
 const PORTFOLIO_CONTACT_WHATSAPP_E164 = '5511965814224'
+const PORTFOLIO_INSTAGRAM_URL = 'https://www.instagram.com/convitesdiversos.oficial/'
 
 type ApprovedPortfolioTestimonial = {
   id: string
@@ -59,7 +60,7 @@ export function PortfolioPage() {
           name: 'Convites Diversos',
           url: siteUrl,
           logo: `${siteUrl}/images/logo-convitesdiversos-transparent.png`,
-          sameAs: [],
+          sameAs: [PORTFOLIO_INSTAGRAM_URL],
         },
         {
           '@type': 'WebSite',
@@ -455,6 +456,15 @@ export function PortfolioPage() {
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-7 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
             >
               {t('portfolio.whatsappButton')}
+            </a>
+            <a
+              href={PORTFOLIO_INSTAGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => trackCtaClick('portfolio_contact', 'instagram_follow', PORTFOLIO_INSTAGRAM_URL)}
+              className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-gold-soft)] bg-white px-7 py-3 text-sm font-semibold text-[color:var(--color-ink)] shadow-sm transition hover:border-[color:var(--color-gold)] hover:bg-stone-50"
+            >
+              {t('portfolio.instagramButton')}
             </a>
           </div>
         </div>

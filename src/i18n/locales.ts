@@ -119,6 +119,7 @@ export type TranslationKey =
   | 'portfolio.contactDescription'
   | 'portfolio.emailButton'
   | 'portfolio.whatsappButton'
+  | 'portfolio.instagramButton'
   | 'portfolio.demoEyebrow'
   | 'portfolio.demoTitle'
   | 'portfolio.demoDescription'
@@ -243,6 +244,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.contactDescription': 'Conte-nos a ocasião, a data aproximada e o que imagina para o convite. Respondemos por e-mail ou WhatsApp para alinhar detalhes e valores.',
     'portfolio.emailButton': 'Enviar e-mail',
     'portfolio.whatsappButton': 'WhatsApp',
+    'portfolio.instagramButton': 'Seguir no Instagram',
     'portfolio.demoEyebrow': 'Demonstração',
     'portfolio.demoTitle': 'Veja um convite completo publicado em formato real.',
     'portfolio.demoDescription': 'A demonstração mostra a estrutura visual do projeto e a experiência que pode ser adaptada para diferentes tipos de convite.',
@@ -364,6 +366,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.contactDescription': 'Tell us the occasion, approximate date and what you imagine for the invitation. We reply by email or WhatsApp to align details and pricing.',
     'portfolio.emailButton': 'Send email',
     'portfolio.whatsappButton': 'WhatsApp',
+    'portfolio.instagramButton': 'Follow on Instagram',
     'portfolio.demoEyebrow': 'Demo',
     'portfolio.demoTitle': 'See a complete invitation published in real format.',
     'portfolio.demoDescription': 'The demo shows the project structure and the experience that can be adapted to different invitation types.',
@@ -485,6 +488,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.contactDescription': 'Cuéntanos la ocasión, fecha aproximada y qué imaginas para la invitación. Respondemos por email o WhatsApp para alinear detalles y valores.',
     'portfolio.emailButton': 'Enviar email',
     'portfolio.whatsappButton': 'WhatsApp',
+    'portfolio.instagramButton': 'Seguir en Instagram',
     'portfolio.demoEyebrow': 'Demostración',
     'portfolio.demoTitle': 'Mira una invitación completa publicada en formato real.',
     'portfolio.demoDescription': 'La demostración muestra la estructura visual y la experiencia que puede adaptarse a diferentes tipos de invitación.',
