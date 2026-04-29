@@ -208,7 +208,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.heroDescription': 'Desenvolvimento convites digitais elegantes, personalizados e responsivos para casamentos, bodas, aniversários, celebrações especiais, homenagens e outros momentos importantes, com contagem regressiva, fotos, música e compartilhamento por link.',
     'portfolio.ctaDemo': 'Ver convite demonstrativo',
     'portfolio.ctaModels': 'Ver outros modelos',
-    'portfolio.ctaBudget': 'Pedir orçamento ou falar conosco',
+    'portfolio.ctaBudget': 'Fale conosco',
     'portfolio.heroNote': 'Cada projeto pode ter seu próprio link, identidade visual e experiência personalizada para o tipo de evento.',
     'portfolio.highlightsEyebrow': 'Destaques',
     'portfolio.portfolioEyebrow': 'O que o portfólio entrega',

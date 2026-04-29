@@ -43,6 +43,11 @@ export function PortfolioPage() {
         context: testimonial.context,
       }))
 
+  const scrollToContact = () => {
+    trackCtaClick('portfolio_hero', 'link_secao_contato', '#contato')
+    document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   useEffect(() => {
     const siteUrl = window.location.origin
     applySeoMeta({
@@ -186,13 +191,13 @@ export function PortfolioPage() {
               </Link>
             </div>
             <p className="mt-6 text-sm">
-              <Link
-                to="#contato"
-                onClick={() => trackCtaClick('portfolio_hero', 'link_secao_contato', '#contato')}
+              <button
+                type="button"
+                onClick={scrollToContact}
                 className="font-medium text-[color:var(--color-gold)] underline decoration-[color:var(--color-gold-soft)] underline-offset-4 transition hover:decoration-[color:var(--color-gold)]"
               >
                 {t('portfolio.ctaBudget')}
-              </Link>
+              </button>
             </p>
             <p className="mt-8 text-sm text-[color:var(--color-ink-muted)]">
               {t('portfolio.heroNote')}
