@@ -19,6 +19,25 @@ type ApprovedPortfolioTestimonial = {
   context: string
 }
 
+function InstagramIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 export function PortfolioPage() {
   const { locale, t } = useI18n()
   const content = getPortfolioContent(locale)
@@ -467,8 +486,9 @@ export function PortfolioPage() {
               target="_blank"
               rel="noreferrer"
               onClick={() => trackCtaClick('portfolio_contact', 'instagram_follow', PORTFOLIO_INSTAGRAM_URL)}
-              className="inline-flex items-center justify-center rounded-full border border-[color:var(--color-gold-soft)] bg-white px-7 py-3 text-sm font-semibold text-[color:var(--color-ink)] shadow-sm transition hover:border-[color:var(--color-gold)] hover:bg-stone-50"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--color-gold-soft)] bg-white px-7 py-3 text-sm font-semibold text-[color:var(--color-ink)] shadow-sm transition hover:border-[color:var(--color-gold)] hover:bg-stone-50"
             >
+              <InstagramIcon />
               {t('portfolio.instagramButton')}
             </a>
           </div>
