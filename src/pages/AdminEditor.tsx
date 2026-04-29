@@ -320,6 +320,27 @@ export function AdminEditor({ onSignOut }: Props) {
     )
   }
 
+  const handleDeleteTestimonial = async (testimonial: PortfolioTestimonialRow) => {
+    if (!supabase) return
+    const ok = window.confirm(
+      `Apagar definitivamente este depoimento de ${
+        testimonial.client_name.trim() || 'Sem nome'
+      }?\n\nEsta ação não pode ser anulada.`,
+    )
+    if (!ok) return
+
+    setTestimonialActionId(testimonial.id)
+    setTestimonialsError(null)
+    const { error } = await supabase.from('portfolio_testimonials').delete().eq('id', testimonial.id)
+
+    setTestimonialActionId(null)
+    if (error) {
+      setTestimonialsError(error.message)
+      return
+    }
+    setTestimonials((rows) => rows.filter((row) => row.id !== testimonial.id))
+  }
+
   const handleCopyTestimonial = async (testimonial: PortfolioTestimonialRow) => {
     const parts = [
       `“${testimonial.message}”`,
@@ -1201,6 +1222,14 @@ export function AdminEditor({ onSignOut }: Props) {
                           className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
                         >
                           {copiedTestimonialId === testimonial.id ? 'Copiado' : 'Copiar texto'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={testimonialActionId === testimonial.id}
+                          onClick={() => void handleDeleteTestimonial(testimonial)}
+                          className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-50"
+                        >
+                          Deletar
                         </button>
                       </div>
                     </article>
