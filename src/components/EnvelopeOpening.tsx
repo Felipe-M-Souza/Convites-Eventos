@@ -48,6 +48,8 @@ const ENVELOPE_NATURAL_H = 682
 const ENVELOPE_TEXTURE_ZOOM_DESKTOP = 1.24
 /** Telefone: envelope mais estreito + zoom um pouco menor que antes para não cortar filigranas. */
 const ENVELOPE_TEXTURE_ZOOM_COMPACT = 1.32
+/** Demo padrão: preserva as bordas e a aba do envelope durante a abertura. */
+const DEFAULT_INVITE_ENVELOPE_TEXTURE_ZOOM = 1.12
 
 /** Largura da caixa do envelope em vw (≤767px vs maior). */
 const ENVELOPE_WIDTH_VW_COMPACT = 84
@@ -610,6 +612,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const reduce = useReducedMotion()
   const { t } = useI18n()
   const [phase, setPhase] = useState<OpeningPhase>('idle')
+  const defaultInviteMode = inviteSlug === 'default'
   const soccerGoalMode =
     data.openingInteractionMode === 'soccer_goal' ||
     (typeof inviteSlug === 'string' && SOCCER_GOAL_SLUG_FALLBACKS.includes(inviteSlug))
@@ -766,15 +769,15 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
               {
                 ['--opening-env-w-max' as string]: `${envBoxWMax}px`,
                 transformStyle: 'preserve-3d',
-                backgroundColor: openingStagePaperBg,
+                backgroundColor: 'transparent',
               } as CSSProperties
             }
           >
             <motion.div
-              className="pointer-events-none absolute left-1/2 top-[50%] z-[5] w-[min(78%,300px)] max-w-[300px] -translate-x-1/2 rounded-sm border border-rose-200/80 bg-[color:var(--color-blush)] px-4 py-5 text-center shadow-md"
+              className="pointer-events-none absolute left-1/2 top-[50%] z-[5] w-[min(78%,300px)] max-w-[300px] -translate-x-1/2 rounded-sm border border-rose-200/70 bg-white/85 px-4 py-5 text-center shadow-md backdrop-blur-[1px]"
               initial={{ y: 32, rotateX: 0, opacity: 0 }}
               animate={{
-                y: cardOut ? -122 : 32,
+                y: cardOut ? -116 : 32,
                 rotateX: cardOut ? 4 : 0,
                 /** Invisível atrás do envelope até a fase do cartão — evita “moldura” branca nas laterais. */
                 opacity: cardOut ? 1 : 0,
@@ -826,7 +829,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 }
                 sealAnchorX={sealAnchorX}
                 sealAnchorY={sealAnchorY}
-                textureZoomOverride={data.openingEnvelopeTextureZoom}
+                textureZoomOverride={data.openingEnvelopeTextureZoom ?? (defaultInviteMode ? DEFAULT_INVITE_ENVELOPE_TEXTURE_ZOOM : null)}
                 textureZoomMin={soccerGoalMode ? (flapOpen ? 1.1 : 1.17) : undefined}
                 visualAspectRatio={soccerGoalMode ? (flapOpen ? 1.36 : 1.9) : undefined}
                 textureOffsetX={soccerGoalMode && !flapOpen ? -6 : 0}
