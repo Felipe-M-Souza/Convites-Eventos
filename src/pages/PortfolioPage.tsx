@@ -19,6 +19,13 @@ type ApprovedPortfolioTestimonial = {
   context: string
 }
 
+type PlanCard = {
+  name: string
+  price: string
+  description: string
+  items: string[]
+}
+
 function InstagramIcon() {
   return (
     <svg
@@ -62,9 +69,82 @@ export function PortfolioPage() {
         context: testimonial.context,
       }))
 
-  const scrollToContact = () => {
-    trackCtaClick('portfolio_hero', 'link_secao_contato', '#contato')
-    document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const plansCtaLabel =
+    locale === 'en' ? 'See our plans' : locale === 'es' ? 'Conoce nuestros planes' : 'Conheça nossos planos'
+  const plansEyebrow = locale === 'en' ? 'Plans' : locale === 'es' ? 'Planes' : 'Planos'
+  const plansTitle =
+    locale === 'en'
+      ? 'Choose the ideal plan for your invitation.'
+      : locale === 'es'
+        ? 'Elige el plan ideal para tu invitación.'
+        : 'Escolha o plano ideal para o seu convite.'
+  const plansDescription =
+    locale === 'en'
+      ? 'Transparent pricing with complete digital invitation options for different needs.'
+      : locale === 'es'
+        ? 'Precios transparentes con opciones completas de invitación digital para diferentes necesidades.'
+        : 'Valores transparentes com opções completas de convite digital para diferentes necessidades.'
+  const plans: PlanCard[] =
+    locale === 'en'
+      ? [
+          {
+            name: 'Classic',
+            price: 'R$ 80.00',
+            description: 'A practical and elegant invitation with animated presentation and soundtrack for your event.',
+            items: ['One digital invitation page', 'Animated opening and soundtrack', 'Map and WhatsApp button'],
+          },
+          {
+            name: 'Premium',
+            price: 'R$ 130.00',
+            description: 'Complete experience with guest interaction and host control through a personal dashboard.',
+            items: [
+              'Everything in Classic',
+              'Guest photo and video uploads',
+              "Host dashboard to approve, download and turn uploads into keepsakes",
+            ],
+          },
+        ]
+      : locale === 'es'
+        ? [
+            {
+              name: 'Clásico',
+              price: 'R$ 80,00',
+              description: 'Una invitación práctica y elegante con apertura animada y música para tu evento.',
+              items: ['1 página de invitación digital', 'Apertura animada y música', 'Mapa y botón de WhatsApp'],
+            },
+            {
+              name: 'Premium',
+              price: 'R$ 130,00',
+              description: 'Experiencia completa con interacción de invitados y control desde un panel personal del anfitrión.',
+              items: [
+                'Todo del Clásico',
+                'Subida de fotos y videos de invitados',
+                'Panel del anfitrión para aprobar, descargar y crear recuerdos con los envíos',
+              ],
+            },
+          ]
+        : [
+            {
+              name: 'Clássico',
+              price: 'R$ 80,00',
+              description: 'Convite prático e elegante com abertura animada e música para o seu evento.',
+              items: ['1 página de convite digital', 'Abertura animada e trilha sonora', 'Mapa e botão de WhatsApp'],
+            },
+            {
+              name: 'Premium',
+              price: 'R$ 130,00',
+              description: 'Experiência completa com interação dos convidados e controle em painel pessoal do anfitrião.',
+              items: [
+                'Tudo do Clássico',
+                'Upload de fotos e vídeos dos convidados',
+                'Painel do anfitrião para aprovar, baixar e criar lembranças com os envios',
+              ],
+            },
+          ]
+
+  const scrollToPlans = () => {
+    trackCtaClick('portfolio_hero', 'link_secao_planos', '#planos')
+    document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   useEffect(() => {
@@ -212,10 +292,10 @@ export function PortfolioPage() {
             <p className="mt-6 text-sm">
               <button
                 type="button"
-                onClick={scrollToContact}
+                onClick={scrollToPlans}
                 className="font-medium text-[color:var(--color-gold)] underline decoration-[color:var(--color-gold-soft)] underline-offset-4 transition hover:decoration-[color:var(--color-gold)]"
               >
-                {t('portfolio.ctaBudget')}
+                {plansCtaLabel}
               </button>
             </p>
             <p className="mt-8 text-sm text-[color:var(--color-ink-muted)]">
@@ -425,25 +505,26 @@ export function PortfolioPage() {
         </div>
       </section>
 
-      <section className="px-6 py-18">
-        <div className="mx-auto max-w-5xl rounded-[2rem] border border-stone-200 bg-white p-8 shadow-sm sm:p-10">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">
-            {t('portfolio.faqEyebrow')}
-          </p>
-          <h2 className="mt-4 font-display text-4xl font-semibold sm:text-5xl">
-            {t('portfolio.faqTitle')}
-          </h2>
-          <div className="mt-8 space-y-4">
-            {content.faqs.map((faq) => (
-              <details
-                key={faq.question}
-                className="rounded-[1.4rem] border border-stone-200 bg-[color:var(--color-cream)] px-5 py-4 shadow-sm open:bg-white"
-              >
-                <summary className="cursor-pointer list-none pr-6 font-medium text-[color:var(--color-ink)]">
-                  {faq.question}
-                </summary>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">{faq.answer}</p>
-              </details>
+      <section id="planos" className="border-y border-stone-200/80 bg-[color:var(--color-cream)] px-6 py-18">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-3xl">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">{plansEyebrow}</p>
+            <h2 className="mt-4 font-display text-4xl font-semibold sm:text-5xl">{plansTitle}</h2>
+            <p className="mt-5 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">{plansDescription}</p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {plans.map((plan) => (
+              <article key={plan.name} className="rounded-[1.6rem] bg-white p-6 shadow-sm ring-1 ring-stone-200/80">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink-muted)]">{plan.name}</p>
+                <p className="mt-3 font-display text-4xl font-semibold text-[color:var(--color-ink)]">{plan.price}</p>
+                <p className="mt-4 text-sm leading-7 text-[color:var(--color-ink-muted)]">{plan.description}</p>
+                <ul className="mt-5 space-y-2 text-sm text-[color:var(--color-ink)]">
+                  {plan.items.map((item) => (
+                    <li key={item}>- {item}</li>
+                  ))}
+                </ul>
+              </article>
             ))}
           </div>
         </div>
@@ -491,6 +572,30 @@ export function PortfolioPage() {
               <InstagramIcon />
               {t('portfolio.instagramButton')}
             </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-18">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-stone-200 bg-white p-8 shadow-sm sm:p-10">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">
+            {t('portfolio.faqEyebrow')}
+          </p>
+          <h2 className="mt-4 font-display text-4xl font-semibold sm:text-5xl">
+            {t('portfolio.faqTitle')}
+          </h2>
+          <div className="mt-8 space-y-4">
+            {content.faqs.map((faq) => (
+              <details
+                key={faq.question}
+                className="rounded-[1.4rem] border border-stone-200 bg-[color:var(--color-cream)] px-5 py-4 shadow-sm open:bg-white"
+              >
+                <summary className="cursor-pointer list-none pr-6 font-medium text-[color:var(--color-ink)]">
+                  {faq.question}
+                </summary>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">{faq.answer}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
