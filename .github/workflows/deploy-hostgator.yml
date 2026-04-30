@@ -19,8 +19,8 @@ jobs:
       VITE_PUBLIC_SITE_URL: ${{ secrets.VITE_PUBLIC_SITE_URL }}
       VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
       VITE_GOOGLE_ADS_ID: ${{ secrets.VITE_GOOGLE_ADS_ID }}
-      VITE_GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO: ${{ secrets.VITE_GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO }}
-
+      VITE_GOOGLE_ADS_CONVERSION_CONTACT_EVENT_NAME: ${{ secrets.VITE_GOOGLE_ADS_CONVERSION_CONTACT_EVENT_NAME }}
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v4
