@@ -42,8 +42,10 @@ function isGtagScriptEnabled() {
 function ensureGtag() {
   window.dataLayer = window.dataLayer || []
   if (!window.gtag) {
-    window.gtag = (...args: unknown[]) => {
-      window.dataLayer?.push(args)
+    // O gtag oficial empilha o objeto `arguments`; usar array pode impedir
+    // o parser interno de processar corretamente os comandos e enviar hits.
+    window.gtag = function gtagShim() {
+      window.dataLayer?.push(arguments as unknown)
     }
   }
 }
