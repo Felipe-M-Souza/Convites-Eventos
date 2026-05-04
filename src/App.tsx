@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams, useParams } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useSearchParams, useParams } from 'react-router-dom'
+import type { RouteRecord } from 'vite-react-ssg'
 import { EventDataProvider } from './contexts/EventDataProvider'
 import { Home } from './pages/Home'
 import { ExamplesPage } from './pages/ExamplesPage'
@@ -63,24 +64,54 @@ function AnalyticsListener() {
   return null
 }
 
-export default function App() {
+function RootLayout() {
   return (
-    <BrowserRouter>
-      <I18nProvider>
-        <AnalyticsListener />
-        <LanguageSwitcher />
-        <Routes>
-          <Route path="/" element={<PortfolioPage />} />
-          <Route path="/modelos" element={<ExamplesPage />} />
-          <Route path="/convite-digital/:serviceSlug" element={<ServiceLandingPage />} />
-          <Route path="/c/:slug" element={<InviteRoute />} />
-          <Route path="/i/:slug" element={<ShareInviteRedirectRoute />} />
-          <Route path="/admin" element={<AdminRoute />} />
-          <Route path="/owner" element={<OwnerPanel />} />
-          <Route path="/owner/claim" element={<OwnerClaimPage />} />
-          <Route path="/:slug" element={<LegacyInviteRedirectRoute />} />
-        </Routes>
-      </I18nProvider>
-    </BrowserRouter>
+    <I18nProvider>
+      <AnalyticsListener />
+      <LanguageSwitcher />
+      <Outlet />
+    </I18nProvider>
   )
 }
+
+/**
+ * Slugs das landing pages SEO de serviço — usados para pré-renderização
+ * estática pelo vite-react-ssg. Mantenha em sincronia com:
+ *   - public/sitemap.xml
+ *   - src/data/serviceLandingPages.ts
+ *   - ssgOptions.includedRoutes em vite.config.ts
+ */
+const SERVICE_LANDING_SLUGS = [
+  'aniversario-infantil',
+  '15-anos',
+  'cha-de-bebe',
+  'cha-revelacao',
+  'aniversario-adulto',
+  'homenagem',
+  'casamento',
+  'bodas',
+] as const
+
+export const routes: RouteRecord[] = [
+  {
+    path: '/',
+    Component: RootLayout,
+    children: [
+      { index: true, Component: PortfolioPage },
+      { path: 'modelos', Component: ExamplesPage },
+      {
+        path: 'convite-digital/:serviceSlug',
+        Component: ServiceLandingPage,
+        getStaticPaths: () =>
+          SERVICE_LANDING_SLUGS.map((slug) => `convite-digital/${slug}`),
+      },
+      // Rotas dinâmicas/privadas — não pré-renderizadas (servidas via SPA fallback)
+      { path: 'c/:slug', Component: InviteRoute },
+      { path: 'i/:slug', Component: ShareInviteRedirectRoute },
+      { path: 'admin', Component: AdminRoute },
+      { path: 'owner', Component: OwnerPanel },
+      { path: 'owner/claim', Component: OwnerClaimPage },
+      { path: ':slug', Component: LegacyInviteRedirectRoute },
+    ],
+  },
+]

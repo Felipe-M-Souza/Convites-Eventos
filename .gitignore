@@ -32,3 +32,9 @@ dist-ssr
 .playwright-mcp/
 __pycache__/
 *.pyc
+
+# Test/screenshot outputs
+out/
+/aniversario-*.png
+/fernando-*.png
+supabase/.temp/

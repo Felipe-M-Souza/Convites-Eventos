@@ -5,23 +5,27 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite-react-ssg build",
+    "build:csr": "tsc && vite build",
     "preview": "vite preview",
     "remotion:studio": "remotion studio src/remotion/index.ts",
     "remotion:render:intro": "remotion render src/remotion/index.ts InstagramIntro out/instagram-intro.mp4",
     "remotion:render:reel": "remotion render src/remotion/index.ts InviteShowcaseReel out/invite-showcase-reel.mp4",
     "capture:invites": "node scripts/capture-invite-previews.mjs",
-    "capture:invites:live": "node scripts/capture-invite-previews.mjs --base-url=https://convitesdiversos.com.br"
+    "capture:invites:live": "node scripts/capture-invite-previews.mjs --base-url=https://convitesdiversos.com.br",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "patch-package": "^8.0.0",
     "playwright": "^1.59.1",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "vite-react-ssg": "^0.9.0"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.451",

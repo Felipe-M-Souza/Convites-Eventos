@@ -1,0 +1,13 @@
+diff --git a/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DsKK_1op.mjs b/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DsKK_1op.mjs
+index 0000000..1111111 100644
+--- a/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DsKK_1op.mjs
++++ b/node_modules/vite-react-ssg/dist/shared/vite-react-ssg.DsKK_1op.mjs
+@@ -457,7 +457,7 @@
+     const styleCollector = getStyleCollector ? await getStyleCollector() : null;
+     const helmetContext = {};
+     let routerContext = null;
+-    const { StaticRouterProvider, createStaticHandler, createStaticRouter } = await import('react-router-dom/server.js');
++    const { StaticRouterProvider, createStaticHandler, createStaticRouter } = await import('react-router-dom');
+     const { dataRoutes, query } = createStaticHandler([...routes], { basename: base });
+     const _context = await query(request);
+     if (_context instanceof Response)
