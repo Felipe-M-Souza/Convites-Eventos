@@ -15,6 +15,7 @@ export const inviteTranslatableFields = [
   'seoTitle',
   'seoDescription',
   'coupleNames',
+  'heroSubtitle',
   'verse',
   'weddingDateLabel',
   'message',
@@ -156,6 +157,8 @@ export const eventData = {
   seoDescription:
     'Convite digital de casamento com abertura animada, mapa, RSVP e trilha sonora. Um link completo para seus convidados.',
   coupleNames: 'Maria & João',
+  /** Texto opcional exibido logo abaixo do título principal na hero. */
+  heroSubtitle: '',
   verse:
     'O amor é paciente, o amor é bondoso. — 1 Coríntios 13:4',
   weddingDateLabel: '15 de novembro de 2026',

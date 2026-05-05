@@ -73,6 +73,7 @@ const translationFieldLabels: Record<InviteTranslatableField, string> = {
   seoTitle: 'SEO — title',
   seoDescription: 'SEO — meta description',
   coupleNames: 'Nomes exibidos',
+  heroSubtitle: 'Subtítulo abaixo do título',
   verse: 'Frase / versículo',
   weddingDateLabel: 'Data exibida',
   message: 'Mensagem aos convidados',
@@ -101,6 +102,34 @@ const longTranslationFields = new Set<InviteTranslatableField>([
   'footerContact',
 ])
 
+function buildAdminInvitePayload(form: EventData): EventData {
+  return {
+    ...structuredClone(form),
+    openingTextColor: form.openingTextColor.trim(),
+    openingTextOpacity:
+      typeof form.openingTextOpacity === 'number' && Number.isFinite(form.openingTextOpacity)
+        ? Math.min(1, Math.max(0, form.openingTextOpacity))
+        : null,
+    openingTextBold: Boolean(form.openingTextBold),
+    openingTextItalic: Boolean(form.openingTextItalic),
+    openingTextUnderline: Boolean(form.openingTextUnderline),
+  }
+}
+
+function getAvailableDuplicateSlug(inviteSlug: string, inviteRows: InviteRow[]) {
+  const existing = new Set(inviteRows.map((row) => row.slug))
+  const base = normalizeInviteSlug(`${inviteSlug}-copia`) || 'convite-copia'
+  let candidate = base
+  let suffix = 2
+
+  while (existing.has(candidate)) {
+    candidate = `${base}-${suffix}`
+    suffix += 1
+  }
+
+  return candidate
+}
+
 export function AdminEditor({ onSignOut }: Props) {
   const navigate = useNavigate()
   const { data, refresh, inviteId, inviteSlug, inviteNotFound, status } = useEventData()
@@ -111,6 +140,8 @@ export function AdminEditor({ onSignOut }: Props) {
   const [newSlugDraft, setNewSlugDraft] = useState('')
   const [newInviteTemplate, setNewInviteTemplate] = useState<InviteCreationTemplate>('wedding')
   const [creating, setCreating] = useState(false)
+  const [duplicateSlugDraft, setDuplicateSlugDraft] = useState('')
+  const [duplicating, setDuplicating] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [copiedShareLink, setCopiedShareLink] = useState(false)
   const [coverUploading, setCoverUploading] = useState(false)
@@ -168,6 +199,10 @@ export function AdminEditor({ onSignOut }: Props) {
   }, [inviteSlug, status])
 
   useEffect(() => {
+    setDuplicateSlugDraft(getAvailableDuplicateSlug(inviteSlug, inviteRows))
+  }, [inviteRows, inviteSlug])
+
+  useEffect(() => {
     loadTestimonials()
   }, [])
 
@@ -196,14 +231,7 @@ export function AdminEditor({ onSignOut }: Props) {
     if (!supabase || !inviteId) return
     setSaving(true)
     setMessage(null)
-    const payload: EventData = {
-      ...form,
-      openingTextColor: form.openingTextColor.trim(),
-      openingTextOpacity:
-        typeof form.openingTextOpacity === 'number' && Number.isFinite(form.openingTextOpacity)
-          ? Math.min(1, Math.max(0, form.openingTextOpacity))
-          : null,
-    }
+    const payload = buildAdminInvitePayload(form)
     const { error } = await supabase
       .from('invite_config')
       .update({ slug: inviteSlug, payload })
@@ -238,6 +266,33 @@ export function AdminEditor({ onSignOut }: Props) {
       return
     }
     setNewSlugDraft('')
+    navigate(`/admin?slug=${encodeURIComponent(slug)}`)
+  }
+
+  const handleDuplicateInvite = async () => {
+    if (!supabase || !inviteId) return
+    const slug = normalizeInviteSlug(duplicateSlugDraft)
+    if (!slug) {
+      setMessage({ type: 'err', text: 'Slug inválido: usa letras minúsculas, números e hífens (2–64 caracteres).' })
+      return
+    }
+    if (inviteRows.some((row) => row.slug === slug)) {
+      setMessage({ type: 'err', text: `Já existe um convite com o slug «${slug}». Escolha outro slug para a cópia.` })
+      return
+    }
+
+    setDuplicating(true)
+    setMessage(null)
+    const id = crypto.randomUUID()
+    const payload = buildAdminInvitePayload(form)
+    const { error } = await supabase.from('invite_config').insert({ id, slug, payload })
+    setDuplicating(false)
+    if (error) {
+      setMessage({ type: 'err', text: error.message })
+      return
+    }
+
+    setDuplicateSlugDraft('')
     navigate(`/admin?slug=${encodeURIComponent(slug)}`)
   }
 
@@ -613,6 +668,31 @@ export function AdminEditor({ onSignOut }: Props) {
               </div>
             </div>
           </div>
+          <div className="mt-4 grid gap-3 border-t border-stone-100 pt-4 sm:grid-cols-[1fr_auto] sm:items-end">
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-stone-500">
+                Slug da cópia do convite atual
+              </span>
+              <input
+                className={inputClass}
+                placeholder="ex.: fernando-correia-vip"
+                value={duplicateSlugDraft}
+                onChange={(e) => setDuplicateSlugDraft(e.target.value)}
+              />
+              <span className="mt-1 block text-xs text-stone-500">
+                Duplica o convite aberto no admin com os dados atuais do formulário. Depois é só editar a informação
+                exclusiva na nova cópia.
+              </span>
+            </label>
+            <button
+              type="button"
+              disabled={duplicating || !inviteId}
+              onClick={() => void handleDuplicateInvite()}
+              className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50 disabled:opacity-50"
+            >
+              {duplicating ? 'A duplicar…' : 'Duplicar convite'}
+            </button>
+          </div>
           <div className="mt-4 flex flex-col gap-2 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-stone-500">
               Apagar remove o convite da base e tenta limpar as fotos deste slug no Storage. Só disponível se existirem
@@ -939,6 +1019,14 @@ export function AdminEditor({ onSignOut }: Props) {
           <legend className="px-1 font-display text-lg text-stone-800">Casal e cerimónia</legend>
           <Field label="Nomes do casal">
             <input className={inputClass} value={form.coupleNames} onChange={(e) => set('coupleNames')(e.target.value)} />
+          </Field>
+          <Field label="Texto logo abaixo do título principal">
+            <textarea
+              className={`${inputClass} min-h-[72px]`}
+              value={form.heroSubtitle}
+              onChange={(e) => set('heroSubtitle')(e.target.value)}
+              placeholder="Opcional. Ex.: texto exclusivo para este convidado"
+            />
           </Field>
           <Field label="Versículo / frase">
             <textarea className={`${inputClass} min-h-[72px]`} value={form.verse} onChange={(e) => set('verse')(e.target.value)} />

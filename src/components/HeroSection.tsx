@@ -39,6 +39,11 @@ export function HeroSection({ data, onContinue }: Props) {
         <h1 className="font-display text-4xl font-semibold tracking-wide md:text-5xl">
           {data.coupleNames}
         </h1>
+        {data.heroSubtitle.trim() ? (
+          <p className="max-w-md whitespace-pre-wrap text-sm font-light leading-7 text-white/85 md:text-base">
+            {data.heroSubtitle}
+          </p>
+        ) : null}
         <p className="text-sm font-light uppercase tracking-[0.35em] text-white/80">
           {data.weddingDateLabel}
         </p>

@@ -719,6 +719,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const cardDur = reduce ? 0.22 : 0.72
   const sealMark = resolveSealMark(data)
   const inProgress = phase !== 'idle'
+  const openingFrameSubtitle = data.heroSubtitle.trim()
   const customOpeningTextColor = data.openingTextColor?.trim()
   const customOpeningTextOpacity =
     typeof data.openingTextOpacity === 'number' && Number.isFinite(data.openingTextOpacity)
@@ -756,6 +757,13 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
       }}
     >
       <FloralBackdrop frameSrc={frameSrc} backdropColor={backdropColor} />
+      {openingFrameSubtitle ? (
+        <div className="pointer-events-none absolute inset-x-0 top-[clamp(6.1rem,15vh,8.5rem)] z-[12] flex justify-center px-8 text-center">
+          <p className="max-w-[min(82vw,520px)] whitespace-pre-wrap font-display text-sm leading-snug text-emerald-950/85 [text-shadow:0_1px_10px_rgba(255,255,255,0.78)] md:text-base">
+            {openingFrameSubtitle}
+          </p>
+        </div>
+      ) : null}
 
       <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center justify-center px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:py-5 md:max-w-none md:px-5 md:py-10">
         <div
@@ -794,6 +802,11 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
               <p className="mt-2 font-display text-xl font-semibold text-stone-800">
                 {data.coupleNames}
               </p>
+              {data.heroSubtitle.trim() ? (
+                <p className="mt-2 whitespace-pre-wrap text-[11px] leading-relaxed text-stone-600">
+                  {data.heroSubtitle}
+                </p>
+              ) : null}
               <p className="mt-3 text-[11px] leading-relaxed text-stone-500">
                 {data.weddingDateLabel}
                 <br />
