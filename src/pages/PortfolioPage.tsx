@@ -2,10 +2,11 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { applySeoMeta } from '../lib/seoMeta'
 import { applyStructuredData, clearStructuredData } from '../lib/structuredData'
-import { trackCtaClick, trackEvent, trackGoogleAdsConversion } from '../lib/analytics'
+import { trackCtaClick, trackEvent, trackGoogleAdsConversion, trackWhatsappLead } from '../lib/analytics'
 import { useI18n } from '../i18n/useI18n'
 import { getPortfolioContent } from '../i18n/portfolioContent'
 import { supabase } from '../lib/supabase'
+import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 
 const PORTFOLIO_CONTACT_EMAIL = 'contato@convitesdiversos.com.br'
 /** (11) 96581-4224 — wa.me sem espaços ou símbolos */
@@ -557,6 +558,7 @@ export function PortfolioPage() {
               onClick={() => {
                 trackCtaClick('portfolio_contact', 'whatsapp_orcamento', portfolioContactWhatsHref)
                 trackGoogleAdsConversion()
+                trackWhatsappLead('portfolio_contact_section', { destination: portfolioContactWhatsHref })
               }}
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-7 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
             >
@@ -620,6 +622,10 @@ export function PortfolioPage() {
           </div>
         </div>
       </section>
+      <FloatingWhatsappButton
+        message={content.contactWhatsappMessage}
+        source="portfolio_floating"
+      />
     </div>
   )
 }

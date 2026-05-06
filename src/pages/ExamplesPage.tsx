@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { demoInvites } from '../data/demoInvites'
 import { trackCtaClick } from '../lib/analytics'
 import { useI18n } from '../i18n/useI18n'
+import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 
 export function ExamplesPage() {
   const { t } = useI18n()
@@ -53,6 +54,10 @@ export function ExamplesPage() {
           ))}
         </div>
       </div>
+      <FloatingWhatsappButton
+        message="Olá! Vi a página de modelos de convites e gostaria de saber mais sobre os planos."
+        source="modelos_floating"
+      />
     </div>
   )
 }
