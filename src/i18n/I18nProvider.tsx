@@ -14,7 +14,18 @@ function interpolate(text: string, options: TranslateOptions = {}) {
 }
 
 export function I18nProvider({ children }: Props) {
-  const [locale, setLocaleState] = useState<Locale>(() => detectInitialLocale())
+  // SSG: locale inicial determinístico (igual no servidor e na primeira renderização do cliente)
+  // para evitar hydration mismatch. A detecção real (querystring ?lang, localStorage, navigator)
+  // só acontece em useEffect, após a hidratação.
+  const [locale, setLocaleState] = useState<Locale>('pt-BR')
+
+  useEffect(() => {
+    const detected = detectInitialLocale()
+    if (detected !== locale) {
+      setLocaleState(detected)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     document.documentElement.lang = locale
