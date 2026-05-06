@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite-react-ssg build",
-    "build:csr": "tsc && vite build",
+    "build": "tsc && vite build",
+    "build:ssg": "tsc && vite-react-ssg build",
     "preview": "vite preview",
     "remotion:studio": "remotion studio src/remotion/index.ts",
     "remotion:render:intro": "remotion render src/remotion/index.ts InstagramIntro out/instagram-intro.mp4",

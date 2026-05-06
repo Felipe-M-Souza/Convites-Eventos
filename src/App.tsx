@@ -1,6 +1,12 @@
 import { useEffect } from 'react'
-import { Navigate, Outlet, useLocation, useSearchParams, useParams } from 'react-router-dom'
-import type { RouteRecord } from 'vite-react-ssg'
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+  useSearchParams,
+  useParams,
+  type RouteObject,
+} from 'react-router-dom'
 import { EventDataProvider } from './contexts/EventDataProvider'
 import { Home } from './pages/Home'
 import { ExamplesPage } from './pages/ExamplesPage'
@@ -74,25 +80,7 @@ function RootLayout() {
   )
 }
 
-/**
- * Slugs das landing pages SEO de serviço — usados para pré-renderização
- * estática pelo vite-react-ssg. Mantenha em sincronia com:
- *   - public/sitemap.xml
- *   - src/data/serviceLandingPages.ts
- *   - ssgOptions.includedRoutes em vite.config.ts
- */
-const SERVICE_LANDING_SLUGS = [
-  'aniversario-infantil',
-  '15-anos',
-  'cha-de-bebe',
-  'cha-revelacao',
-  'aniversario-adulto',
-  'homenagem',
-  'casamento',
-  'bodas',
-] as const
-
-export const routes: RouteRecord[] = [
+export const routes: RouteObject[] = [
   {
     path: '/',
     Component: RootLayout,
@@ -102,8 +90,6 @@ export const routes: RouteRecord[] = [
       {
         path: 'convite-digital/:serviceSlug',
         Component: ServiceLandingPage,
-        getStaticPaths: () =>
-          SERVICE_LANDING_SLUGS.map((slug) => `convite-digital/${slug}`),
       },
       // Rotas dinâmicas/privadas — não pré-renderizadas (servidas via SPA fallback)
       { path: 'c/:slug', Component: InviteRoute },
