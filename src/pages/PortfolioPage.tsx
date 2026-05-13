@@ -557,7 +557,6 @@ export function PortfolioPage() {
               rel="noreferrer"
               onClick={() => {
                 trackCtaClick('portfolio_contact', 'whatsapp_orcamento', portfolioContactWhatsHref)
-                trackGoogleAdsConversion()
                 trackWhatsappLead('portfolio_contact_section', { destination: portfolioContactWhatsHref })
               }}
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-7 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"

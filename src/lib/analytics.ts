@@ -178,6 +178,7 @@ export function trackWhatsappLead(source: string, extra: AnalyticsParams = {}) {
       ...extra,
     }),
   )
+  trackGoogleAdsConversion()
 }
 
 export function getCurrentPagePath() {
