@@ -7,28 +7,18 @@
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <meta name="author" content="Convites Diversos" />
 
-    <title>Convites Diversos | Convites Digitais Personalizados para Casamento, Aniversário e Eventos</title>
-    <meta
-      name="description"
-      content="Crie convites digitais animados e interativos para casamento, aniversário, chá de bebê, 15 anos, bodas, chá revelação e eventos corporativos. Envio rápido pelo WhatsApp com confirmação de presença."
-    />
+    <!--
+      title / description / canonical / og:title / og:description / og:url / twitter:title / twitter:description
+      são definidos por página via <Head> (vite-react-ssg) nas rotas pré-renderizadas,
+      e via applySeoMeta no cliente nas rotas dinâmicas (SPA). Não declaramos <title>
+      estático aqui para evitar duplicação; o vite-react-ssg injeta o <title> de cada página.
+    -->
 
-    <link rel="canonical" href="https://convitesdiversos.com.br/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <!-- Open Graph (tags estáveis compartilhadas) -->
     <meta property="og:site_name" content="Convites Diversos" />
     <meta property="og:locale" content="pt_BR" />
-    <meta property="og:url" content="https://convitesdiversos.com.br/" />
-    <meta
-      property="og:title"
-      content="Convites Diversos | Convites Digitais Personalizados"
-    />
-    <meta
-      property="og:description"
-      content="Convites digitais animados e interativos para casamento, aniversário, chá de bebê, 15 anos, bodas e eventos corporativos. Envio pelo WhatsApp com RSVP."
-    />
     <meta
       property="og:image"
       content="https://convitesdiversos.com.br/images/logo-convitesdiversos.png"
@@ -38,16 +28,7 @@
       content="Convites Diversos — convites digitais personalizados"
     />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Convites Diversos | Convites Digitais Personalizados"
-    />
-    <meta
-      name="twitter:description"
-      content="Convites digitais animados para casamento, aniversário, chá de bebê, 15 anos, bodas e eventos. Envio pelo WhatsApp com RSVP."
-    />
+    <!-- Twitter Card (imagem compartilhada) -->
     <meta
       name="twitter:image"
       content="https://convitesdiversos.com.br/images/logo-convitesdiversos.png"

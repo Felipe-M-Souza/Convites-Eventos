@@ -36,7 +36,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Build website
-        run: npm run build
+        run: npm run build:ssg
 
       - name: Write preview env file
         run: |

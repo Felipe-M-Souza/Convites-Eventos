@@ -1,14 +1,40 @@
 import { Link } from 'react-router-dom'
+import { Head } from 'vite-react-ssg'
 import { demoInvites } from '../data/demoInvites'
 import { trackCtaClick } from '../lib/analytics'
 import { useI18n } from '../i18n/useI18n'
 import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 
 export function ExamplesPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+
+  const seoTitle =
+    locale === 'en'
+      ? 'Digital Invitation Templates | Convites Diversos'
+      : locale === 'es'
+        ? 'Modelos de Invitaciones Digitales | Convites Diversos'
+        : 'Modelos de Convites Digitais | Convites Diversos'
+  const seoDescription =
+    locale === 'en'
+      ? 'Browse animated digital invitation templates for weddings, birthdays, baby showers and more. Customizable and sent via WhatsApp.'
+      : locale === 'es'
+        ? 'Explora modelos de invitaciones digitales animadas para bodas, cumpleaños, baby shower y más. Personalizables y enviadas por WhatsApp.'
+        : 'Veja modelos de convites digitais animados para casamento, aniversário, chá de bebê e mais. Personalizáveis e enviados pelo WhatsApp.'
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-cream)] px-6 py-16 text-[color:var(--color-ink)]">
+      <Head>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <link rel="canonical" href="https://convitesdiversos.com.br/modelos" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content="https://convitesdiversos.com.br/modelos" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+      </Head>
       <div className="mx-auto max-w-6xl">
         <div className="max-w-3xl">
           <Link

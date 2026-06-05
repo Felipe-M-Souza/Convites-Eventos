@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import {
   Navigate,
   Outlet,
@@ -8,24 +8,34 @@ import {
   type RouteObject,
 } from 'react-router-dom'
 import { EventDataProvider } from './contexts/EventDataProvider'
-import { Home } from './pages/Home'
 import { ExamplesPage } from './pages/ExamplesPage'
 import { PortfolioPage } from './pages/PortfolioPage'
-import { AdminPanel } from './pages/AdminPanel'
-import { OwnerPanel } from './pages/OwnerPanel'
-import { OwnerClaimPage } from './pages/OwnerClaimPage'
 import { ServiceLandingPage } from './pages/ServiceLandingPage'
 import { serviceLandingPagesBySlug } from './data/serviceLandingPages'
 import { initAnalytics, trackPageView } from './lib/analytics'
 import { I18nProvider } from './i18n/I18nProvider'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 
+// Páginas pesadas e dinâmicas (não pré-renderizadas no SSG) carregadas sob demanda.
+// Assim, quem chega pela landing de marketing não baixa o código do convite/admin/owner,
+// deixando a primeira página mais leve e rápida (melhor Core Web Vitals e Quality Score).
+const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })))
+const AdminPanel = lazy(() => import('./pages/AdminPanel').then((m) => ({ default: m.AdminPanel })))
+const OwnerPanel = lazy(() => import('./pages/OwnerPanel').then((m) => ({ default: m.OwnerPanel })))
+const OwnerClaimPage = lazy(() => import('./pages/OwnerClaimPage').then((m) => ({ default: m.OwnerClaimPage })))
+
+function RouteFallback() {
+  return <div className="min-h-dvh bg-[color:var(--color-cream)]" aria-hidden />
+}
+
 function InviteRoute() {
   const { slug } = useParams()
   if (!slug) return <Navigate to="/" replace />
   return (
     <EventDataProvider inviteSlug={slug}>
-      <Home />
+      <Suspense fallback={<RouteFallback />}>
+        <Home />
+      </Suspense>
     </EventDataProvider>
   )
 }
@@ -35,7 +45,9 @@ function AdminRoute() {
   const slug = (searchParams.get('slug') ?? 'default').trim() || 'default'
   return (
     <EventDataProvider inviteSlug={slug}>
-      <AdminPanel />
+      <Suspense fallback={<RouteFallback />}>
+        <AdminPanel />
+      </Suspense>
     </EventDataProvider>
   )
 }
@@ -95,8 +107,22 @@ export const routes: RouteObject[] = [
       { path: 'c/:slug', Component: InviteRoute },
       { path: 'i/:slug', Component: ShareInviteRedirectRoute },
       { path: 'admin', Component: AdminRoute },
-      { path: 'owner', Component: OwnerPanel },
-      { path: 'owner/claim', Component: OwnerClaimPage },
+      {
+        path: 'owner',
+        Component: () => (
+          <Suspense fallback={<RouteFallback />}>
+            <OwnerPanel />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'owner/claim',
+        Component: () => (
+          <Suspense fallback={<RouteFallback />}>
+            <OwnerClaimPage />
+          </Suspense>
+        ),
+      },
       { path: ':slug', Component: LegacyInviteRedirectRoute },
     ],
   },

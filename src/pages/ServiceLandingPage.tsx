@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { Head } from 'vite-react-ssg'
 import { applySeoMeta } from '../lib/seoMeta'
 import { applyStructuredData, clearStructuredData } from '../lib/structuredData'
 import { trackCtaClick, trackWhatsappLead } from '../lib/analytics'
 import { useI18n } from '../i18n/useI18n'
 import { getLocalizedServiceLandingPage } from '../i18n/servicePages'
 import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
+import { PromoPopup } from '../components/PromoPopup'
 import { buildLeadMessageForOccasion, buildLeadWhatsappHref } from '../lib/leadContact'
 
 export function ServiceLandingPage() {
@@ -68,6 +70,18 @@ export function ServiceLandingPage() {
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-cream)] px-6 py-14 text-[color:var(--color-ink)]">
+      <Head>
+        <title>{page.title}</title>
+        <meta name="description" content={page.description} />
+        <link rel="canonical" href={`https://convitesdiversos.com.br/convite-digital/${page.slug}`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={page.title} />
+        <meta property="og:description" content={page.description} />
+        <meta property="og:url" content={`https://convitesdiversos.com.br/convite-digital/${page.slug}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={page.title} />
+        <meta name="twitter:description" content={page.description} />
+      </Head>
       <div className="mx-auto max-w-4xl">
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
           {t('service.eyebrow')}
@@ -164,6 +178,7 @@ export function ServiceLandingPage() {
         </section>
       </div>
       <FloatingWhatsappButton message={leadMessage} source={`${leadSource}_floating`} />
+      <PromoPopup source={`service_${page.slug}`} />
     </div>
   )
 }
