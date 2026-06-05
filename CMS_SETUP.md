@@ -82,6 +82,7 @@ Notas:
 - `VITE_GA_MEASUREMENT_ID` é opcional; pode ficar vazio se não estiver a usar GA4.
 - `VITE_GOOGLE_ADS_ID` é opcional; use o ID base da Google tag do Ads. Ex.: `AW-17639334282`.
 - `VITE_GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO` é opcional; preencha quando criar a ação de conversão de contato/orçamento no Google Ads.
+- Para configurar Google Ads + GA4 (conversões, metas, campanha), consulte **[GOOGLE_ADS_SETUP.md](./GOOGLE_ADS_SETUP.md)**.
 - O deploy automático está configurado sem limpeza agressiva do diretório remoto (`dangerous-clean-slate: false`), para não apagar ficheiros do servidor fora do `dist/`.
 - O workflow também gera `dist/.env` no deploy para que o `preview.php` da prévia de WhatsApp consiga ler `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no servidor.
 

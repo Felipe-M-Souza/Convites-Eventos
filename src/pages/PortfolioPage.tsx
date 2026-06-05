@@ -2,11 +2,12 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { applySeoMeta } from '../lib/seoMeta'
 import { applyStructuredData, clearStructuredData } from '../lib/structuredData'
-import { trackCtaClick, trackEvent, trackGoogleAdsConversion, trackWhatsappLead } from '../lib/analytics'
+import { trackCtaClick, trackEvent, trackLeadContact, trackWhatsappLead } from '../lib/analytics'
 import { useI18n } from '../i18n/useI18n'
 import { getPortfolioContent } from '../i18n/portfolioContent'
 import { supabase } from '../lib/supabase'
 import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
+import { PromoPopup } from '../components/PromoPopup'
 
 const PORTFOLIO_CONTACT_EMAIL = 'contato@convitesdiversos.com.br'
 /** (11) 96581-4224 — wa.me sem espaços ou símbolos */
@@ -21,10 +22,14 @@ type ApprovedPortfolioTestimonial = {
 }
 
 type PlanCard = {
+  key: 'classico' | 'premium'
   name: string
   price: string
+  promoPrice: string
   description: string
   items: string[]
+  whatsappMessage: string
+  highlight?: boolean
 }
 
 function InstagramIcon() {
@@ -89,57 +94,78 @@ export function PortfolioPage() {
     locale === 'en'
       ? [
           {
+            key: 'classico',
             name: 'Classic',
             price: 'R$ 80.00',
+            promoPrice: 'R$ 50.00',
             description: 'A practical and elegant invitation with animated presentation and soundtrack for your event.',
             items: ['One digital invitation page', 'Animated opening and soundtrack', 'Map and WhatsApp button'],
+            whatsappMessage: 'Hi! I saw the June offer on Convites Diversos and I want the Classic plan for R$ 50 (was R$ 80). Can you help me?',
           },
           {
+            key: 'premium',
             name: 'Premium',
             price: 'R$ 130.00',
+            promoPrice: 'R$ 100.00',
+            highlight: true,
             description: 'Complete experience with guest interaction and host control through a personal dashboard.',
             items: [
               'Everything in Classic',
               'Guest photo and video uploads',
               "Host dashboard to approve, download and turn uploads into keepsakes",
             ],
+            whatsappMessage: 'Hi! I saw the June offer on Convites Diversos and I want the Premium plan for R$ 100 (was R$ 130). Can you help me?',
           },
         ]
       : locale === 'es'
         ? [
             {
+              key: 'classico',
               name: 'Clásico',
               price: 'R$ 80,00',
+              promoPrice: 'R$ 50,00',
               description: 'Una invitación práctica y elegante con apertura animada y música para tu evento.',
               items: ['1 página de invitación digital', 'Apertura animada y música', 'Mapa y botón de WhatsApp'],
+              whatsappMessage: '¡Hola! Vi la oferta de junio en Convites Diversos y quiero el plan Clásico por R$ 50 (antes R$ 80). ¿Me ayudas?',
             },
             {
+              key: 'premium',
               name: 'Premium',
               price: 'R$ 130,00',
+              promoPrice: 'R$ 100,00',
+              highlight: true,
               description: 'Experiencia completa con interacción de invitados y control desde un panel personal del anfitrión.',
               items: [
                 'Todo del Clásico',
                 'Subida de fotos y videos de invitados',
                 'Panel del anfitrión para aprobar, descargar y crear recuerdos con los envíos',
               ],
+              whatsappMessage: '¡Hola! Vi la oferta de junio en Convites Diversos y quiero el plan Premium por R$ 100 (antes R$ 130). ¿Me ayudas?',
             },
           ]
         : [
             {
+              key: 'classico',
               name: 'Clássico',
               price: 'R$ 80,00',
+              promoPrice: 'R$ 50,00',
               description: 'Convite prático e elegante com abertura animada e música para o seu evento.',
               items: ['1 página de convite digital', 'Abertura animada e trilha sonora', 'Mapa e botão de WhatsApp'],
+              whatsappMessage: 'Olá! Vi a promoção de junho no Convites Diversos e quero o plano Clássico por R$ 50 (de R$ 80). Pode me ajudar?',
             },
             {
+              key: 'premium',
               name: 'Premium',
               price: 'R$ 130,00',
+              promoPrice: 'R$ 100,00',
+              highlight: true,
               description: 'Experiência completa com interação dos convidados e controle em painel pessoal do anfitrião.',
               items: [
                 'Tudo do Clássico',
                 'Upload de fotos e vídeos dos convidados',
                 'Painel do anfitrião para aprovar, baixar e criar lembranças com os envios',
               ],
+              whatsappMessage: 'Olá! Vi a promoção de junho no Convites Diversos e quero o plano Premium por R$ 100 (de R$ 130). Pode me ajudar?',
             },
           ]
 
@@ -515,18 +541,61 @@ export function PortfolioPage() {
           </div>
 
           <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {plans.map((plan) => (
-              <article key={plan.name} className="rounded-[1.6rem] bg-white p-6 shadow-sm ring-1 ring-stone-200/80">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink-muted)]">{plan.name}</p>
-                <p className="mt-3 font-display text-4xl font-semibold text-[color:var(--color-ink)]">{plan.price}</p>
-                <p className="mt-4 text-sm leading-7 text-[color:var(--color-ink-muted)]">{plan.description}</p>
-                <ul className="mt-5 space-y-2 text-sm text-[color:var(--color-ink)]">
-                  {plan.items.map((item) => (
-                    <li key={item}>- {item}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+            {plans.map((plan) => {
+              const planWhatsHref = `https://wa.me/${PORTFOLIO_CONTACT_WHATSAPP_E164}?text=${encodeURIComponent(plan.whatsappMessage)}`
+              const planCtaLabel =
+                locale === 'en'
+                  ? 'Get this price on WhatsApp'
+                  : locale === 'es'
+                    ? 'Quiero este precio por WhatsApp'
+                    : 'Quero este preço no WhatsApp'
+              const mostChosenLabel =
+                locale === 'en' ? 'Most chosen' : locale === 'es' ? 'Más elegido' : 'Mais escolhido'
+              const fromLabel = locale === 'en' ? 'was' : locale === 'es' ? 'antes' : 'de'
+              return (
+                <article
+                  key={plan.key}
+                  className={`flex flex-col rounded-[1.6rem] bg-white p-6 shadow-sm ring-1 ${
+                    plan.highlight ? 'ring-2 ring-[color:var(--color-gold)]' : 'ring-stone-200/80'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink-muted)]">{plan.name}</p>
+                    {plan.highlight ? (
+                      <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2.5 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
+                        {mostChosenLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-3 flex items-baseline gap-2">
+                    <span className="text-base font-medium text-[color:var(--color-ink-muted)] line-through">
+                      {fromLabel} {plan.price}
+                    </span>
+                    <span className="font-display text-4xl font-semibold text-[color:var(--color-ink)]">{plan.promoPrice}</span>
+                  </p>
+                  <p className="mt-4 text-sm leading-7 text-[color:var(--color-ink-muted)]">{plan.description}</p>
+                  <ul className="mt-5 space-y-2 text-sm text-[color:var(--color-ink)]">
+                    {plan.items.map((item) => (
+                      <li key={item}>- {item}</li>
+                    ))}
+                  </ul>
+                  <a
+                    href={planWhatsHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() =>
+                      trackWhatsappLead(`portfolio_plan_${plan.key}`, { destination: planWhatsHref, plan: plan.key })
+                    }
+                    className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1ebe57]"
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.967-.94 1.164-.173.198-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                    </svg>
+                    {planCtaLabel}
+                  </a>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -545,7 +614,9 @@ export function PortfolioPage() {
               href={portfolioContactMailtoHref}
               onClick={() => {
                 trackCtaClick('portfolio_contact', 'email_orcamento', portfolioContactMailtoHref)
-                trackGoogleAdsConversion()
+                trackLeadContact('portfolio_contact_section', 'email', {
+                  destination: portfolioContactMailtoHref,
+                })
               }}
               className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-7 py-3 text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-stone-50"
             >
@@ -625,6 +696,7 @@ export function PortfolioPage() {
         message={content.contactWhatsappMessage}
         source="portfolio_floating"
       />
+      <PromoPopup source="portfolio" />
     </div>
   )
 }

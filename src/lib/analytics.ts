@@ -158,27 +158,38 @@ export function trackCtaClick(location: string, label: string, destination: stri
   })
 }
 
+export type LeadContactMethod = 'whatsapp' | 'email'
+
 /**
- * Dispara o evento de conversão `clique_whatsapp` (configurado como Key Event no GA4
- * e importado como conversão no Google Ads). Use em todos os botões de WhatsApp
- * voltados a captação de lead (NÃO em RSVP de convidados).
- *
- * O evento é enviado independente de `VITE_GA_MEASUREMENT_ID` estar configurado:
- * o gtag global aceita a chamada desde que algum tag (GA4 ou Google Ads) esteja ativo.
+ * Lead comercial unificado para importação GA4 → Google Ads.
+ * Dispara `generate_lead` (padrão GA4) em email e WhatsApp; no WhatsApp também envia
+ * `clique_whatsapp`. Por fim, dispara o evento Ads configurado em env (ex.: conversion_event_contact).
  */
-export function trackWhatsappLead(source: string, extra: AnalyticsParams = {}) {
+export function trackLeadContact(source: string, method: LeadContactMethod, extra: AnalyticsParams = {}) {
   initAnalytics()
   if (!window.gtag) return
-  window.gtag(
-    'event',
-    'clique_whatsapp',
-    sanitizeParams({
-      source,
-      page_path: typeof window !== 'undefined' ? window.location.pathname : undefined,
-      ...extra,
-    }),
-  )
+
+  const common = sanitizeParams({
+    source,
+    lead_method: method,
+    page_path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+    ...extra,
+  })
+
+  window.gtag('event', 'generate_lead', { ...common, currency: 'BRL' })
+
+  if (method === 'whatsapp') {
+    window.gtag('event', 'clique_whatsapp', common)
+  }
+
   trackGoogleAdsConversion()
+}
+
+/**
+ * Dispara eventos de lead para botões de WhatsApp comerciais (NÃO em RSVP de convidados).
+ */
+export function trackWhatsappLead(source: string, extra: AnalyticsParams = {}) {
+  trackLeadContact(source, 'whatsapp', extra)
 }
 
 export function getCurrentPagePath() {

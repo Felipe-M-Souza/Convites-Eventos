@@ -6,6 +6,7 @@ import { trackCtaClick, trackWhatsappLead } from '../lib/analytics'
 import { useI18n } from '../i18n/useI18n'
 import { getLocalizedServiceLandingPage } from '../i18n/servicePages'
 import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
+import { PromoPopup } from '../components/PromoPopup'
 import { buildLeadMessageForOccasion, buildLeadWhatsappHref } from '../lib/leadContact'
 
 export function ServiceLandingPage() {
@@ -164,6 +165,7 @@ export function ServiceLandingPage() {
         </section>
       </div>
       <FloatingWhatsappButton message={leadMessage} source={`${leadSource}_floating`} />
+      <PromoPopup source={`service_${page.slug}`} />
     </div>
   )
 }
