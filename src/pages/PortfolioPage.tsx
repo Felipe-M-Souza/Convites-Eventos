@@ -51,6 +51,11 @@ function InstagramIcon() {
   )
 }
 
+function withLocaleParam(path: string, locale: string) {
+  const separator = path.includes('?') ? '&' : '?'
+  return `${path}${separator}lang=${encodeURIComponent(locale)}`
+}
+
 export function PortfolioPage() {
   const { locale, t } = useI18n()
   const content = getPortfolioContent(locale)
@@ -173,6 +178,10 @@ export function PortfolioPage() {
     trackCtaClick('portfolio_hero', 'link_secao_planos', '#planos')
     document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+
+  const demoHomeHref = withLocaleParam('/c/default?utm_source=portfolio&utm_medium=cta&utm_campaign=demo_home', locale)
+  const modelsHomeHref = withLocaleParam('/modelos?utm_source=portfolio&utm_medium=cta&utm_campaign=modelos_home', locale)
+  const demoFooterHref = withLocaleParam('/c/default?utm_source=portfolio&utm_medium=cta&utm_campaign=demo_footer', locale)
 
   useEffect(() => {
     const siteUrl = window.location.origin
@@ -302,15 +311,15 @@ export function PortfolioPage() {
             </p>
             <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
               <Link
-                to="/c/default?utm_source=portfolio&utm_medium=cta&utm_campaign=demo_home"
-                onClick={() => trackCtaClick('portfolio_hero', 'ver_convite_demonstrativo', '/c/default')}
+                to={demoHomeHref}
+                onClick={() => trackCtaClick('portfolio_hero', 'ver_convite_demonstrativo', demoHomeHref)}
                 className="inline-flex rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
               >
                 {t('portfolio.ctaDemo')}
               </Link>
               <Link
-                to="/modelos?utm_source=portfolio&utm_medium=cta&utm_campaign=modelos_home"
-                onClick={() => trackCtaClick('portfolio_hero', 'ver_outros_modelos', '/modelos')}
+                to={modelsHomeHref}
+                onClick={() => trackCtaClick('portfolio_hero', 'ver_outros_modelos', modelsHomeHref)}
                 className="inline-flex rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
               >
                 {t('portfolio.ctaModels')}
@@ -521,8 +530,8 @@ export function PortfolioPage() {
             {content.seoOccasions.map((item) => (
               <Link
                 key={item.href}
-                to={item.href}
-                onClick={() => trackCtaClick('portfolio_occasions', item.label, item.href)}
+                to={withLocaleParam(item.href, locale)}
+                onClick={() => trackCtaClick('portfolio_occasions', item.label, withLocaleParam(item.href, locale))}
                 className="rounded-full border border-stone-300 bg-white px-5 py-2.5 text-sm font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-50"
               >
                 {item.label}
@@ -683,8 +692,8 @@ export function PortfolioPage() {
           </p>
           <div className="mt-8 flex justify-center">
             <Link
-              to="/c/default?utm_source=portfolio&utm_medium=cta&utm_campaign=demo_footer"
-              onClick={() => trackCtaClick('portfolio_footer', 'abrir_demonstracao', '/c/default')}
+              to={demoFooterHref}
+              onClick={() => trackCtaClick('portfolio_footer', 'abrir_demonstracao', demoFooterHref)}
               className="inline-flex rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
             >
               {t('portfolio.demoButton')}

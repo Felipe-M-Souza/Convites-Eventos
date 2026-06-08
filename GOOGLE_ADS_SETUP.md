@@ -93,11 +93,102 @@ Orçamento atual: **R$ 50/dia** — adequado para teste; verifique se palavras-c
 
 ## Passo 6 — Checklist da campanha
 
-- [ ] URL final: `https://convitesdiversos.com.br` ou landing `/convite-digital/casamento`
+- [ ] URL final: use a landing específica da ocasião com `?lang=pt-BR` (ex.: `https://convitesdiversos.com.br/convite-digital/casamento?lang=pt-BR`)
 - [ ] Rede: **Pesquisa** ativa (Display/Parceiros só se intencional)
 - [ ] Local: **Brasil**
 - [ ] Anúncios: status **Aprovado**
 - [ ] Palavras-chave: sem status "Poucas impressões" em todas
+
+---
+
+## Estrutura recomendada de campanhas e termos
+
+Use grupos separados por intenção para que anúncio, palavra-chave e URL final falem da mesma ocasião. Isso tende a melhorar relevância e taxa de contato no WhatsApp.
+
+### Grupo: Casamento
+
+URL final recomendada: `https://convitesdiversos.com.br/convite-digital/casamento?lang=pt-BR`
+
+- `convite digital casamento`
+- `convite virtual casamento`
+- `convite online casamento`
+- `convite de casamento digital`
+- `convite casamento whatsapp`
+- `convite digital casamento com música`
+- `convite digital casamento com confirmação de presença`
+- `convite interativo casamento`
+- `convite de casamento por link`
+- `convite casamento personalizado digital`
+
+### Grupo: Aniversário infantil
+
+URL final recomendada: `https://convitesdiversos.com.br/convite-digital/aniversario-infantil?lang=pt-BR`
+
+- `convite digital aniversário infantil`
+- `convite virtual aniversário infantil`
+- `convite aniversário infantil whatsapp`
+- `convite digital infantil personalizado`
+- `convite animado aniversário infantil`
+- `convite de aniversário por link`
+- `convite digital tema infantil`
+
+### Grupo: 15 anos
+
+URL final recomendada: `https://convitesdiversos.com.br/convite-digital/15-anos?lang=pt-BR`
+
+- `convite digital 15 anos`
+- `convite virtual 15 anos`
+- `convite debutante digital`
+- `convite 15 anos whatsapp`
+- `convite 15 anos personalizado`
+- `convite digital debutante com música`
+
+### Grupo: Chá de bebê e chá revelação
+
+URLs finais recomendadas:
+
+- `https://convitesdiversos.com.br/convite-digital/cha-de-bebe?lang=pt-BR`
+- `https://convitesdiversos.com.br/convite-digital/cha-revelacao?lang=pt-BR`
+
+Termos:
+
+- `convite digital chá de bebê`
+- `convite virtual chá de bebê`
+- `convite chá de bebê whatsapp`
+- `convite digital chá revelação`
+- `convite virtual chá revelação`
+- `convite chá revelação personalizado`
+
+### Grupo: Bodas
+
+URL final recomendada: `https://convitesdiversos.com.br/convite-digital/bodas?lang=pt-BR`
+
+- `convite digital bodas`
+- `convite bodas de prata digital`
+- `convite bodas de ouro digital`
+- `convite virtual bodas`
+- `convite digital renovação de votos`
+
+### Palavras negativas iniciais
+
+Adicione como negativas para reduzir cliques de pessoas procurando arquivo grátis ou DIY:
+
+- `grátis`
+- `gratuito`
+- `baixar`
+- `download`
+- `pdf`
+- `png`
+- `editar`
+- `editável`
+- `canva`
+- `modelo grátis`
+- `fazer convite grátis`
+- `imprimir`
+- `impressão`
+- `molde`
+- `arquivo`
+- `template grátis`
 
 ---
 
