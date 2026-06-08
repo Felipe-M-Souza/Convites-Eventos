@@ -527,15 +527,8 @@ export function detectInitialLocale(): Locale {
     if (stored) return stored
   }
 
-  if (typeof navigator !== 'undefined') {
-    const candidates = navigator.languages?.length ? navigator.languages : [navigator.language]
-    for (const candidate of candidates) {
-      const exact = normalizeLocale(candidate)
-      if (exact) return exact
-      const base = normalizeLocale(candidate?.split('-')[0])
-      if (base) return base
-    }
-  }
-
+  // O site comercial atende principalmente o Brasil. Idiomas alternativos continuam
+  // disponíveis pelo seletor e por `?lang=`, mas a primeira visita deve ser em PT-BR
+  // para manter relevância em campanhas e crawlers brasileiros.
   return 'pt-BR'
 }

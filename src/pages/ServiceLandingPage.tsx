@@ -9,6 +9,113 @@ import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 import { PromoPopup } from '../components/PromoPopup'
 import { buildLeadMessageForOccasion, buildLeadWhatsappHref } from '../lib/leadContact'
 
+type ServiceOfferPlan = {
+  key: 'classico' | 'premium'
+  name: string
+  fromPrice: string
+  promoPrice: string
+  highlight?: boolean
+  whatsappMessage: string
+}
+
+function getServiceOfferCopy(locale: string): {
+  eyebrow: string
+  title: string
+  description: string
+  from: string
+  cta: string
+  mostChosen: string
+  plans: ServiceOfferPlan[]
+} {
+  if (locale === 'en') {
+    return {
+      eyebrow: 'June offer',
+      title: 'Plans with direct WhatsApp service.',
+      description: 'See the current promotional prices and start your digital invitation quote with one click.',
+      from: 'was',
+      cta: 'Request on WhatsApp',
+      mostChosen: 'Most chosen',
+      plans: [
+        {
+          key: 'classico',
+          name: 'Classic',
+          fromPrice: 'R$ 80',
+          promoPrice: 'R$ 50',
+          whatsappMessage:
+            'Hi! I saw the June offer on Convites Diversos and I want the Classic plan for R$ 50 (was R$ 80). Can you help me?',
+        },
+        {
+          key: 'premium',
+          name: 'Premium',
+          fromPrice: 'R$ 130',
+          promoPrice: 'R$ 100',
+          highlight: true,
+          whatsappMessage:
+            'Hi! I saw the June offer on Convites Diversos and I want the Premium plan for R$ 100 (was R$ 130). Can you help me?',
+        },
+      ],
+    }
+  }
+
+  if (locale === 'es') {
+    return {
+      eyebrow: 'Oferta de junio',
+      title: 'Planes con atención directa por WhatsApp.',
+      description: 'Consulta los valores promocionales actuales e inicia tu presupuesto de invitación digital con un clic.',
+      from: 'antes',
+      cta: 'Pedir por WhatsApp',
+      mostChosen: 'Más elegido',
+      plans: [
+        {
+          key: 'classico',
+          name: 'Clásico',
+          fromPrice: 'R$ 80',
+          promoPrice: 'R$ 50',
+          whatsappMessage:
+            '¡Hola! Vi la oferta de junio en Convites Diversos y quiero el plan Clásico por R$ 50 (antes R$ 80). ¿Me ayudas?',
+        },
+        {
+          key: 'premium',
+          name: 'Premium',
+          fromPrice: 'R$ 130',
+          promoPrice: 'R$ 100',
+          highlight: true,
+          whatsappMessage:
+            '¡Hola! Vi la oferta de junio en Convites Diversos y quiero el plan Premium por R$ 100 (antes R$ 130). ¿Me ayudas?',
+        },
+      ],
+    }
+  }
+
+  return {
+    eyebrow: 'Promoção de junho',
+    title: 'Planos com atendimento direto no WhatsApp.',
+    description: 'Veja os valores promocionais atuais e comece seu orçamento de convite digital em um clique.',
+    from: 'de',
+    cta: 'Pedir no WhatsApp',
+    mostChosen: 'Mais escolhido',
+    plans: [
+      {
+        key: 'classico',
+        name: 'Clássico',
+        fromPrice: 'R$ 80',
+        promoPrice: 'R$ 50',
+        whatsappMessage:
+          'Olá! Vi a promoção de junho no Convites Diversos e quero o plano Clássico por R$ 50 (de R$ 80). Pode me ajudar?',
+      },
+      {
+        key: 'premium',
+        name: 'Premium',
+        fromPrice: 'R$ 130',
+        promoPrice: 'R$ 100',
+        highlight: true,
+        whatsappMessage:
+          'Olá! Vi a promoção de junho no Convites Diversos e quero o plano Premium por R$ 100 (de R$ 130). Pode me ajudar?',
+      },
+    ],
+  }
+}
+
 export function ServiceLandingPage() {
   const { serviceSlug } = useParams()
   const { locale, t } = useI18n()
@@ -66,6 +173,12 @@ export function ServiceLandingPage() {
   const leadMessage = buildLeadMessageForOccasion(page.occasion)
   const leadWhatsHref = buildLeadWhatsappHref(leadMessage)
   const leadSource = `service_landing_${page.slug}`
+  const offerCopy = getServiceOfferCopy(locale)
+  const langParam = `lang=${encodeURIComponent(locale)}`
+  const demoPrimaryHref = `/c/${page.demoSlug}?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=${page.slug}`
+  const modelsPrimaryHref = `/modelos?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=modelos_${page.slug}`
+  const demoFaqHref = `/c/${page.demoSlug}?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=faq_${page.slug}`
+  const modelsFaqHref = `/modelos?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=faq_modelos`
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-cream)] px-6 py-14 text-[color:var(--color-ink)]">
@@ -78,6 +191,63 @@ export function ServiceLandingPage() {
           {page.intro}
         </p>
 
+        <section className="mt-8 rounded-3xl border border-[color:var(--color-gold-soft)] bg-white/90 p-6 shadow-[0_18px_45px_rgba(44,38,34,0.08)] sm:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--color-gold)]">
+                {offerCopy.eyebrow}
+              </p>
+              <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">{offerCopy.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">
+                {offerCopy.description}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[26rem]">
+              {offerCopy.plans.map((plan) => {
+                const planHref = buildLeadWhatsappHref(plan.whatsappMessage)
+                return (
+                  <article
+                    key={plan.key}
+                    className={`rounded-2xl bg-[color:var(--color-cream)] p-4 ring-1 ${
+                      plan.highlight ? 'ring-2 ring-[color:var(--color-gold)]' : 'ring-stone-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-ink-muted)]">
+                        {plan.name}
+                      </p>
+                      {plan.highlight ? (
+                        <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
+                          {offerCopy.mostChosen}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 flex items-baseline gap-2">
+                      <span className="text-xs text-[color:var(--color-ink-muted)] line-through">
+                        {offerCopy.from} {plan.fromPrice}
+                      </span>
+                      <span className="font-display text-3xl font-semibold text-[color:var(--color-ink)]">
+                        {plan.promoPrice}
+                      </span>
+                    </p>
+                    <a
+                      href={planHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() =>
+                        trackWhatsappLead(`${leadSource}_offer_${plan.key}`, { destination: planHref, plan: plan.key })
+                      }
+                      className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1ebe57]"
+                    >
+                      {offerCopy.cta}
+                    </a>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
         <div className="mt-10 rounded-3xl border border-stone-200 bg-white/80 p-6 shadow-sm sm:p-8">
           <h2 className="font-display text-2xl font-semibold">{t('service.why', { occasion: page.occasion })}</h2>
           <ul className="mt-5 space-y-3 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">
@@ -89,15 +259,19 @@ export function ServiceLandingPage() {
 
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Link
-            to={`/c/${page.demoSlug}?utm_source=seo_page&utm_medium=cta&utm_campaign=${page.slug}`}
-            onClick={() => trackCtaClick('service_page_primary', 'ver_exemplo_desta_ocasiao', `/c/${page.demoSlug}`, { service_slug: page.slug })}
+            to={demoPrimaryHref}
+            onClick={() =>
+              trackCtaClick('service_page_primary', 'ver_exemplo_desta_ocasiao', demoPrimaryHref, { service_slug: page.slug })
+            }
             className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
           >
             {t('service.viewExample')}
           </Link>
           <Link
-            to={`/modelos?utm_source=seo_page&utm_medium=cta&utm_campaign=modelos_${page.slug}`}
-            onClick={() => trackCtaClick('service_page_primary', 'explorar_todos_modelos', '/modelos', { service_slug: page.slug })}
+            to={modelsPrimaryHref}
+            onClick={() =>
+              trackCtaClick('service_page_primary', 'explorar_todos_modelos', modelsPrimaryHref, { service_slug: page.slug })
+            }
             className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
           >
             {t('service.exploreModels')}
@@ -148,15 +322,19 @@ export function ServiceLandingPage() {
               Falar no WhatsApp
             </a>
             <Link
-              to={`/c/${page.demoSlug}?utm_source=seo_page&utm_medium=cta&utm_campaign=faq_${page.slug}`}
-              onClick={() => trackCtaClick('service_page_faq_cta', 'abrir_demonstracao', `/c/${page.demoSlug}`, { service_slug: page.slug })}
+              to={demoFaqHref}
+              onClick={() =>
+                trackCtaClick('service_page_faq_cta', 'abrir_demonstracao', demoFaqHref, { service_slug: page.slug })
+              }
               className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
             >
               {t('service.openDemo')}
             </Link>
             <Link
-              to="/modelos?utm_source=seo_page&utm_medium=cta&utm_campaign=faq_modelos"
-              onClick={() => trackCtaClick('service_page_faq_cta', 'ver_mais_modelos', '/modelos', { service_slug: page.slug })}
+              to={modelsFaqHref}
+              onClick={() =>
+                trackCtaClick('service_page_faq_cta', 'ver_mais_modelos', modelsFaqHref, { service_slug: page.slug })
+              }
               className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               {t('service.viewMoreModels')}

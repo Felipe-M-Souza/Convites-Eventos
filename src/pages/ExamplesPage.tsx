@@ -8,6 +8,7 @@ import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 
 export function ExamplesPage() {
   const { locale, t } = useI18n()
+  const langParam = `lang=${encodeURIComponent(locale)}`
 
   const seoTitle =
     locale === 'en'
@@ -36,7 +37,7 @@ export function ExamplesPage() {
       <div className="mx-auto max-w-6xl">
         <div className="max-w-3xl">
           <Link
-            to="/"
+            to={`/?${langParam}`}
             className="inline-flex rounded-full border border-stone-300 bg-white px-5 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
           >
             {t('examples.back')}
@@ -67,8 +68,10 @@ export function ExamplesPage() {
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  to={`/c/${demo.slug}`}
-                  onClick={() => trackCtaClick('examples_page', 'abrir_modelo', `/c/${demo.slug}`, { demo_slug: demo.slug })}
+                  to={`/c/${demo.slug}?${langParam}`}
+                  onClick={() =>
+                    trackCtaClick('examples_page', 'abrir_modelo', `/c/${demo.slug}?${langParam}`, { demo_slug: demo.slug })
+                  }
                   className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-95"
                 >
                   {t('examples.open')}
