@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { normalizeOwnerAccessCode } from '../lib/ownerAccess'
+import { normalizeInviteSlug } from '../lib/inviteSlug'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 
 function mapOwnerClaimError(message: string) {
@@ -34,6 +35,16 @@ export function OwnerClaimPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
+  const normalizedInviteSlug = inviteSlug.trim() ? (normalizeInviteSlug(inviteSlug) ?? inviteSlug.trim()) : ''
+  const normalizedAccessCode = normalizeOwnerAccessCode(accessCode)
+  const ownerLoginParams = new URLSearchParams()
+  if (normalizedInviteSlug) {
+    ownerLoginParams.set('slug', normalizedInviteSlug)
+    ownerLoginParams.set('claimSlug', normalizedInviteSlug)
+  }
+  if (normalizedAccessCode) ownerLoginParams.set('claimCode', normalizedAccessCode)
+  const ownerLoginQuery = ownerLoginParams.toString()
+  const ownerLoginPath = `/owner${ownerLoginQuery ? `?${ownerLoginQuery}` : ''}`
 
   useEffect(() => {
     if (!supabase) {
@@ -56,7 +67,7 @@ export function OwnerClaimPage() {
 
   const claimInvite = async () => {
     if (!supabase) return
-    if (!inviteSlug.trim() || !accessCode.trim()) {
+    if (!normalizedInviteSlug || !normalizedAccessCode) {
       setError('Informe o slug do convite e o código de acesso.')
       return
     }
@@ -66,8 +77,8 @@ export function OwnerClaimPage() {
     setInfo(null)
 
     const { error } = await supabase.rpc('claim_invite_owner', {
-      p_invite_slug: inviteSlug.trim(),
-      p_access_code: normalizeOwnerAccessCode(accessCode),
+      p_invite_slug: normalizedInviteSlug,
+      p_access_code: normalizedAccessCode,
     })
 
     setLoading(false)
@@ -78,7 +89,7 @@ export function OwnerClaimPage() {
 
     setInfo('Convite vinculado com sucesso. Redirecionando para a área do responsável…')
     window.setTimeout(() => {
-      navigate(`/owner?slug=${encodeURIComponent(inviteSlug.trim())}`, { replace: true })
+      navigate(`/owner?slug=${encodeURIComponent(normalizedInviteSlug)}`, { replace: true })
     }, 500)
   }
 
@@ -93,6 +104,11 @@ export function OwnerClaimPage() {
 
     if (password !== confirmPassword) {
       setError('As senhas não conferem.')
+      return
+    }
+
+    if (!normalizedInviteSlug || !normalizedAccessCode) {
+      setError('Informe o slug do convite e o código de acesso.')
       return
     }
 
@@ -122,9 +138,9 @@ export function OwnerClaimPage() {
     const next = new URLSearchParams()
     next.set('email', email.trim())
     next.set('created', '1')
-    next.set('claimSlug', inviteSlug.trim())
-    next.set('claimCode', normalizeOwnerAccessCode(accessCode))
-    if (inviteSlug.trim()) next.set('slug', inviteSlug.trim())
+    next.set('claimSlug', normalizedInviteSlug)
+    next.set('claimCode', normalizedAccessCode)
+    if (normalizedInviteSlug) next.set('slug', normalizedInviteSlug)
     navigate(`/owner?${next.toString()}`, { replace: true })
   }
 
@@ -188,7 +204,7 @@ export function OwnerClaimPage() {
           <form className="mt-8 space-y-4" onSubmit={(event) => void handleSignUp(event)}>
             <h2 className="font-display text-2xl text-stone-800">Criar conta</h2>
             <p className="text-sm text-stone-500">
-              Se você já possui uma conta, entre em <Link to="/owner" className="underline">/owner</Link> e depois volte a este link.
+              Se você já possui uma conta, entre em <Link to={ownerLoginPath} className="underline">/owner</Link> e depois volte a este link.
             </p>
 
             <label className="block">
@@ -271,7 +287,7 @@ export function OwnerClaimPage() {
               </button>
             </div>
 
-            <Link to="/owner" className="block text-center text-sm text-stone-500 underline hover:text-stone-700">
+            <Link to={ownerLoginPath} className="block text-center text-sm text-stone-500 underline hover:text-stone-700">
               Ir para login do responsável
             </Link>
           </div>

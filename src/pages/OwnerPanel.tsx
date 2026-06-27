@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import JSZip from 'jszip'
 import { type AppRole, fetchCurrentAppRole } from '../lib/appRoles'
@@ -22,6 +22,7 @@ import {
   removeGuestUploadAssets,
 } from '../lib/guestUploads'
 import { trackEvent } from '../lib/analytics'
+import { normalizeInviteSlug } from '../lib/inviteSlug'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { SouvenirEditorModal } from '../components/owner/SouvenirEditorModal'
 
@@ -42,9 +43,12 @@ function formatDateTime(value: string | null) {
 
 export function OwnerPanel() {
   const navigate = useNavigate()
+  const { slug: routeSlug } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
-  const forcedSlug = searchParams.get('slug')?.trim() ?? ''
-  const claimSlug = searchParams.get('claimSlug')?.trim() ?? ''
+  const requestedSlugRaw = (routeSlug ?? searchParams.get('slug') ?? '').trim()
+  const requestedSlug = requestedSlugRaw ? (normalizeInviteSlug(requestedSlugRaw) ?? requestedSlugRaw) : ''
+  const claimSlugRaw = searchParams.get('claimSlug')?.trim() ?? ''
+  const claimSlug = claimSlugRaw ? (normalizeInviteSlug(claimSlugRaw) ?? claimSlugRaw) : ''
   const claimCode = searchParams.get('claimCode')?.trim() ?? ''
   const createdAccount = searchParams.get('created') === '1'
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -55,6 +59,7 @@ export function OwnerPanel() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [inviteRows, setInviteRows] = useState<OwnerInviteRow[]>([])
   const [inviteLoading, setInviteLoading] = useState(false)
+  const [inviteRowsLoaded, setInviteRowsLoaded] = useState(false)
   const [uploads, setUploads] = useState<GuestUploadWithUrl[]>([])
   const [uploadsLoading, setUploadsLoading] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -93,6 +98,7 @@ export function OwnerPanel() {
       setActionError(null)
       setActionInfo(null)
       setInviteRows([])
+      setInviteRowsLoaded(false)
       setUploads([])
       if (!nextSession?.user.id) {
         setRole(null)
@@ -129,13 +135,12 @@ export function OwnerPanel() {
 
     const loadInviteRows = async () => {
       setInviteLoading(true)
+      setInviteRowsLoaded(false)
       try {
-        let query = client
+        const query = client
           .from('invite_owners')
           .select('invite_slug, owner_email, owner_name, claimed_at')
           .order('invite_slug')
-
-        if (forcedSlug) query = query.eq('invite_slug', forcedSlug)
 
         const { data, error } = await query
         if (error) throw new Error(error.message)
@@ -143,8 +148,9 @@ export function OwnerPanel() {
 
         const rows = (data ?? []) as OwnerInviteRow[]
         setInviteRows(rows)
+        setInviteRowsLoaded(true)
 
-        if (!forcedSlug && rows[0]?.invite_slug) {
+        if (!requestedSlug && rows[0]?.invite_slug) {
           setSearchParams((prev) => {
             const next = new URLSearchParams(prev)
             next.set('slug', rows[0]!.invite_slug)
@@ -153,6 +159,7 @@ export function OwnerPanel() {
         }
       } catch (error) {
         if (!cancelled) {
+          setInviteRowsLoaded(true)
           setActionError(error instanceof Error ? error.message : 'Não foi possível carregar os convites vinculados.')
         }
       } finally {
@@ -165,12 +172,23 @@ export function OwnerPanel() {
     return () => {
       cancelled = true
     }
-  }, [forcedSlug, role, session?.user.id, setSearchParams])
+  }, [requestedSlug, role, session?.user.id, setSearchParams])
 
-  const selectedInviteSlug = forcedSlug || inviteRows[0]?.invite_slug || ''
+  const selectedInviteSlug = requestedSlug
+    ? inviteRows.some((row) => row.invite_slug === requestedSlug)
+      ? requestedSlug
+      : ''
+    : inviteRows[0]?.invite_slug || ''
+  const requestedInviteNotFound = Boolean(
+    requestedSlug && inviteRowsLoaded && !inviteLoading && !inviteRows.some((row) => row.invite_slug === requestedSlug),
+  )
 
   useEffect(() => {
-    if (!supabase || !selectedInviteSlug || (role !== 'owner' && role !== 'admin')) return
+    if (!selectedInviteSlug) {
+      setUploads([])
+      return
+    }
+    if (!supabase || (role !== 'owner' && role !== 'admin')) return
     const client = supabase
 
     let cancelled = false
@@ -566,11 +584,7 @@ export function OwnerPanel() {
                 value={selectedInviteSlug}
                 onChange={(event) => {
                   const next = event.target.value
-                  setSearchParams((prev) => {
-                    const params = new URLSearchParams(prev)
-                    params.set('slug', next)
-                    return params
-                  })
+                  navigate(`/owner?slug=${encodeURIComponent(next)}`)
                 }}
                 className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm outline-none focus:border-[color:var(--color-gold)]"
               >
@@ -585,7 +599,11 @@ export function OwnerPanel() {
 
           {inviteLoading ? <p className="text-sm text-stone-500">Carregando convites…</p> : null}
 
-          {selectedInviteSlug ? (
+          {requestedInviteNotFound ? (
+            <p className="text-sm text-red-600">
+              Não encontramos um convite vinculado a esta conta para o slug <span className="font-mono">{requestedSlug}</span>.
+            </p>
+          ) : selectedInviteSlug ? (
             <div className="rounded-2xl bg-stone-50 p-4 text-sm text-stone-600">
               <p className="font-semibold text-stone-800">{selectedInviteSlug}</p>
               <p className="mt-2">Pendentes: {summary.pending}</p>
