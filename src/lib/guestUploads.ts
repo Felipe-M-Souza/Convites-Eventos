@@ -299,7 +299,13 @@ export async function uploadGuestUploadFile(
     upsert: false,
   })
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    const message = error.message.toLowerCase()
+    if (message.includes('exceeded') && message.includes('maximum allowed size')) {
+      throw new Error('O arquivo excede o limite configurado no Storage. Verifique o limite do bucket de uploads.')
+    }
+    throw new Error(error.message)
+  }
   return path
 }
 
