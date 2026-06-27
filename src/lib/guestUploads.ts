@@ -17,7 +17,7 @@ export const GUEST_UPLOAD_ACCEPT = [
 ].join(',')
 
 export const MAX_GUEST_IMAGE_BYTES = 12 * 1024 * 1024
-export const MAX_GUEST_VIDEO_BYTES = 120 * 1024 * 1024
+export const MAX_GUEST_VIDEO_BYTES = 50 * 1024 * 1024
 export const MAX_GUEST_VIDEO_DURATION_SECONDS = 60
 export const GUEST_UPLOAD_RETENTION_DAYS = 5
 
@@ -142,7 +142,7 @@ export function validateGuestUploadFile(
   const maxBytes = kind === 'video' ? MAX_GUEST_VIDEO_BYTES : MAX_GUEST_IMAGE_BYTES
 
   if (file.size > maxBytes) {
-    const maxLabel = kind === 'video' ? '120 MB' : '12 MB'
+    const maxLabel = kind === 'video' ? '50 MB' : '12 MB'
     return { ok: false, message: `O arquivo excede o limite de ${maxLabel}.` }
   }
 

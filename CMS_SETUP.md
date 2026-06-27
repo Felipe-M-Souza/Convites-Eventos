@@ -199,7 +199,7 @@ Depois da migration `005` e do bootstrap do admin:
 
 - Fotos continuam com compressão leve no browser.
 - Vídeos são validados no navegador:
-  - até `120 MB`
+  - até `50 MB` (limite global do Supabase Storage no plano Free)
   - até `60 segundos`
 - Depois do upload, o vídeo entra em processamento assíncrono.
 - O responsável só aprova vídeos quando o estado estiver `Pronto para aprovação`.
