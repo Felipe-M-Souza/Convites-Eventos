@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { Upload } from 'tus-js-client'
 import { normalizeInviteSlug } from './inviteSlug'
-import { supabaseAnonKey, supabaseUrl } from './supabase'
+import { supabaseAnonKey, supabaseStorageUrl, supabaseUrl } from './supabase'
 
 export const GUEST_UPLOADS_BUCKET = 'invite-guest-uploads'
 const RESUMABLE_UPLOAD_CHUNK_BYTES = 6 * 1024 * 1024
@@ -172,8 +172,13 @@ export function buildGuestUploadPath(inviteSlug: string, uploadId: string, file:
 function mapGuestUploadStorageError(error: { message?: string }) {
   const rawMessage = error.message || 'Não foi possível enviar o arquivo.'
   const message = rawMessage.toLowerCase()
-  if (message.includes('exceeded') && message.includes('maximum allowed size')) {
-    return 'O arquivo excede o limite configurado no Storage. Verifique o limite do bucket de uploads.'
+  if (
+    message.includes('413') ||
+    message.includes('maximum size exceeded') ||
+    (message.includes('exceeded') && message.includes('maximum allowed size')) ||
+    message.includes('entity too large')
+  ) {
+    return 'O Supabase recusou o arquivo pelo limite de tamanho do Storage. Verifique o limite global e o limite do bucket de uploads.'
   }
   return rawMessage
 }
@@ -321,7 +326,7 @@ export async function uploadGuestUploadFile(
 
     await new Promise<void>((resolve, reject) => {
       const upload = new Upload(file, {
-        endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+        endpoint: `${supabaseStorageUrl || supabaseUrl}/storage/v1/upload/resumable`,
         chunkSize: RESUMABLE_UPLOAD_CHUNK_BYTES,
         retryDelays: [0, 3000, 5000, 10000, 20000],
         uploadDataDuringCreation: false,
