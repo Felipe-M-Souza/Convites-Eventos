@@ -324,7 +324,7 @@ export async function uploadGuestUploadFile(
         endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
         chunkSize: RESUMABLE_UPLOAD_CHUNK_BYTES,
         retryDelays: [0, 3000, 5000, 10000, 20000],
-        uploadDataDuringCreation: true,
+        uploadDataDuringCreation: false,
         removeFingerprintOnSuccess: true,
         headers: {
           authorization: `Bearer ${authToken}`,
