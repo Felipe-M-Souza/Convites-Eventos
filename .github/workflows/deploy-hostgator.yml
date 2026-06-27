@@ -38,6 +38,9 @@ jobs:
       - name: Build website
         run: npm run build
 
+      - name: Remove render-only captures from deploy
+        run: rm -rf dist/remotion-captures
+
       - name: Write preview env file
         run: |
           cat <<EOF > dist/.env
@@ -55,8 +58,4 @@ jobs:
           port: ${{ secrets.HOSTGATOR_FTP_PORT }}
           local-dir: ./dist/
           server-dir: ${{ secrets.HOSTGATOR_FTP_SERVER_DIR }}
-          # true: limpa o diretório remoto antes do upload. Seguro porque TODO o conteúdo
-          # servido vem de dist/ (build + arquivos de public/, como preview.php e .htaccess).
-          # Necessário para remover artefatos antigos do SSG (index.html pré-renderizados
-          # das landing pages e bundle app-*.js) que duplicavam as páginas.
-          dangerous-clean-slate: true
+          timeout: 120000
