@@ -97,6 +97,7 @@ export const routes: RouteObject[] = [
       { path: 'admin', Component: AdminRoute },
       { path: 'owner', Component: OwnerPanel },
       { path: 'owner/claim', Component: OwnerClaimPage },
+      { path: 'owner/:slug', Component: OwnerPanel },
       { path: ':slug', Component: LegacyInviteRedirectRoute },
     ],
   },

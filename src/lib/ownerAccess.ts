@@ -1,3 +1,5 @@
+import { normalizeInviteSlug } from './inviteSlug'
+
 const ACCESS_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
 export function generateOwnerAccessCode(groups = 3, groupSize = 4): string {
@@ -35,7 +37,7 @@ export async function hashOwnerAccessCode(raw: string): Promise<string> {
 
 export function buildOwnerClaimUrl(inviteSlug: string, accessCode: string) {
   const url = new URL('/owner/claim', window.location.origin)
-  url.searchParams.set('slug', inviteSlug)
+  url.searchParams.set('slug', normalizeInviteSlug(inviteSlug) ?? inviteSlug.trim())
   url.searchParams.set('code', normalizeOwnerAccessCode(accessCode))
   return url.toString()
 }

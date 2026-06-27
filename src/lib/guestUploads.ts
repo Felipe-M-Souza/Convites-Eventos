@@ -1,7 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { Upload } from 'tus-js-client'
 import { normalizeInviteSlug } from './inviteSlug'
+import { supabaseAnonKey, supabaseUrl } from './supabase'
 
 export const GUEST_UPLOADS_BUCKET = 'invite-guest-uploads'
+const RESUMABLE_UPLOAD_CHUNK_BYTES = 6 * 1024 * 1024
+const RESUMABLE_UPLOAD_MIN_BYTES = 50 * 1024 * 1024
 
 export const GUEST_UPLOAD_ACCEPT = [
   'image/jpeg',
@@ -165,6 +169,15 @@ export function buildGuestUploadPath(inviteSlug: string, uploadId: string, file:
   return `${slug}/original/${uploadId}.${ext}`
 }
 
+function mapGuestUploadStorageError(error: { message?: string }) {
+  const rawMessage = error.message || 'Não foi possível enviar o arquivo.'
+  const message = rawMessage.toLowerCase()
+  if (message.includes('exceeded') && message.includes('maximum allowed size')) {
+    return 'O arquivo excede o limite configurado no Storage. Verifique o limite do bucket de uploads.'
+  }
+  return rawMessage
+}
+
 export function buildProcessedGuestUploadPath(inviteSlug: string, uploadId: string) {
   const slug = normalizeInviteSlug(inviteSlug) ?? 'default'
   return `${slug}/processed/${uploadId}.mp4`
@@ -294,12 +307,51 @@ export async function uploadGuestUploadFile(
   file: File,
 ): Promise<string> {
   const path = buildGuestUploadPath(inviteSlug, uploadId, file)
+  const shouldUseResumableUpload = file.size > RESUMABLE_UPLOAD_MIN_BYTES || file.type.startsWith('video/')
+
+  if (shouldUseResumableUpload) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Upload de vídeo indisponível: Supabase não configurado.')
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const authToken = session?.access_token ?? supabaseAnonKey
+
+    await new Promise<void>((resolve, reject) => {
+      const upload = new Upload(file, {
+        endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+        chunkSize: RESUMABLE_UPLOAD_CHUNK_BYTES,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        uploadDataDuringCreation: true,
+        removeFingerprintOnSuccess: true,
+        headers: {
+          authorization: `Bearer ${authToken}`,
+          apikey: supabaseAnonKey,
+          'x-upsert': 'false',
+        },
+        metadata: {
+          bucketName: GUEST_UPLOADS_BUCKET,
+          objectName: path,
+          contentType: file.type || 'application/octet-stream',
+        },
+        onError: (error) => reject(new Error(mapGuestUploadStorageError(error))),
+        onSuccess: () => resolve(),
+      })
+
+      upload.start()
+    })
+
+    return path
+  }
+
   const { error } = await supabase.storage.from(GUEST_UPLOADS_BUCKET).upload(path, file, {
     contentType: file.type,
     upsert: false,
   })
 
-  if (error) throw new Error(error.message)
+  if (error) throw new Error(mapGuestUploadStorageError(error))
   return path
 }
 

@@ -35,6 +35,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.0",
-    "remotion": "^4.0.451"
+    "remotion": "^4.0.451",
+    "tus-js-client": "^4.3.1"
   }
 }
