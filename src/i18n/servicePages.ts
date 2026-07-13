@@ -66,6 +66,15 @@ const enOccasions: Record<string, OccasionCopy> = {
     heading: 'Custom anniversary digital invitation',
     intro: 'Celebrate anniversaries with an elegant digital invitation designed to move guests and family.',
   },
+  'evento-corporativo': {
+    occasion: 'corporate event',
+    title: 'Custom Corporate Digital Invitation | Convites Diversos',
+    description:
+      'Corporate digital invitation for launches, company gatherings and business events. Brand-aligned look, RSVP and an easy-to-share link.',
+    heading: 'Custom corporate digital invitation',
+    intro:
+      'Professional invitations for launches, kickoffs, trainings and company gatherings, with brand identity, clear details and fast link distribution.',
+  },
 }
 
 const esOccasions: Record<string, OccasionCopy> = {
@@ -124,6 +133,15 @@ const esOccasions: Record<string, OccasionCopy> = {
     description: 'Invitación digital para aniversarios con layout elegante, personalización completa y fácil envío.',
     heading: 'Invitación digital de aniversario personalizada',
     intro: 'Celebra aniversarios con una invitación digital elegante, fácil de compartir y pensada para emocionar.',
+  },
+  'evento-corporativo': {
+    occasion: 'evento corporativo',
+    title: 'Invitación Digital Corporativa Personalizada | Convites Diversos',
+    description:
+      'Invitación digital corporativa para lanzamientos, convivencias y eventos de empresa. Visual alineado a la marca, RSVP y enlace fácil de distribuir.',
+    heading: 'Invitación digital corporativa personalizada',
+    intro:
+      'Invitaciones profesionales para lanzamientos, kickoffs, capacitaciones y convivencias, con identidad de marca, información clara y distribución rápida por enlace.',
   },
 }
 

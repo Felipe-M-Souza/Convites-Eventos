@@ -176,6 +176,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   },
   {
     id: 'evento-corporativo',
+    serviceSlug: 'evento-corporativo',
     accent: '#5C6B73',
     title: {
       'pt-BR': 'Evento corporativo',

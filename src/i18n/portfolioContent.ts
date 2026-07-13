@@ -68,6 +68,7 @@ const content: Record<Locale, PortfolioContent> = {
       { label: 'Convite digital homenagem', href: '/convite-digital/homenagem' },
       { label: 'Convite digital casamento', href: '/convite-digital/casamento' },
       { label: 'Convite digital bodas', href: '/convite-digital/bodas' },
+      { label: 'Convite digital corporativo', href: '/convite-digital/evento-corporativo' },
     ],
     trustSignals: [
       {
@@ -167,6 +168,7 @@ const content: Record<Locale, PortfolioContent> = {
       { label: 'Memorial digital invitation', href: '/convite-digital/homenagem' },
       { label: 'Wedding digital invitation', href: '/convite-digital/casamento' },
       { label: 'Anniversary digital invitation', href: '/convite-digital/bodas' },
+      { label: 'Corporate digital invitation', href: '/convite-digital/evento-corporativo' },
     ],
     trustSignals: [
       {
@@ -266,6 +268,7 @@ const content: Record<Locale, PortfolioContent> = {
       { label: 'Invitación digital homenaje', href: '/convite-digital/homenagem' },
       { label: 'Invitación digital boda', href: '/convite-digital/casamento' },
       { label: 'Invitación digital aniversario', href: '/convite-digital/bodas' },
+      { label: 'Invitación digital corporativa', href: '/convite-digital/evento-corporativo' },
     ],
     trustSignals: [
       {

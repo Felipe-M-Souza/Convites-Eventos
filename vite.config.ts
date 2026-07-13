@@ -21,6 +21,7 @@ const SSG_ROUTES = [
   '/convite-digital/homenagem',
   '/convite-digital/casamento',
   '/convite-digital/bodas',
+  '/convite-digital/evento-corporativo',
 ]
 
 const config: UserConfig & {

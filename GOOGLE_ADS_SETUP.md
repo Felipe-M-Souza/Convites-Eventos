@@ -167,6 +167,17 @@ URL final recomendada: `https://convitesdiversos.com.br/convite-digital/bodas?la
 - `convite bodas de prata digital`
 - `convite bodas de ouro digital`
 - `convite virtual bodas`
+
+### Grupo: Evento corporativo
+
+URL final recomendada: `https://convitesdiversos.com.br/convite-digital/evento-corporativo?lang=pt-BR`
+
+- `convite digital corporativo`
+- `convite digital empresa`
+- `convite virtual confraternização`
+- `convite digital lançamento`
+- `convite digital evento empresarial`
+- `convite corporativo whatsapp`
 - `convite digital renovação de votos`
 
 ### Palavras negativas iniciais

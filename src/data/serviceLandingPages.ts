@@ -318,6 +318,44 @@ export const serviceLandingPages: ServiceLandingPage[] = [
       },
     ],
   },
+  {
+    slug: 'evento-corporativo',
+    occasion: 'evento corporativo',
+    title: 'Convite Digital Corporativo Personalizado | Convites Diversos',
+    description:
+      'Convite digital corporativo para lançamentos, confraternizações e eventos de empresa. Visual alinhado à marca, RSVP e link fácil de distribuir.',
+    heading: 'Convite digital corporativo personalizado',
+    intro:
+      'Convites profissionais para lançamentos, kickoffs, treinamentos e confraternizações, com identidade da marca, informações claras e distribuição rápida por link.',
+    demoSlug: 'default',
+    bullets: [
+      'Visual alinhado à identidade da empresa ou do evento.',
+      'Data, local, mapa e confirmação de presença em um único link.',
+      'Distribuição prática por e-mail, WhatsApp e canais internos.',
+    ],
+    faqs: [
+      {
+        question: 'O convite digital corporativo pode seguir a identidade visual da empresa?',
+        answer:
+          'Sim. Cores, tipografia, logo e tom de comunicação podem ser adaptados à marca ou ao tema do evento.',
+      },
+      {
+        question: 'Serve para quais tipos de evento empresarial?',
+        answer:
+          'Funciona bem para lançamentos, confraternizações, kickoffs, treinamentos, convenções e encontros internos ou com clientes.',
+      },
+      {
+        question: 'Os convidados conseguem confirmar presença pelo celular?',
+        answer:
+          'Sim. O convite é responsivo e pode incluir confirmação por WhatsApp, além de mapa e detalhes do evento no mesmo link.',
+      },
+      {
+        question: 'É possível enviar o convite para muitas pessoas de uma vez?',
+        answer:
+          'Sim. O formato por link facilita o envio em massa por e-mail, grupos de WhatsApp, intranet ou materiais de divulgação.',
+      },
+    ],
+  },
 ]
 
 export const serviceLandingPagesBySlug: Record<string, ServiceLandingPage> = Object.fromEntries(
