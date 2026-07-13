@@ -129,6 +129,13 @@ export type TranslationKey =
   | 'examples.title'
   | 'examples.description'
   | 'examples.open'
+  | 'examples.liveDemo'
+  | 'examples.cardEyebrow'
+  | 'examples.whatsappCta'
+  | 'examples.learnMore'
+  | 'examples.footerEyebrow'
+  | 'examples.footerTitle'
+  | 'examples.footerDescription'
   | 'service.eyebrow'
   | 'service.why'
   | 'service.faqEyebrow'
@@ -207,7 +214,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.heroTitle': 'Convites digitais feitos para emocionar em qualquer ocasião.',
     'portfolio.heroDescription': 'Desenvolvimento convites digitais elegantes, personalizados e responsivos para casamentos, bodas, aniversários, celebrações especiais, homenagens e outros momentos importantes, com contagem regressiva, fotos, música e compartilhamento por link.',
     'portfolio.ctaDemo': 'Ver convite demonstrativo',
-    'portfolio.ctaModels': 'Ver outros modelos',
+    'portfolio.ctaModels': 'Ver tipos de convite',
     'portfolio.ctaBudget': 'Fale conosco',
     'portfolio.heroNote': 'Cada projeto pode ter seu próprio link, identidade visual e experiência personalizada para o tipo de evento.',
     'portfolio.highlightsEyebrow': 'Destaques',
@@ -250,10 +257,19 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.demoDescription': 'A demonstração mostra a estrutura visual do projeto e a experiência que pode ser adaptada para diferentes tipos de convite.',
     'portfolio.demoButton': 'Abrir demonstração',
     'examples.back': 'Voltar para a página inicial',
-    'examples.eyebrow': 'Modelos de demonstração',
-    'examples.title': 'Exemplos de convites para diferentes ocasiões.',
-    'examples.description': 'Aqui você pode navegar por modelos prontos para aniversários, debutante, bodas e outras celebrações, usando a mesma experiência visual do site final.',
+    'examples.eyebrow': 'Tipos de convite',
+    'examples.title': 'Ocasiões que personalizamos para você.',
+    'examples.description':
+      'Escolha o tipo de evento e veja o que podemos criar. Cada convite é feito sob medida, com identidade visual, informações do evento e link exclusivo pronto para compartilhar no WhatsApp.',
     'examples.open': 'Abrir modelo',
+    'examples.liveDemo': 'Ver demonstração ao vivo',
+    'examples.cardEyebrow': 'Tipo de evento',
+    'examples.whatsappCta': 'Quero este tipo no WhatsApp',
+    'examples.learnMore': 'Saiba mais',
+    'examples.footerEyebrow': 'Próximo passo',
+    'examples.footerTitle': 'Pronto para personalizar o seu?',
+    'examples.footerDescription':
+      'Conte a ocasião, a data e o estilo desejado. Montamos o convite digital completo e entregamos o link pronto para compartilhar.',
     'service.eyebrow': 'Convites digitais personalizados',
     'service.why': 'Por que escolher convite digital para {occasion}?',
     'service.faqEyebrow': 'Perguntas frequentes',
@@ -329,7 +345,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.heroTitle': 'Digital invitations made to move guests on every occasion.',
     'portfolio.heroDescription': 'Elegant, custom and responsive digital invitations for weddings, anniversaries, birthdays, memorials and special celebrations, with countdown, photos, music and easy link sharing.',
     'portfolio.ctaDemo': 'View demo invitation',
-    'portfolio.ctaModels': 'View more models',
+    'portfolio.ctaModels': 'See invitation types',
     'portfolio.ctaBudget': 'Request a quote or contact us',
     'portfolio.heroNote': 'Each project can have its own link, visual identity and personalized experience for the event type.',
     'portfolio.highlightsEyebrow': 'Highlights',
@@ -372,10 +388,19 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.demoDescription': 'The demo shows the project structure and the experience that can be adapted to different invitation types.',
     'portfolio.demoButton': 'Open demo',
     'examples.back': 'Back to home',
-    'examples.eyebrow': 'Demo models',
-    'examples.title': 'Invitation examples for different occasions.',
-    'examples.description': 'Browse ready-made models for birthdays, quinceañeras, anniversaries and other celebrations using the same visual experience as the final site.',
+    'examples.eyebrow': 'Invitation types',
+    'examples.title': 'Occasions we customize for you.',
+    'examples.description':
+      'Pick an event type and see what we can create. Every invitation is made to order — with visual identity, event details and an exclusive WhatsApp-ready link.',
     'examples.open': 'Open model',
+    'examples.liveDemo': 'See live demo',
+    'examples.cardEyebrow': 'Event type',
+    'examples.whatsappCta': 'I want this type on WhatsApp',
+    'examples.learnMore': 'Learn more',
+    'examples.footerEyebrow': 'Next step',
+    'examples.footerTitle': 'Ready to personalize yours?',
+    'examples.footerDescription':
+      'Tell us the occasion, date and preferred style. We build the full digital invitation and deliver a share-ready link.',
     'service.eyebrow': 'Custom digital invitations',
     'service.why': 'Why choose a digital invitation for {occasion}?',
     'service.faqEyebrow': 'FAQ',
@@ -451,7 +476,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.heroTitle': 'Invitaciones digitales creadas para emocionar en cualquier ocasión.',
     'portfolio.heroDescription': 'Invitaciones digitales elegantes, personalizadas y responsivas para bodas, aniversarios, cumpleaños, homenajes y celebraciones especiales, con cuenta regresiva, fotos, música y envío por enlace.',
     'portfolio.ctaDemo': 'Ver invitación demo',
-    'portfolio.ctaModels': 'Ver otros modelos',
+    'portfolio.ctaModels': 'Ver tipos de invitación',
     'portfolio.ctaBudget': 'Solicitar presupuesto o contacto',
     'portfolio.heroNote': 'Cada proyecto puede tener su propio enlace, identidad visual y experiencia personalizada para el tipo de evento.',
     'portfolio.highlightsEyebrow': 'Destacados',
@@ -494,10 +519,19 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.demoDescription': 'La demostración muestra la estructura visual y la experiencia que puede adaptarse a diferentes tipos de invitación.',
     'portfolio.demoButton': 'Abrir demo',
     'examples.back': 'Volver al inicio',
-    'examples.eyebrow': 'Modelos de demostración',
-    'examples.title': 'Ejemplos de invitaciones para diferentes ocasiones.',
-    'examples.description': 'Puedes navegar por modelos listos para cumpleaños, quinceañeras, aniversarios y otras celebraciones, usando la misma experiencia visual del sitio final.',
+    'examples.eyebrow': 'Tipos de invitación',
+    'examples.title': 'Ocaciones que personalizamos para ti.',
+    'examples.description':
+      'Elige el tipo de evento y mira lo que podemos crear. Cada invitación se hace a medida — con identidad visual, datos del evento y un enlace exclusivo listo para WhatsApp.',
     'examples.open': 'Abrir modelo',
+    'examples.liveDemo': 'Ver demostración en vivo',
+    'examples.cardEyebrow': 'Tipo de evento',
+    'examples.whatsappCta': 'Quiero este tipo por WhatsApp',
+    'examples.learnMore': 'Saber más',
+    'examples.footerEyebrow': 'Siguiente paso',
+    'examples.footerTitle': '¿Listo para personalizar la tuya?',
+    'examples.footerDescription':
+      'Cuéntanos la ocasión, la fecha y el estilo deseado. Creamos la invitación digital completa y entregamos el enlace listo para compartir.',
     'service.eyebrow': 'Invitaciones digitales personalizadas',
     'service.why': '¿Por qué elegir invitación digital para {occasion}?',
     'service.faqEyebrow': 'Preguntas frecuentes',
