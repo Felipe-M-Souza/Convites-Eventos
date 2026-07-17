@@ -25,8 +25,16 @@ const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 
 /** Slugs que usam abertura «bola no gol» mesmo sem `openingInteractionMode` no JSON guardado. */
 const SOCCER_GOAL_SLUG_FALLBACKS: readonly string[] = ['san-barssoti']
+/** Slugs que usam borboleta no lugar do selo mesmo sem `openingInteractionMode` no JSON guardado. */
+const BUTTERFLY_SEAL_SLUG_FALLBACKS: readonly string[] = ['cleyzamara']
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
 const ENVELOPE_BLEND_SLUG_FALLBACKS: readonly string[] = ['fernando-correia']
+
+/**
+ * Artes de envelope completas (envelope centrado com margem branca, ex.: borboleta) não devem
+ * levar o zoom padrão que corta as bordas: mostra a arte inteira, fechada e aberta.
+ */
+const BUTTERFLY_ENVELOPE_TEXTURE_ZOOM = 1
 
 /**
  * Centro vertical do selo (% da altura da caixa do envelope fechado).
@@ -395,6 +403,167 @@ function RockGuitarSeal({ reduce, torn, onUserGesture, onStrummed, ariaLabel }: 
   )
 }
 
+type ButterflySealProps = {
+  reduce: boolean
+  torn: boolean
+  onUserGesture?: () => void
+  onFlewAway: () => void
+  ariaLabel: string
+}
+
+/** Voo (ms) antes de abrir o envelope — deixa a borboleta sair de cena. */
+const BUTTERFLY_FLY_MS = 1000
+
+/**
+ * Borboleta no lugar do selo: bate as asas em repouso e, ao toque, sai voando
+ * (sobe, gira e desvanece) chamando `onFlewAway`, que abre o envelope.
+ */
+function ButterflySeal({ reduce, torn, onUserGesture, onFlewAway, ariaLabel }: ButterflySealProps) {
+  const [flew, setFlew] = useState(false)
+  const completedRef = useRef(false)
+
+  useEffect(() => {
+    if (!flew || completedRef.current) return undefined
+    const id = window.setTimeout(
+      () => {
+        completedRef.current = true
+        onFlewAway()
+      },
+      reduce ? 0 : BUTTERFLY_FLY_MS,
+    )
+    return () => window.clearTimeout(id)
+  }, [flew, onFlewAway, reduce])
+
+  const handleActivate = () => {
+    if (torn || flew || completedRef.current) return
+    onUserGesture?.()
+    if (reduce) {
+      completedRef.current = true
+      onFlewAway()
+      return
+    }
+    setFlew(true)
+  }
+
+  const gone = flew || torn
+
+  const sparkles = [
+    { x: -22, y: 30, delay: 0.05 },
+    { x: 16, y: 44, delay: 0.16 },
+    { x: -6, y: 56, delay: 0.28 },
+  ]
+
+  return (
+    <motion.div
+      className="relative h-20 w-20 select-none"
+      initial={false}
+      animate={
+        gone
+          ? reduce
+            ? { opacity: 0, scale: 0.82 }
+            : {
+                x: [0, -16, 20, 44],
+                y: [0, -48, -156, -300],
+                rotate: [0, -9, 7, 16],
+                scale: [1, 1.06, 0.82, 0.48],
+                opacity: [1, 1, 0.85, 0],
+              }
+          : { x: 0, y: [0, -4, 0], rotate: [-2, 2, -2], scale: 1, opacity: 1 }
+      }
+      transition={
+        gone
+          ? { duration: reduce ? 0.2 : BUTTERFLY_FLY_MS / 1000, ease: [0.4, 0, 0.2, 1] }
+          : { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+      }
+    >
+      {gone && !reduce
+        ? sparkles.map((s) => (
+            <motion.span
+              key={`${s.x}-${s.y}`}
+              className="pointer-events-none absolute left-1/2 top-1/2 z-20 text-sm text-amber-300 drop-shadow-[0_1px_3px_rgba(200,120,40,0.5)]"
+              initial={{ opacity: 0, x: -4, y: -2, scale: 0.5 }}
+              animate={{ opacity: [0, 1, 0], x: s.x, y: s.y, scale: [0.5, 1, 0.4] }}
+              transition={{ duration: 0.7, delay: s.delay, ease: 'easeOut' }}
+              aria-hidden
+            >
+              ✦
+            </motion.span>
+          ))
+        : null}
+
+      <svg
+        viewBox="0 0 100 100"
+        className="pointer-events-none absolute inset-0 z-10 h-full w-full drop-shadow-[0_6px_10px_rgba(120,50,60,0.35)]"
+        aria-hidden
+      >
+        <defs>
+          <radialGradient id="bfWing" cx="50%" cy="42%" r="62%">
+            <stop offset="0%" stopColor="#fff2f5" />
+            <stop offset="42%" stopColor="#f5aec0" />
+            <stop offset="78%" stopColor="#e57e9c" />
+            <stop offset="100%" stopColor="#cf5f80" />
+          </radialGradient>
+          <linearGradient id="bfBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#8a5a3a" />
+            <stop offset="100%" stopColor="#4f2f1e" />
+          </linearGradient>
+        </defs>
+
+        {/* Antenas */}
+        <g stroke="#7a4a2e" strokeWidth="1.4" strokeLinecap="round" fill="none">
+          <path d="M49 39 C45 30 41 27 38 25" />
+          <path d="M51 39 C55 30 59 27 62 25" />
+        </g>
+        <circle cx="37.6" cy="24.6" r="1.7" fill="#c9852f" />
+        <circle cx="62.4" cy="24.6" r="1.7" fill="#c9852f" />
+
+        {/* Asas — grupo animado (bate as asas) */}
+        <motion.g
+          style={{ transformBox: 'view-box', transformOrigin: '50px 52px' }}
+          initial={false}
+          animate={gone ? { scaleX: [1, 0.25, 1, 0.3, 1] } : { scaleX: [1, 0.82, 1] }}
+          transition={
+            gone
+              ? { duration: 0.24, repeat: 4, ease: 'easeInOut' }
+              : { duration: 1.4, repeat: Infinity, ease: 'easeInOut' }
+          }
+        >
+          {/* Lado direito (mirror gera o esquerdo) */}
+          <g id="bf-wing" fill="url(#bfWing)" stroke="#c9852f" strokeWidth="1.5" strokeLinejoin="round">
+            <path d="M51 47 C63 24 86 21 90 36 C92 49 71 53 52 51 Z" />
+            <path d="M51 53 C60 62 80 74 81 62 C82 51 63 51 51 55 Z" />
+          </g>
+          <g transform="translate(100 0) scale(-1 1)">
+            <use href="#bf-wing" />
+          </g>
+          {/* Detalhes nas asas */}
+          <g fill="#fff4d6" opacity="0.9">
+            <circle cx="74" cy="34" r="2.4" />
+            <circle cx="26" cy="34" r="2.4" />
+            <circle cx="70" cy="63" r="1.8" />
+            <circle cx="30" cy="63" r="1.8" />
+          </g>
+        </motion.g>
+
+        {/* Corpo */}
+        <path
+          d="M50 40 C52.4 40 53.4 43 53.4 50 C53.4 59 51.8 66 50 66 C48.2 66 46.6 59 46.6 50 C46.6 43 47.6 40 50 40 Z"
+          fill="url(#bfBody)"
+        />
+      </svg>
+
+      <button
+        type="button"
+        disabled={torn || flew}
+        onClick={handleActivate}
+        className="absolute inset-0 z-30 cursor-pointer rounded-full border-0 bg-transparent p-0 outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-rose-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none"
+        style={{ touchAction: 'manipulation' }}
+        aria-label={ariaLabel}
+      />
+    </motion.div>
+  )
+}
+
 type OpeningEnvelopeProps = {
   closedSrc: string
   openSrc: string
@@ -616,6 +785,9 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const soccerGoalMode =
     data.openingInteractionMode === 'soccer_goal' ||
     (typeof inviteSlug === 'string' && SOCCER_GOAL_SLUG_FALLBACKS.includes(inviteSlug))
+  const butterflySealMode =
+    data.openingInteractionMode === 'butterfly' ||
+    (typeof inviteSlug === 'string' && BUTTERFLY_SEAL_SLUG_FALLBACKS.includes(inviteSlug))
   const envelopeBlendMode =
     typeof inviteSlug === 'string' && ENVELOPE_BLEND_SLUG_FALLBACKS.includes(inviteSlug)
   const rockGuitarSealMode = envelopeBlendMode
@@ -708,6 +880,11 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   }
 
   const handleRockStrum = () => {
+    if (phase !== 'idle') return
+    setPhase('seal')
+  }
+
+  const handleButterflyFly = () => {
     if (phase !== 'idle') return
     setPhase('seal')
   }
@@ -842,7 +1019,14 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 }
                 sealAnchorX={sealAnchorX}
                 sealAnchorY={sealAnchorY}
-                textureZoomOverride={data.openingEnvelopeTextureZoom ?? (defaultInviteMode ? DEFAULT_INVITE_ENVELOPE_TEXTURE_ZOOM : null)}
+                textureZoomOverride={
+                  data.openingEnvelopeTextureZoom ??
+                  (butterflySealMode
+                    ? BUTTERFLY_ENVELOPE_TEXTURE_ZOOM
+                    : defaultInviteMode
+                      ? DEFAULT_INVITE_ENVELOPE_TEXTURE_ZOOM
+                      : null)
+                }
                 textureZoomMin={soccerGoalMode ? (flapOpen ? 1.1 : 1.17) : undefined}
                 visualAspectRatio={soccerGoalMode ? (flapOpen ? 1.36 : 1.9) : undefined}
                 textureOffsetX={soccerGoalMode && !flapOpen ? -6 : 0}
@@ -872,6 +1056,14 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                       torn={sealTorn}
                       onUserGesture={onSealUserGesture}
                       onScored={handleSealClick}
+                      ariaLabel={data.openingSealHint?.trim() || t('invite.openingFallback')}
+                    />
+                  ) : butterflySealMode ? (
+                    <ButterflySeal
+                      reduce={Boolean(reduce)}
+                      torn={sealTorn}
+                      onUserGesture={onSealUserGesture}
+                      onFlewAway={handleButterflyFly}
                       ariaLabel={data.openingSealHint?.trim() || t('invite.openingFallback')}
                     />
                   ) : rockGuitarSealMode ? (
