@@ -27,6 +27,17 @@ const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 const SOCCER_GOAL_SLUG_FALLBACKS: readonly string[] = ['san-barssoti']
 /** Slugs que usam borboleta no lugar do selo mesmo sem `openingInteractionMode` no JSON guardado. */
 const BUTTERFLY_SEAL_SLUG_FALLBACKS: readonly string[] = ['cleyzamara']
+
+/**
+ * Envelopes com fundo branco recortado (PNG com transparência) para que a moldura apareça
+ * ao redor da arte, sem “bordas brancas” — fechado e aberto. Sobrepõe o URL guardado no CMS.
+ */
+const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, { closed: string; open: string }> = {
+  cleyzamara: {
+    closed: '/images/envelopes/cleyzamara-closed.png',
+    open: '/images/envelopes/cleyzamara-open.png',
+  },
+}
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
 const ENVELOPE_BLEND_SLUG_FALLBACKS: readonly string[] = ['fernando-correia']
 
@@ -798,14 +809,21 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
    * Deixar a camada transparente + multiply faz o branco do JPG assumir a textura real da moldura.
    */
   const shouldMultiplyEnvelope = Boolean(backdropColor) || soccerGoalMode || envelopeBlendMode
+  /** Arte de envelope com fundo recortado (transparente) para o slug atual, se existir. */
+  const envelopeOverride =
+    typeof inviteSlug === 'string' ? ENVELOPE_TRANSPARENT_OVERRIDES[inviteSlug] : undefined
   const openingStagePaperBg =
-    (soccerGoalMode || envelopeBlendMode) && !backdropColor ? 'transparent' : backdropColor || 'var(--color-cream)'
+    (soccerGoalMode || envelopeBlendMode || butterflySealMode || Boolean(envelopeOverride)) && !backdropColor
+      ? 'transparent'
+      : backdropColor || 'var(--color-cream)'
   const darkOpeningBackdrop = Boolean(backdropColor)
   const soccerOpeningTextClass = soccerGoalMode && !darkOpeningBackdrop
   const layoutOffsetTop = data.openingLayoutOffsetTop?.trim() || (envelopeBlendMode ? 'clamp(2rem, 5vh, 3.75rem)' : '')
   const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim()
-  const envelopeSrc = data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
-  const envelopeOpenSrc = data.openingEnvelopeOpenImageUrl?.trim() || '/images/envelope-open.png'
+  const envelopeSrc =
+    envelopeOverride?.closed || data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
+  const envelopeOpenSrc =
+    envelopeOverride?.open || data.openingEnvelopeOpenImageUrl?.trim() || '/images/envelope-open.png'
   const envelopeNaturalW = data.openingEnvelopeNaturalWidth || ENVELOPE_NATURAL_W
   const envelopeNaturalH = data.openingEnvelopeNaturalHeight || ENVELOPE_NATURAL_H
   const sealAnchorY =
