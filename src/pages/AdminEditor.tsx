@@ -819,17 +819,22 @@ export function AdminEditor({ onSignOut }: Props) {
           <Field label="Lacre manual (vazio = iniciais dos nomes)">
             <input className={inputClass} value={form.openingSealMark} onChange={(e) => set('openingSealMark')(e.target.value)} />
           </Field>
-          <Field label="Abertura temática futebol (trave + bola)">
-            <label className="inline-flex items-center gap-3 text-sm text-stone-700">
-              <input
-                type="checkbox"
-                checked={form.openingInteractionMode === 'soccer_goal'}
-                onChange={(e) => set('openingInteractionMode')(e.target.checked ? 'soccer_goal' : 'seal')}
-                className="h-4 w-4 rounded border-stone-300 text-[color:var(--color-gold)] focus:ring-[color:var(--color-gold)]"
-              />
-              Trave em vez do selo; o convidado toca na bola para a animação ao golo (ajuste o texto de ajuda em cima,
-              ex.: «Toque na bola para abrir o convite»).
-            </label>
+          <Field label="Interação de abertura">
+            <select
+              className={inputClass}
+              value={form.openingInteractionMode}
+              onChange={(e) =>
+                set('openingInteractionMode')(e.target.value as EventData['openingInteractionMode'])
+              }
+            >
+              <option value="seal">Selo dourado clássico (clique para abrir)</option>
+              <option value="soccer_goal">Futebol — trave + bola (toque na bola)</option>
+              <option value="butterfly">Borboleta — voa ao ser tocada</option>
+            </select>
+            <p className="mt-1 text-xs text-stone-500">
+              «Futebol»: o convidado toca na bola para a animação ao golo. «Borboleta»: uma borboleta substitui o selo e
+              sai voando ao ser tocada. Ajuste o texto de ajuda acima (ex.: «Toque na borboleta para abrir o convite»).
+            </p>
           </Field>
           <Field label="Selo — posição vertical (0 = topo, 1 = base; ~0,8 = ponta do aba)">
             <input

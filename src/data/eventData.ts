@@ -76,10 +76,11 @@ export const eventData = {
    */
   openingSealMark: '',
   /**
-   * `seal` = selo dourado clássico; `soccer_goal` = trave + animação de bola ao golo (mesma âncora do selo).
-   * O slug `san-barssoti` também ativa este modo no código até gravares a opção no CMS.
+   * `seal` = selo dourado clássico; `soccer_goal` = trave + animação de bola ao golo (mesma âncora do selo);
+   * `butterfly` = borboleta no lugar do selo que voa ao ser tocada e abre o convite.
+   * Os slugs `san-barssoti` (futebol) e `cleyzamara` (borboleta) também ativam o modo no código até gravares a opção no CMS.
    */
-  openingInteractionMode: 'seal' as 'seal' | 'soccer_goal',
+  openingInteractionMode: 'seal' as 'seal' | 'soccer_goal' | 'butterfly',
   /**
    * Moldura de fundo na abertura (PNG em `public/images/frames/`).
    * Vazio = usa a moldura padrão do casamento.
