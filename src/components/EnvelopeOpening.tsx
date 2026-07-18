@@ -37,6 +37,10 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, { closed: string; open: str
     closed: '/images/envelopes/cleyzamara-closed.png',
     open: '/images/envelopes/cleyzamara-open.png',
   },
+  'exemplo-60-anos': {
+    closed: '/images/envelopes/exemplo-60-anos-closed.png',
+    open: '/images/envelopes/exemplo-60-anos-open.png',
+  },
 }
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
 const ENVELOPE_BLEND_SLUG_FALLBACKS: readonly string[] = ['fernando-correia']
