@@ -32,7 +32,24 @@ const BUTTERFLY_SEAL_SLUG_FALLBACKS: readonly string[] = ['cleyzamara']
  * Envelopes com fundo branco recortado (PNG com transparência) para que a moldura apareça
  * ao redor da arte, sem “bordas brancas” — fechado e aberto. Sobrepõe o URL guardado no CMS.
  */
-const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, { closed: string; open: string }> = {
+type EnvelopeTransparentOverride = {
+  closed: string
+  open: string
+  /** Dimensões nativas da arte fechada (define a proporção da caixa). */
+  naturalWidth?: number
+  naturalHeight?: number
+  /** Dimensões nativas da arte aberta, quando diferem da fechada (ativa object-contain). */
+  openNaturalWidth?: number
+  openNaturalHeight?: number
+  /** Zoom da textura (1 = sem crop; mostra a arte inteira). */
+  textureZoom?: number
+  /** Reposiciona o selo (fração vertical da caixa) quando a moldura muda a geometria. */
+  sealAnchorY?: number
+  /** Teto de altura da caixa em vh (dá mais espaço a artes altas/retrato). */
+  boxHeightVhCap?: number
+}
+
+const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride> = {
   cleyzamara: {
     closed: '/images/envelopes/cleyzamara-closed.png',
     open: '/images/envelopes/cleyzamara-open.png',
@@ -40,6 +57,13 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, { closed: string; open: str
   'exemplo-60-anos': {
     closed: '/images/envelopes/exemplo-60-anos-closed.png',
     open: '/images/envelopes/exemplo-60-anos-open.png',
+    naturalWidth: 1448,
+    naturalHeight: 1086,
+    openNaturalWidth: 1122,
+    openNaturalHeight: 1402,
+    textureZoom: 1,
+    sealAnchorY: 0.57,
+    boxHeightVhCap: 52,
   },
 }
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
@@ -828,10 +852,12 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
     envelopeOverride?.closed || data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
   const envelopeOpenSrc =
     envelopeOverride?.open || data.openingEnvelopeOpenImageUrl?.trim() || '/images/envelope-open.png'
-  const envelopeNaturalW = data.openingEnvelopeNaturalWidth || ENVELOPE_NATURAL_W
-  const envelopeNaturalH = data.openingEnvelopeNaturalHeight || ENVELOPE_NATURAL_H
+  const envelopeNaturalW = envelopeOverride?.naturalWidth || data.openingEnvelopeNaturalWidth || ENVELOPE_NATURAL_W
+  const envelopeNaturalH = envelopeOverride?.naturalHeight || data.openingEnvelopeNaturalHeight || ENVELOPE_NATURAL_H
   const sealAnchorY =
-    typeof data.openingSealAnchorY === 'number' && Number.isFinite(data.openingSealAnchorY)
+    typeof envelopeOverride?.sealAnchorY === 'number' && Number.isFinite(envelopeOverride.sealAnchorY)
+      ? envelopeOverride.sealAnchorY
+      : typeof data.openingSealAnchorY === 'number' && Number.isFinite(data.openingSealAnchorY)
       ? data.openingSealAnchorY
       : SEAL_ANCHOR_Y
   const sealAnchorXRaw =
@@ -848,9 +874,13 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
       ? data.openingEnvelopeBoxWidthMaxPx
       : 400
   const envBoxVhCap =
-    typeof data.openingEnvelopeBoxHeightVhCap === 'number' &&
-    Number.isFinite(data.openingEnvelopeBoxHeightVhCap) &&
-    data.openingEnvelopeBoxHeightVhCap > 0
+    typeof envelopeOverride?.boxHeightVhCap === 'number' &&
+    Number.isFinite(envelopeOverride.boxHeightVhCap) &&
+    envelopeOverride.boxHeightVhCap > 0
+      ? envelopeOverride.boxHeightVhCap
+      : typeof data.openingEnvelopeBoxHeightVhCap === 'number' &&
+        Number.isFinite(data.openingEnvelopeBoxHeightVhCap) &&
+        data.openingEnvelopeBoxHeightVhCap > 0
       ? data.openingEnvelopeBoxHeightVhCap
       : 42
   const envBoxPxCap =
@@ -1026,23 +1056,26 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 naturalWidth={envelopeNaturalW}
                 naturalHeight={envelopeNaturalH}
                 openNaturalWidth={
-                  typeof data.openingEnvelopeOpenNaturalWidth === 'number' &&
+                  envelopeOverride?.openNaturalWidth ??
+                  (typeof data.openingEnvelopeOpenNaturalWidth === 'number' &&
                   Number.isFinite(data.openingEnvelopeOpenNaturalWidth) &&
                   data.openingEnvelopeOpenNaturalWidth > 0
                     ? data.openingEnvelopeOpenNaturalWidth
-                    : undefined
+                    : undefined)
                 }
                 openNaturalHeight={
-                  typeof data.openingEnvelopeOpenNaturalHeight === 'number' &&
+                  envelopeOverride?.openNaturalHeight ??
+                  (typeof data.openingEnvelopeOpenNaturalHeight === 'number' &&
                   Number.isFinite(data.openingEnvelopeOpenNaturalHeight) &&
                   data.openingEnvelopeOpenNaturalHeight > 0
                     ? data.openingEnvelopeOpenNaturalHeight
-                    : undefined
+                    : undefined)
                 }
                 sealAnchorX={sealAnchorX}
                 sealAnchorY={sealAnchorY}
                 textureZoomOverride={
                   data.openingEnvelopeTextureZoom ??
+                  envelopeOverride?.textureZoom ??
                   (butterflySealMode
                     ? BUTTERFLY_ENVELOPE_TEXTURE_ZOOM
                     : defaultInviteMode
