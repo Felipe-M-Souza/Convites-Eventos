@@ -110,10 +110,18 @@ type Props = {
   kind: PaymentResultKind
 }
 
-export function PaymentResultPage({ kind }: Props) {
+export function PaymentResultPage({ kind: routeKind }: Props) {
   const { locale } = useI18n()
   const [params] = useSearchParams()
   const orderId = (params.get('order') || params.get('external_reference') || '').trim()
+
+  // O MP anexa o status real na URL de retorno; no Pix ele devolve pela
+  // back_url "pending" mesmo com pagamento já aprovado. Corrige a exibição.
+  const mpStatus = (params.get('collection_status') || params.get('status') || '').toLowerCase()
+  let kind: PaymentResultKind = routeKind
+  if (routeKind === 'pending' && mpStatus === 'approved') kind = 'success'
+  else if (routeKind === 'pending' && (mpStatus === 'rejected' || mpStatus === 'cancelled')) kind = 'failure'
+
   const copyLocale = locale === 'en' || locale === 'es' ? locale : 'pt-BR'
   const copy = COPY[copyLocale][kind]
 
