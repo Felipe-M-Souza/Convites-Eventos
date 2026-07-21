@@ -1,0 +1,4 @@
+# Config local do Supabase (opcional). Deploy remoto: ver MERCADOPAGO_SETUP.md
+
+[functions.mercadopago-webhook]
+verify_jwt = false

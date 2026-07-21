@@ -9,6 +9,7 @@ import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 import { PromoPopup } from '../components/PromoPopup'
 import { buildLeadMessageForOccasion, buildLeadWhatsappHref } from '../lib/leadContact'
 import { getPromoOffer, PROMO } from '../config/pricing'
+import { PayCheckoutButton } from '../components/PayCheckoutButton'
 
 export function ServiceLandingPage() {
   const { serviceSlug } = useParams()
@@ -114,20 +115,27 @@ export function ServiceLandingPage() {
                   {offer.promoPrice}
                 </span>
               </p>
-              <a
-                href={planHref}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() =>
-                  trackWhatsappLead(`${leadSource}_offer_${PROMO.planKey}`, {
-                    destination: planHref,
-                    plan: PROMO.planKey,
-                  })
-                }
-                className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1ebe57]"
-              >
-                {offer.cta}
-              </a>
+              <div className="mt-3 space-y-2">
+                <PayCheckoutButton
+                  source={`${leadSource}_offer_${PROMO.planKey}`}
+                  label={offer.payCta}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-gold)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-wait disabled:opacity-70"
+                />
+                <a
+                  href={planHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() =>
+                    trackWhatsappLead(`${leadSource}_offer_${PROMO.planKey}`, {
+                      destination: planHref,
+                      plan: PROMO.planKey,
+                    })
+                  }
+                  className="inline-flex w-full items-center justify-center rounded-full border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
+                >
+                  {offer.cta}
+                </a>
+              </div>
             </article>
           </div>
         </section>

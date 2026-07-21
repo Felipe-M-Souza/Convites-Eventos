@@ -15,6 +15,11 @@ import { AdminPanel } from './pages/AdminPanel'
 import { OwnerPanel } from './pages/OwnerPanel'
 import { OwnerClaimPage } from './pages/OwnerClaimPage'
 import { ServiceLandingPage } from './pages/ServiceLandingPage'
+import {
+  PaymentFailurePage,
+  PaymentPendingPage,
+  PaymentSuccessPage,
+} from './pages/PaymentPages'
 import { serviceLandingPagesBySlug } from './data/serviceLandingPages'
 import { initAnalytics, trackPageView } from './lib/analytics'
 import { I18nProvider } from './i18n/I18nProvider'
@@ -91,6 +96,9 @@ export const routes: RouteObject[] = [
         path: 'convite-digital/:serviceSlug',
         Component: ServiceLandingPage,
       },
+      { path: 'pagamento/sucesso', Component: PaymentSuccessPage },
+      { path: 'pagamento/pendente', Component: PaymentPendingPage },
+      { path: 'pagamento/erro', Component: PaymentFailurePage },
       // Rotas dinâmicas/privadas — não pré-renderizadas (servidas via SPA fallback)
       { path: 'c/:slug', Component: InviteRoute },
       { path: 'i/:slug', Component: ShareInviteRedirectRoute },

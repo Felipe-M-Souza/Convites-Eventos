@@ -5,9 +5,10 @@ import { applySeoMeta } from '../lib/seoMeta'
 import { useI18n } from '../i18n/useI18n'
 import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 import { PromoPopup } from '../components/PromoPopup'
-import { getPromoOffer } from '../config/pricing'
+import { getPromoOffer, PROMO } from '../config/pricing'
 import { buildLeadWhatsappHref } from '../lib/leadContact'
 import { getLocalizedCatalogItem, occasionCatalog } from '../data/occasionCatalog'
+import { PayCheckoutButton } from '../components/PayCheckoutButton'
 
 export function ExamplesPage() {
   const { locale, t } = useI18n()
@@ -73,15 +74,27 @@ export function ExamplesPage() {
             >
               {t('examples.liveDemo')}
             </Link>
-            <a
-              href={offerHref}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => trackWhatsappLead('examples_page_offer', { destination: offerHref, plan: 'unico' })}
-              className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
-            >
-              {offer.cta}
-            </a>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+              <PayCheckoutButton
+                source="examples_page_offer"
+                label={offer.payCta}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-gold)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-wait disabled:opacity-70"
+              />
+              <a
+                href={offerHref}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() =>
+                  trackWhatsappLead('examples_page_offer', {
+                    destination: offerHref,
+                    plan: PROMO.planKey,
+                  })
+                }
+                className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
+              >
+                {offer.cta}
+              </a>
+            </div>
           </div>
         </div>
 

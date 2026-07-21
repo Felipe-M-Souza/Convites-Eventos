@@ -53,6 +53,9 @@ type PromoUiCopy = {
   offerItems: string[]
   fromLabel: string
   validUntilLabel: string
+  /** CTA principal: inicia Checkout Pro (Mercado Pago). */
+  payCta: string
+  /** CTA secundário: WhatsApp. */
   cta: string
   whatsappMessage: string
   heroCta: string
@@ -63,11 +66,11 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
     badge: 'Oferta por tempo limitado',
     title: 'Convite digital por R$ 50,00',
     subtitle:
-      'Valor único promocional válido até 15/08. Fale no WhatsApp e garanta o seu convite digital personalizado.',
+      'Valor único promocional válido até 15/08. Pague online com segurança ou fale no WhatsApp.',
     sectionEyebrow: 'Oferta especial',
     sectionTitle: 'Valor único de R$ 50,00 até 15/08.',
     sectionDescription:
-      'Promoção por tempo limitado: um preço único para o seu convite digital personalizado, com atendimento direto no WhatsApp.',
+      'Promoção por tempo limitado: um preço único para o seu convite digital personalizado. Pagamento seguro via Mercado Pago.',
     offerName: 'Convite digital',
     offerDescription:
       'Convite personalizado com abertura animada, trilha, mapa, confirmação por WhatsApp e experiência pensada para celular.',
@@ -79,7 +82,8 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
     ],
     fromLabel: 'de',
     validUntilLabel: 'Válido até 15/08',
-    cta: 'Quero este preço no WhatsApp',
+    payCta: 'Pagar R$ 50,00',
+    cta: 'Prefiro falar no WhatsApp',
     whatsappMessage:
       'Olá! Vi a oferta de valor único no Convites Diversos e quero o convite digital por R$ 50,00 (válido até 15/08). Pode me ajudar?',
     heroCta: 'Ver oferta de R$ 50',
@@ -88,11 +92,11 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
     badge: 'Limited-time offer',
     title: 'Digital invitation for R$ 50.00',
     subtitle:
-      'Single promotional price valid until August 15. Talk to us on WhatsApp to lock in your personalized digital invitation.',
+      'Single promotional price valid until August 15. Pay securely online or message us on WhatsApp.',
     sectionEyebrow: 'Special offer',
     sectionTitle: 'Single price of R$ 50.00 until August 15.',
     sectionDescription:
-      'Limited-time promotion: one flat price for your personalized digital invitation, with direct WhatsApp support.',
+      'Limited-time promotion: one flat price for your personalized digital invitation. Secure checkout with Mercado Pago.',
     offerName: 'Digital invitation',
     offerDescription:
       'Personalized invitation with animated opening, soundtrack, map, WhatsApp RSVP and a mobile-first experience.',
@@ -104,7 +108,8 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
     ],
     fromLabel: 'was',
     validUntilLabel: 'Valid until August 15',
-    cta: 'Get this price on WhatsApp',
+    payCta: 'Pay R$ 50.00',
+    cta: 'Prefer WhatsApp',
     whatsappMessage:
       'Hi! I saw the single-price offer on Convites Diversos and I want the digital invitation for R$ 50.00 (valid until August 15). Can you help me?',
     heroCta: 'See R$ 50 offer',
@@ -113,11 +118,11 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
     badge: 'Oferta por tiempo limitado',
     title: 'Invitación digital por R$ 50,00',
     subtitle:
-      'Precio único promocional válido hasta el 15 de agosto. Háblanos por WhatsApp y asegura tu invitación digital personalizada.',
+      'Precio único promocional válido hasta el 15 de agosto. Paga en línea con seguridad o escríbenos por WhatsApp.',
     sectionEyebrow: 'Oferta especial',
     sectionTitle: 'Precio único de R$ 50,00 hasta el 15/08.',
     sectionDescription:
-      'Promoción por tiempo limitado: un solo precio para tu invitación digital personalizada, con atención directa por WhatsApp.',
+      'Promoción por tiempo limitado: un solo precio para tu invitación digital personalizada. Pago seguro con Mercado Pago.',
     offerName: 'Invitación digital',
     offerDescription:
       'Invitación personalizada con apertura animada, música, mapa, confirmación por WhatsApp y experiencia pensada para celular.',
@@ -129,7 +134,8 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
     ],
     fromLabel: 'antes',
     validUntilLabel: 'Válido hasta el 15/08',
-    cta: 'Quiero este precio por WhatsApp',
+    payCta: 'Pagar R$ 50,00',
+    cta: 'Prefiero WhatsApp',
     whatsappMessage:
       '¡Hola! Vi la oferta de precio único en Convites Diversos y quiero la invitación digital por R$ 50,00 (válida hasta el 15/08). ¿Me ayudas?',
     heroCta: 'Ver oferta de R$ 50',
@@ -155,6 +161,7 @@ export function getPromoOffer(locale: string) {
     whatsappMessage: copy.whatsappMessage,
     validUntilLabel: copy.validUntilLabel,
     fromLabel: copy.fromLabel,
+    payCta: copy.payCta,
     cta: copy.cta,
     badge: copy.badge,
     title: copy.title,

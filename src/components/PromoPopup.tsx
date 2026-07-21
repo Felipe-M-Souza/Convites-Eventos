@@ -3,6 +3,7 @@ import { trackWhatsappLead, trackEvent } from '../lib/analytics'
 import { buildLeadWhatsappHref } from '../lib/leadContact'
 import { useI18n } from '../i18n/useI18n'
 import { getPromoOffer, isPromoActive, PROMO } from '../config/pricing'
+import { PayCheckoutButton } from './PayCheckoutButton'
 
 /**
  * Pop-up da oferta de valor único.
@@ -110,21 +111,28 @@ export function PromoPopup({ source }: Props) {
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-gold)]">
               {offer.validUntilLabel}
             </p>
-            <a
-              href={href}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() =>
-                trackWhatsappLead(`promo_popup_${source}_${PROMO.planKey}`, {
-                  destination: href,
-                  plan: PROMO.planKey,
-                })
-              }
-              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1ebe57]"
-            >
-              <WhatsappIcon />
-              {offer.cta}
-            </a>
+            <div className="mt-3 space-y-2">
+              <PayCheckoutButton
+                source={`promo_popup_${source}_${PROMO.planKey}`}
+                label={offer.payCta}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-gold)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-wait disabled:opacity-70"
+              />
+              <a
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() =>
+                  trackWhatsappLead(`promo_popup_${source}_${PROMO.planKey}`, {
+                    destination: href,
+                    plan: PROMO.planKey,
+                  })
+                }
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
+              >
+                <WhatsappIcon />
+                {offer.cta}
+              </a>
+            </div>
           </div>
         </div>
       </div>
