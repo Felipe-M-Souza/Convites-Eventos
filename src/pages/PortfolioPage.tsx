@@ -209,31 +209,38 @@ export function PortfolioPage() {
             <p className="mt-6 max-w-xl text-base leading-8 text-[color:var(--color-ink-muted)] sm:text-lg">
               {t('portfolio.heroDescription')}
             </p>
-            <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
-              <Link
-                to={demoHomeHref}
-                onClick={() => trackCtaClick('portfolio_hero', 'ver_convite_demonstrativo', demoHomeHref)}
-                className="inline-flex rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95"
-              >
-                {t('portfolio.ctaDemo')}
-              </Link>
-              <Link
-                to={modelsHomeHref}
-                onClick={() => trackCtaClick('portfolio_hero', 'ver_outros_modelos', modelsHomeHref)}
-                className="inline-flex rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
-              >
-                {t('portfolio.ctaModels')}
-              </Link>
+            <div className="mt-10 max-w-md space-y-4">
+              <PayCheckoutButton
+                source={`portfolio_hero_${PROMO.planKey}`}
+                label={offer.payCta}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:cursor-wait disabled:opacity-70"
+              />
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                <Link
+                  to={demoHomeHref}
+                  onClick={() => trackCtaClick('portfolio_hero', 'ver_convite_demonstrativo', demoHomeHref)}
+                  className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
+                >
+                  {t('portfolio.ctaDemo')}
+                </Link>
+                <Link
+                  to={modelsHomeHref}
+                  onClick={() => trackCtaClick('portfolio_hero', 'ver_outros_modelos', modelsHomeHref)}
+                  className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-8 py-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-50"
+                >
+                  {t('portfolio.ctaModels')}
+                </Link>
+              </div>
+              <p className="text-sm">
+                <button
+                  type="button"
+                  onClick={scrollToPlans}
+                  className="font-medium text-[color:var(--color-gold)] underline decoration-[color:var(--color-gold-soft)] underline-offset-4 transition hover:decoration-[color:var(--color-gold)]"
+                >
+                  {offer.heroCta}
+                </button>
+              </p>
             </div>
-            <p className="mt-6 text-sm">
-              <button
-                type="button"
-                onClick={scrollToPlans}
-                className="font-medium text-[color:var(--color-gold)] underline decoration-[color:var(--color-gold-soft)] underline-offset-4 transition hover:decoration-[color:var(--color-gold)]"
-              >
-                {offer.heroCta}
-              </button>
-            </p>
             <p className="mt-8 text-sm text-[color:var(--color-ink-muted)]">
               {t('portfolio.heroNote')}
             </p>

@@ -55,6 +55,14 @@ VITE_PUBLIC_SITE_URL=https://www.convitesdiversos.com.br
 
 CTAs de pagamento: `PayCheckoutButton` em home (`#planos`), landings de serviço e popup promocional. WhatsApp permanece como canal secundário.
 
+A página `/pagamento/pendente` faz polling do status (Pix costuma voltar `pending` e só depois aprovar). Deploy também:
+
+```bash
+supabase functions deploy resolve-order-payment
+```
+
+No SQL Editor, execute `supabase/migrations/016_get_order_payment_status.sql` (fallback de leitura do status).
+
 ## 5. Teste
 
 1. Use credenciais de **teste** do MP e um [cartão de teste](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/additional-content/test-cards).

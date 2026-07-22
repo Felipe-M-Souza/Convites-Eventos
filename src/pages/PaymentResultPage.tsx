@@ -1,9 +1,10 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/useI18n'
 import { buildLeadWhatsappHref } from '../lib/leadContact'
 import { trackEvent, trackWhatsappLead } from '../lib/analytics'
 import { PROMO } from '../config/pricing'
+import { mapOrderStatusToResultKind, resolveOrderPayment } from '../lib/orderStatus'
 
 export type PaymentResultKind = 'success' | 'pending' | 'failure'
 
@@ -14,6 +15,7 @@ type Copy = {
   home: string
   whatsapp: string
   orderLabel: string
+  checking: string
 }
 
 const COPY: Record<'pt-BR' | 'en' | 'es', Record<PaymentResultKind, Copy>> = {
@@ -26,15 +28,17 @@ const COPY: Record<'pt-BR' | 'en' | 'es', Record<PaymentResultKind, Copy>> = {
       home: 'Voltar ao início',
       whatsapp: 'Falar no WhatsApp agora',
       orderLabel: 'Pedido',
+      checking: '',
     },
     pending: {
       eyebrow: 'Pagamento',
       title: 'Pagamento em análise',
       description:
-        'O Mercado Pago ainda está processando. Assim que confirmar, seguimos com a personalização do convite. Pode fechar esta página com tranquilidade.',
+        'O Mercado Pago ainda está processando. Esta página atualiza sozinha quando o Pix for confirmado — em geral em poucos segundos.',
       home: 'Voltar ao início',
       whatsapp: 'Tirar dúvida no WhatsApp',
       orderLabel: 'Pedido',
+      checking: 'Confirmando status do pagamento…',
     },
     failure: {
       eyebrow: 'Pagamento',
@@ -44,6 +48,7 @@ const COPY: Record<'pt-BR' | 'en' | 'es', Record<PaymentResultKind, Copy>> = {
       home: 'Tentar de novo',
       whatsapp: 'Falar no WhatsApp',
       orderLabel: 'Pedido',
+      checking: '',
     },
   },
   en: {
@@ -55,15 +60,17 @@ const COPY: Record<'pt-BR' | 'en' | 'es', Record<PaymentResultKind, Copy>> = {
       home: 'Back to home',
       whatsapp: 'Message us on WhatsApp',
       orderLabel: 'Order',
+      checking: '',
     },
     pending: {
       eyebrow: 'Payment',
       title: 'Payment under review',
       description:
-        'Mercado Pago is still processing. Once it clears, we will continue with your invitation. You can safely leave this page.',
+        'Mercado Pago is still processing. This page updates automatically when Pix clears — usually within a few seconds.',
       home: 'Back to home',
       whatsapp: 'Ask on WhatsApp',
       orderLabel: 'Order',
+      checking: 'Checking payment status…',
     },
     failure: {
       eyebrow: 'Payment',
@@ -73,6 +80,7 @@ const COPY: Record<'pt-BR' | 'en' | 'es', Record<PaymentResultKind, Copy>> = {
       home: 'Try again',
       whatsapp: 'Message on WhatsApp',
       orderLabel: 'Order',
+      checking: '',
     },
   },
   es: {
@@ -84,15 +92,17 @@ const COPY: Record<'pt-BR' | 'en' | 'es', Record<PaymentResultKind, Copy>> = {
       home: 'Volver al inicio',
       whatsapp: 'Hablar por WhatsApp',
       orderLabel: 'Pedido',
+      checking: '',
     },
     pending: {
       eyebrow: 'Pago',
       title: 'Pago en análisis',
       description:
-        'Mercado Pago aún está procesando. Cuando confirme, seguimos con la personalización. Puedes cerrar esta página con tranquilidad.',
+        'Mercado Pago aún está procesando. Esta página se actualiza sola cuando el Pix se confirme — en general en pocos segundos.',
       home: 'Volver al inicio',
       whatsapp: 'Consultar por WhatsApp',
       orderLabel: 'Pedido',
+      checking: 'Confirmando el estado del pago…',
     },
     failure: {
       eyebrow: 'Pago',
@@ -102,25 +112,38 @@ const COPY: Record<'pt-BR' | 'en' | 'es', Record<PaymentResultKind, Copy>> = {
       home: 'Intentar de nuevo',
       whatsapp: 'Hablar por WhatsApp',
       orderLabel: 'Pedido',
+      checking: '',
     },
   },
 }
 
+const POLL_INTERVAL_MS = 3000
+const POLL_MAX_MS = 120_000
+
 type Props = {
   kind: PaymentResultKind
+}
+
+function kindFromMpUrl(routeKind: PaymentResultKind, mpStatus: string): PaymentResultKind {
+  if (routeKind === 'pending' && mpStatus === 'approved') return 'success'
+  if (routeKind === 'pending' && (mpStatus === 'rejected' || mpStatus === 'cancelled')) return 'failure'
+  return routeKind
 }
 
 export function PaymentResultPage({ kind: routeKind }: Props) {
   const { locale } = useI18n()
   const [params] = useSearchParams()
   const orderId = (params.get('order') || params.get('external_reference') || '').trim()
+  const paymentId = (params.get('payment_id') || params.get('collection_id') || '').trim()
 
   // O MP anexa o status real na URL de retorno; no Pix ele devolve pela
   // back_url "pending" mesmo com pagamento já aprovado. Corrige a exibição.
   const mpStatus = (params.get('collection_status') || params.get('status') || '').toLowerCase()
-  let kind: PaymentResultKind = routeKind
-  if (routeKind === 'pending' && mpStatus === 'approved') kind = 'success'
-  else if (routeKind === 'pending' && (mpStatus === 'rejected' || mpStatus === 'cancelled')) kind = 'failure'
+  const initialKind = kindFromMpUrl(routeKind, mpStatus)
+
+  const [kind, setKind] = useState<PaymentResultKind>(initialKind)
+  const [checking, setChecking] = useState(initialKind === 'pending' && Boolean(orderId || paymentId))
+  const trackedKindRef = useRef<PaymentResultKind | null>(null)
 
   const copyLocale = locale === 'en' || locale === 'es' ? locale : 'pt-BR'
   const copy = COPY[copyLocale][kind]
@@ -136,12 +159,52 @@ export function PaymentResultPage({ kind: routeKind }: Props) {
   const homeHref = kind === 'failure' ? '/#planos' : '/'
 
   useEffect(() => {
+    if (kind !== 'pending') {
+      setChecking(false)
+      return undefined
+    }
+    if (!orderId && !paymentId) {
+      setChecking(false)
+      return undefined
+    }
+
+    let cancelled = false
+    const startedAt = Date.now()
+
+    const poll = async () => {
+      const resolved = await resolveOrderPayment({ orderId, paymentId: paymentId || undefined })
+      if (cancelled || !resolved) return
+      const next = mapOrderStatusToResultKind(resolved.status)
+      if (next !== 'pending') {
+        setKind(next)
+        setChecking(false)
+      }
+    }
+
+    void poll()
+    const timer = window.setInterval(() => {
+      if (Date.now() - startedAt >= POLL_MAX_MS) {
+        window.clearInterval(timer)
+        setChecking(false)
+        return
+      }
+      void poll()
+    }, POLL_INTERVAL_MS)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [kind, orderId, paymentId])
+
+  useEffect(() => {
+    if (trackedKindRef.current === kind) return
+    trackedKindRef.current = kind
+
     trackEvent(`payment_${kind}`, {
       order_id: orderId || undefined,
       plan: PROMO.planKey,
-      ...(kind === 'success'
-        ? { currency: 'BRL', value: PROMO.priceCents / 100 }
-        : {}),
+      ...(kind === 'success' ? { currency: 'BRL', value: PROMO.priceCents / 100 } : {}),
     })
     if (kind === 'success') {
       trackEvent('purchase', {
@@ -163,6 +226,9 @@ export function PaymentResultPage({ kind: routeKind }: Props) {
         <p className="mt-5 text-sm leading-7 text-[color:var(--color-ink-muted)] sm:text-base">
           {copy.description}
         </p>
+        {checking && copy.checking ? (
+          <p className="mt-3 text-xs font-medium text-[color:var(--color-gold)]">{copy.checking}</p>
+        ) : null}
         {orderId ? (
           <p className="mt-4 font-mono text-xs text-[color:var(--color-ink-muted)]">
             {copy.orderLabel}: {orderId}

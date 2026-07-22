@@ -71,9 +71,10 @@ export function ServiceLandingPage() {
   const leadSource = `service_landing_${page.slug}`
   const planHref = buildLeadWhatsappHref(offer.whatsappMessage)
   const langParam = `lang=${encodeURIComponent(locale)}`
-  const demoPrimaryHref = `/c/default?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=${page.slug}`
+  const demoSlug = encodeURIComponent(page.demoSlug || 'default')
+  const demoPrimaryHref = `/c/${demoSlug}?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=${page.slug}`
   const modelsPrimaryHref = `/modelos?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=modelos_${page.slug}`
-  const demoFaqHref = `/c/default?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=faq_${page.slug}`
+  const demoFaqHref = `/c/${demoSlug}?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=faq_${page.slug}`
   const modelsFaqHref = `/modelos?${langParam}&utm_source=seo_page&utm_medium=cta&utm_campaign=faq_modelos`
 
   return (

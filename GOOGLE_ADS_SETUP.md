@@ -9,7 +9,7 @@ Guia para corrigir o alerta **"Conversion tracking setup is incomplete"** e alin
 | Domínio | `https://convitesdiversos.com.br` |
 | GA4 (`VITE_GA_MEASUREMENT_ID`) | `G-7SHFNFTTP3` — presente no bundle |
 | Google Ads tag (`VITE_GOOGLE_ADS_ID`) | `AW-17639334282` — presente no bundle |
-| Eventos no código | `generate_lead`, `clique_whatsapp`, `conversion_event_contact` |
+| Eventos no código | `generate_lead`, `clique_whatsapp`, `conversion_event_contact`, `begin_checkout`, `purchase` |
 | `VITE_GOOGLE_ADS_CONVERSION_ORCAMENTO_SEND_TO` | Opcional (importação GA4 não exige) |
 
 O tag **está instalado em produção**. Se o Google Ads ainda mostra rastreamento incompleto, o problema está na ligação GA4 ↔ Ads ou na configuração de metas/conversões — não na ausência do script no site.
@@ -22,10 +22,16 @@ O tag **está instalado em produção**. Se o Google Ads ainda mostra rastreamen
 |-------------------|-------------------------|
 | Clique em WhatsApp comercial | `generate_lead`, `clique_whatsapp`, `conversion_event_contact`* |
 | Clique em email de orçamento | `generate_lead`, `conversion_event_contact`* |
+| Inicia checkout Mercado Pago | `begin_checkout` (+ `cta_click`) |
+| Pagamento aprovado (retorno `/pagamento/sucesso`) | `purchase` |
 
 \* `conversion_event_contact` depende de `VITE_GOOGLE_ADS_CONVERSION_CONTACT_EVENT_NAME` (padrão: `conversion_event_contact`).
 
-**Recomendação:** marque **`generate_lead`** como evento-chave primário no GA4 e importe-o no Google Ads. Use `clique_whatsapp` como secundário (WhatsApp) se quiser segmentar por canal.
+**Recomendação de metas:**
+
+1. **Compra (primária para receita):** marque **`purchase`** como evento-chave no GA4 e importe-o no Google Ads como conversão **Primária** (meta Compra / Purchase). Valor e moeda BRL já vão no evento.
+2. **Lead (secundária / volume):** mantenha **`generate_lead`** como conversão secundária (WhatsApp/e-mail).
+3. **Funil (opcional):** use **`begin_checkout`** para remarketing e diagnóstico de abandono — não precisa ser conversão primária da campanha.
 
 ---
 
@@ -33,11 +39,13 @@ O tag **está instalado em produção**. Se o Google Ads ainda mostra rastreamen
 
 1. Abra [Google Analytics](https://analytics.google.com) → propriedade **G-7SHFNFTTP3**.
 2. **Admin** → **Exibição de dados** → **Eventos**.
-3. Aguarde aparecer `generate_lead` (clique no WhatsApp ou email do site para gerar tráfego de teste).
+3. Aguarde aparecer `generate_lead` (clique no WhatsApp ou email do site) e `purchase` (fluxo de pagamento de teste ou real).
 4. Ative **Marcar como evento-chave** em:
-   - `generate_lead` (primário — cobre email e WhatsApp)
+   - `purchase` (primário — receita)
+   - `generate_lead` (secundário — lead WhatsApp/e-mail)
+   - `begin_checkout` (opcional — funil)
    - `clique_whatsapp` (opcional — só WhatsApp)
-5. Valide em **Relatórios → Tempo real**: clique no botão WhatsApp do site e confirme os eventos.
+5. Valide em **Relatórios → Tempo real**: clique no WhatsApp e, se possível, complete um pagamento de teste até `/pagamento/sucesso`.
 
 ---
 
@@ -60,20 +68,21 @@ O tag **está instalado em produção**. Se o Google Ads ainda mostra rastreamen
 
 1. **Ferramentas e configurações** → **Medição** → **Conversões**.
 2. **+ Nova ação de conversão** → **Importar** → **Google Analytics 4**.
-3. Selecione **`generate_lead`** como conversão **Primária** (meta Leads/Contato).
-4. (Opcional) Importe também **`clique_whatsapp`** como secundária.
-5. Aguarde status **Ativa** (pode levar 24–72 h após o primeiro evento).
+3. Selecione **`purchase`** como conversão **Primária** (meta Compra). Confirme que o valor da conversão usa o valor do evento.
+4. Importe **`generate_lead`** como conversão **Secundária** (meta Leads/Contato) — útil para volume enquanto há poucas compras.
+5. (Opcional) Importe **`begin_checkout`** como secundária para remarketing de abandono.
+6. Aguarde status **Ativa** (pode levar 24–72 h após o primeiro evento).
 
-Se já existir conversão importada de outro evento (ex.: só `conversion_event_contact`), edite a meta da campanha para usar **`generate_lead`**.
+Se a campanha ainda usar só `generate_lead` como primária, mude a meta para priorizar **`purchase`** assim que houver volume mínimo de compras (ou rode em paralelo: Maximizar conversões com `purchase` + observação de leads).
 
 ---
 
 ## Passo 4 — Metas da campanha
 
 1. **Metas** → **Resumo de conversões** (nível conta).
-2. Confirme que a meta **Leads** ou **Contato** inclui a conversão importada `generate_lead`.
+2. Confirme que a meta de **Compra** inclui `purchase` e a de **Leads** inclui `generate_lead`.
 3. Abra a campanha **Pesquisa - Convite Digital Casamento - Brasil**.
-4. Em **Configurações** → **Metas**, verifique que a campanha usa essa meta (não uma meta vazia ou conversão errada).
+4. Em **Configurações** → **Metas**, prefira a meta que inclui **`purchase`**. Enquanto houver poucas compras, pode manter Maximizar cliques / CPA manual (Passo 5) e observar `generate_lead` em paralelo.
 
 ---
 
