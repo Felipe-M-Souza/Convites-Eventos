@@ -2,6 +2,7 @@
 // Recebe notificações do Mercado Pago e atualiza `orders`.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { maybeNotifyOwnerPaymentApproved } from '../_shared/ownerTelegram.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -100,7 +101,12 @@ async function applyPayment(paymentId: string) {
     throw new Error(`ORDER_UPDATE_FAILED: ${error.message}`)
   }
 
-  return { ok: true, externalReference, status }
+  let notified = false
+  if (status === 'approved') {
+    notified = await maybeNotifyOwnerPaymentApproved(supabase, externalReference)
+  }
+
+  return { ok: true, externalReference, status, notified }
 }
 
 Deno.serve(async (request) => {

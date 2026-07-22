@@ -24,17 +24,28 @@ No painel Supabase → **Edge Functions** → **Secrets** (ou CLI):
 ```bash
 supabase secrets set MERCADOPAGO_ACCESS_TOKEN=APP_USR-...
 supabase secrets set PUBLIC_SITE_URL=https://www.convitesdiversos.com.br
+supabase secrets set TELEGRAM_BOT_TOKEN=123456:ABC...
+supabase secrets set TELEGRAM_CHAT_ID=123456789
 ```
 
 - **Access Token**: [Mercado Pago Developers](https://www.mercadopago.com.br/developers/panel/app) → sua aplicação → Credenciais de produção (ou teste).
 - `PUBLIC_SITE_URL` deve ser o domínio HTTPS público (usado em `back_urls`).
 - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` já existem no runtime das functions.
+- **Telegram** (aviso no celular quando o pagamento é aprovado):
+  1. No Telegram, abra [@BotFather](https://t.me/BotFather) → `/newbot` → copie o token.
+  2. Abra o bot e envie qualquer mensagem (ex.: `oi`).
+  3. Abra no navegador: `https://api.telegram.org/bot<TOKEN>/getUpdates` e copie o `chat.id` (número).
+  4. Configure `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` como secrets acima.
+  5. Rode a migration `017_orders_owner_notified_at.sql` e faça redeploy de `mercadopago-webhook` e `resolve-order-payment`.
+
+A mensagem inclui pedido, valor, WhatsApp/e-mail do cliente e página de origem. Só dispara uma vez por pedido (`owner_notified_at`).
 
 ## 3. Deploy das functions
 
 ```bash
 supabase functions deploy create-mercadopago-preference
 supabase functions deploy mercadopago-webhook --no-verify-jwt
+supabase functions deploy resolve-order-payment
 ```
 
 O webhook **precisa** de `--no-verify-jwt`: o Mercado Pago chama a URL sem o JWT do Supabase.
@@ -55,22 +66,22 @@ VITE_PUBLIC_SITE_URL=https://www.convitesdiversos.com.br
 
 CTAs de pagamento: `PayCheckoutButton` em home (`#planos`), landings de serviço e popup promocional. WhatsApp permanece como canal secundário.
 
-A página `/pagamento/pendente` faz polling do status (Pix costuma voltar `pending` e só depois aprovar). Deploy também:
+A página `/pagamento/pendente` faz polling do status (Pix costuma voltar `pending` e só depois aprovar).
 
-```bash
-supabase functions deploy resolve-order-payment
-```
+No SQL Editor, execute também:
 
-No SQL Editor, execute `supabase/migrations/016_get_order_payment_status.sql` (fallback de leitura do status).
+- `supabase/migrations/016_get_order_payment_status.sql`
+- `supabase/migrations/017_orders_owner_notified_at.sql`
 
 ## 5. Teste
 
 1. Use credenciais de **teste** do MP e um [cartão de teste](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/additional-content/test-cards).
 2. Clique em Pagar → conclua no sandbox → confira status em `orders` no Table Editor.
 3. Confirme que o webhook recebeu a notificação (Logs da function).
+4. Confirme a mensagem no Telegram com os dados do cliente.
 
 ## 6. Operação
 
 Pedidos ficam na tabela `orders`. Contas `admin` podem fazer `SELECT` via RLS; criação/atualização só com service role (Edge Functions).
 
-Após pagamento aprovado, o processo comercial (briefing / personalização) continua por WhatsApp — a página de sucesso orienta o cliente a falar consigo.
+Após pagamento aprovado, o Telegram avisa imediatamente; o follow-up comercial (briefing / personalização) continua por WhatsApp com o cliente.

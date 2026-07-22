@@ -2,6 +2,7 @@
 // Usada pela página /pagamento/* para sincronizar status Pix (MP devolve pending e aprova depois).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { maybeNotifyOwnerPaymentApproved } from '../_shared/ownerTelegram.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -96,7 +97,12 @@ async function applyPayment(paymentId: string) {
     throw new Error(`ORDER_UPDATE_FAILED: ${error.message}`)
   }
 
-  return { ok: true as const, status, mpStatus: payment.status ?? null }
+  let notified = false
+  if (status === 'approved') {
+    notified = await maybeNotifyOwnerPaymentApproved(supabase, externalReference)
+  }
+
+  return { ok: true as const, status, mpStatus: payment.status ?? null, notified }
 }
 
 Deno.serve(async (request) => {
@@ -133,6 +139,7 @@ Deno.serve(async (request) => {
           status: result.status,
           mpStatus: result.mpStatus,
           synced: true,
+          notified: result.notified,
         })
       }
     }
@@ -140,7 +147,7 @@ Deno.serve(async (request) => {
     if (orderId) {
       const { data: order, error } = await supabase
         .from('orders')
-        .select('id, status, mp_status, mp_payment_id')
+        .select('id, status, mp_status, mp_payment_id, external_reference')
         .eq('id', orderId)
         .maybeSingle()
 
@@ -159,8 +166,14 @@ Deno.serve(async (request) => {
             status: result.status,
             mpStatus: result.mpStatus,
             synced: true,
+            notified: result.notified,
           })
         }
+      }
+
+      let notified = false
+      if (order.status === 'approved' && order.external_reference) {
+        notified = await maybeNotifyOwnerPaymentApproved(supabase, String(order.external_reference))
       }
 
       return json({
@@ -168,6 +181,7 @@ Deno.serve(async (request) => {
         status: order.status,
         mpStatus: order.mp_status,
         synced: false,
+        notified,
       })
     }
 
