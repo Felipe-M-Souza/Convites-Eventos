@@ -26,6 +26,8 @@ supabase secrets set MERCADOPAGO_ACCESS_TOKEN=APP_USR-...
 supabase secrets set PUBLIC_SITE_URL=https://www.convitesdiversos.com.br
 supabase secrets set TELEGRAM_BOT_TOKEN=123456:ABC...
 supabase secrets set TELEGRAM_CHAT_ID=123456789
+supabase secrets set GA4_MEASUREMENT_ID=G-7SHFNFTTP3
+supabase secrets set GA4_API_SECRET=seu_api_secret
 ```
 
 - **Access Token**: [Mercado Pago Developers](https://www.mercadopago.com.br/developers/panel/app) → sua aplicação → Credenciais de produção (ou teste).
@@ -39,6 +41,12 @@ supabase secrets set TELEGRAM_CHAT_ID=123456789
   5. Rode a migration `017_orders_owner_notified_at.sql` e faça redeploy de `mercadopago-webhook` e `resolve-order-payment`.
 
 A mensagem inclui pedido, valor, WhatsApp/e-mail do cliente e página de origem. Só dispara uma vez por pedido (`owner_notified_at`).
+
+- **GA4 `purchase` (servidor)** — recomendado, porque o retorno Pix no browser falha com frequência:
+  1. GA4 → **Admin** → **Streams de dados** → stream do site → **Segredos da API do Protocolo de Medição** → **Criar**.
+  2. Copie o secret e configure `GA4_API_SECRET` (+ `GA4_MEASUREMENT_ID=G-7SHFNFTTP3`).
+  3. Rode `018_orders_ga4_purchase_sent_at.sql` e redeploy das functions.
+  4. Em **Admin → DebugView** (ou Eventos recentes), o `purchase` deve aparecer após um pagamento aprovado — mesmo se o cliente fechar a página.
 
 ## 3. Deploy das functions
 
@@ -72,6 +80,7 @@ No SQL Editor, execute também:
 
 - `supabase/migrations/016_get_order_payment_status.sql`
 - `supabase/migrations/017_orders_owner_notified_at.sql`
+- `supabase/migrations/018_orders_ga4_purchase_sent_at.sql`
 
 ## 5. Teste
 

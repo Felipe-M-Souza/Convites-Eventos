@@ -1,4 +1,4 @@
-type AnalyticsParams = Record<string, string | number | boolean | undefined>
+type AnalyticsParams = Record<string, string | number | boolean | undefined | AnalyticsParams[] | Record<string, string | number | boolean | undefined>[]>
 
 declare global {
   interface Window {
@@ -103,6 +103,57 @@ export function trackEvent(name: string, params: AnalyticsParams = {}) {
   if (!GA_MEASUREMENT_ID) return
   initAnalytics()
   window.gtag?.('event', name, sanitizeParams(params))
+}
+
+/**
+ * Compra GA4 (ecommerce). Inclui `items` e `send_to` para o hit chegar no property certo.
+ * Deduplica por `transaction_id` na sessão (evita double-fire em remount).
+ */
+export function trackPurchase(input: {
+  transactionId: string
+  value: number
+  currency?: string
+  planKey?: string
+  extra?: AnalyticsParams
+}) {
+  if (!GA_MEASUREMENT_ID) return
+  const transactionId = input.transactionId.trim()
+  if (!transactionId) return
+
+  const storageKey = `ga4_purchase_${transactionId}`
+  try {
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(storageKey) === '1') return
+  } catch {
+    // sessionStorage indisponível
+  }
+
+  initAnalytics()
+  const currency = (input.currency || 'BRL').toUpperCase()
+  const planKey = input.planKey || 'unico'
+  const payload = sanitizeParams({
+    send_to: GA_MEASUREMENT_ID,
+    transaction_id: transactionId,
+    value: input.value,
+    currency,
+    items: [
+      {
+        item_id: planKey,
+        item_name: 'Convite digital',
+        item_category: 'convite',
+        price: input.value,
+        quantity: 1,
+      },
+    ],
+    ...input.extra,
+  })
+
+  window.gtag?.('event', 'purchase', payload)
+
+  try {
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(storageKey, '1')
+  } catch {
+    // ignora
+  }
 }
 
 type GoogleAdsConversionParams = {

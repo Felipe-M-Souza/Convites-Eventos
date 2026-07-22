@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/useI18n'
 import { buildLeadWhatsappHref } from '../lib/leadContact'
-import { trackEvent, trackWhatsappLead } from '../lib/analytics'
+import { trackEvent, trackPurchase, trackWhatsappLead } from '../lib/analytics'
 import { PROMO } from '../config/pricing'
 import { mapOrderStatusToResultKind, resolveOrderPayment } from '../lib/orderStatus'
 
@@ -207,12 +207,20 @@ export function PaymentResultPage({ kind: routeKind }: Props) {
       ...(kind === 'success' ? { currency: 'BRL', value: PROMO.priceCents / 100 } : {}),
     })
     if (kind === 'success') {
-      trackEvent('purchase', {
-        currency: 'BRL',
-        value: PROMO.priceCents / 100,
-        transaction_id: orderId || undefined,
-        plan: PROMO.planKey,
-      })
+      if (orderId) {
+        trackPurchase({
+          transactionId: orderId,
+          value: PROMO.priceCents / 100,
+          currency: 'BRL',
+          planKey: PROMO.planKey,
+        })
+      } else {
+        trackEvent('purchase', {
+          currency: 'BRL',
+          value: PROMO.priceCents / 100,
+          plan: PROMO.planKey,
+        })
+      }
     }
   }, [kind, orderId])
 

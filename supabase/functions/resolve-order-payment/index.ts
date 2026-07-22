@@ -2,6 +2,7 @@
 // Usada pela página /pagamento/* para sincronizar status Pix (MP devolve pending e aprova depois).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { maybeSendGa4Purchase } from '../_shared/ga4Purchase.ts'
 import { maybeNotifyOwnerPaymentApproved } from '../_shared/ownerTelegram.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
@@ -98,11 +99,13 @@ async function applyPayment(paymentId: string) {
   }
 
   let notified = false
+  let ga4Purchase = false
   if (status === 'approved') {
     notified = await maybeNotifyOwnerPaymentApproved(supabase, externalReference)
+    ga4Purchase = await maybeSendGa4Purchase(supabase, externalReference)
   }
 
-  return { ok: true as const, status, mpStatus: payment.status ?? null, notified }
+  return { ok: true as const, status, mpStatus: payment.status ?? null, notified, ga4Purchase }
 }
 
 Deno.serve(async (request) => {
@@ -140,6 +143,7 @@ Deno.serve(async (request) => {
           mpStatus: result.mpStatus,
           synced: true,
           notified: result.notified,
+          ga4Purchase: result.ga4Purchase,
         })
       }
     }
@@ -167,13 +171,17 @@ Deno.serve(async (request) => {
             mpStatus: result.mpStatus,
             synced: true,
             notified: result.notified,
+            ga4Purchase: result.ga4Purchase,
           })
         }
       }
 
       let notified = false
+      let ga4Purchase = false
       if (order.status === 'approved' && order.external_reference) {
-        notified = await maybeNotifyOwnerPaymentApproved(supabase, String(order.external_reference))
+        const externalReference = String(order.external_reference)
+        notified = await maybeNotifyOwnerPaymentApproved(supabase, externalReference)
+        ga4Purchase = await maybeSendGa4Purchase(supabase, externalReference)
       }
 
       return json({
@@ -182,6 +190,7 @@ Deno.serve(async (request) => {
         mpStatus: order.mp_status,
         synced: false,
         notified,
+        ga4Purchase,
       })
     }
 

@@ -2,6 +2,7 @@
 // Recebe notificações do Mercado Pago e atualiza `orders`.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { maybeSendGa4Purchase } from '../_shared/ga4Purchase.ts'
 import { maybeNotifyOwnerPaymentApproved } from '../_shared/ownerTelegram.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
@@ -102,11 +103,13 @@ async function applyPayment(paymentId: string) {
   }
 
   let notified = false
+  let ga4Purchase = false
   if (status === 'approved') {
     notified = await maybeNotifyOwnerPaymentApproved(supabase, externalReference)
+    ga4Purchase = await maybeSendGa4Purchase(supabase, externalReference)
   }
 
-  return { ok: true, externalReference, status, notified }
+  return { ok: true, externalReference, status, notified, ga4Purchase }
 }
 
 Deno.serve(async (request) => {

@@ -23,9 +23,11 @@ O tag **está instalado em produção**. Se o Google Ads ainda mostra rastreamen
 | Clique em WhatsApp comercial | `generate_lead`, `clique_whatsapp`, `conversion_event_contact`* |
 | Clique em email de orçamento | `generate_lead`, `conversion_event_contact`* |
 | Inicia checkout Mercado Pago | `begin_checkout` (+ `cta_click`) |
-| Pagamento aprovado (retorno `/pagamento/sucesso`) | `purchase` |
+| Pagamento aprovado (retorno `/pagamento/sucesso` **ou** webhook/servidor) | `purchase` |
 
 \* `conversion_event_contact` depende de `VITE_GOOGLE_ADS_CONVERSION_CONTACT_EVENT_NAME` (padrão: `conversion_event_contact`).
+
+**Importante:** o `purchase` no browser falha com frequência no fluxo Pix (página pendente / adblock). Em produção o evento também é enviado **pelo servidor** (Measurement Protocol) quando o pedido fica `approved`. Configure `GA4_MEASUREMENT_ID` + `GA4_API_SECRET` nas secrets do Supabase (ver `MERCADOPAGO_SETUP.md`).
 
 **Recomendação de metas:**
 
