@@ -107,24 +107,10 @@ export function ServiceLandingPage() {
               </p>
             </div>
             <article className="w-full rounded-2xl bg-[color:var(--color-cream)] p-4 ring-2 ring-[color:var(--color-gold)] lg:min-w-[18rem] lg:max-w-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-ink-muted)]">
-                  {offer.name}
-                </p>
-                {offer.validUntilLabel ? (
-                  <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
-                    {offer.validUntilLabel}
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-2 flex items-baseline gap-2">
-                <span className="text-xs text-[color:var(--color-ink-muted)] line-through">
-                  {offer.fromLabel} {offer.price}
-                </span>
-                <span className="font-display text-3xl font-semibold text-[color:var(--color-ink)]">
-                  {offer.promoPrice}
-                </span>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-ink-muted)]">
+                {offer.name}
               </p>
+              <p className="mt-2 font-display text-3xl font-semibold text-[color:var(--color-ink)]">{offer.promoPrice}</p>
               <div className="mt-3 space-y-2">
                 <PayCheckoutButton
                   source={`${leadSource}_offer_${PROMO.planKey}`}

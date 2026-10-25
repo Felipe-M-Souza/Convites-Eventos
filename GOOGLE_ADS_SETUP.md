@@ -6,8 +6,7 @@ A conta Google Ads **não é acessível por este repositório**. Os passos 1 a 5
 
 ## O que o site já faz (outubro/2026)
 
-- A campanha datada de **15/08/2026** encerrou. Fora dessa janela o site mostra o valor único de **R$ 50,00** (o mesmo preço do checkout) **sem** a frase “válido até 15/08”, e o popup de compra volta a aparecer.
-- Para reabrir uma urgência com data, altere `validFrom` / `validUntil` em `src/config/pricing.ts`. Enquanto a data estiver vigente, o texto com prazo volta sozinho.
+- O convite é vendido por um **valor único de R$ 50,00**, o mesmo preço do checkout. Não há prazo nem preço riscado. O popup de compra mostra esse valor.
 - No checkout, o pedido grava em `orders.source_path` o `gclid` (ou `gbraid` / `wbraid`) e os ids `ga_cid` / `ga_sid` da visita. O `purchase` enviado pelo servidor usa esses ids, para a compra entrar na sessão do anúncio mesmo quando o Pix não devolve o navegador à página de sucesso.
 
 ## Status verificado no site (produção)
