@@ -46,6 +46,13 @@ export function ServiceLandingPage() {
             '@type': 'Country',
             name: 'Brasil',
           },
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: 'BRL',
+            price: (PROMO.priceCents / 100).toFixed(2),
+            availability: 'https://schema.org/InStock',
+            url,
+          },
         },
         {
           '@type': 'FAQPage',
@@ -104,9 +111,11 @@ export function ServiceLandingPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-ink-muted)]">
                   {offer.name}
                 </p>
-                <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
-                  {offer.validUntilLabel}
-                </span>
+                {offer.validUntilLabel ? (
+                  <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
+                    {offer.validUntilLabel}
+                  </span>
+                ) : null}
               </div>
               <p className="mt-2 flex items-baseline gap-2">
                 <span className="text-xs text-[color:var(--color-ink-muted)] line-through">

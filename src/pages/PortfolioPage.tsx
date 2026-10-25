@@ -466,9 +466,11 @@ export function PortfolioPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink-muted)]">
                   {offer.name}
                 </p>
-                <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2.5 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
-                  {offer.validUntilLabel}
-                </span>
+                {offer.validUntilLabel ? (
+                  <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2.5 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
+                    {offer.validUntilLabel}
+                  </span>
+                ) : null}
               </div>
               <p className="mt-3 flex items-baseline gap-2">
                 <span className="text-base font-medium text-[color:var(--color-ink-muted)] line-through">

@@ -142,24 +142,113 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
   },
 }
 
+/** Copy sem prazo. Usada quando a campanha datada já encerrou, para não anunciar uma data vencida. */
+const STANDARD_COPY: Record<PricingLocale, PromoUiCopy> = {
+  'pt-BR': {
+    badge: 'Valor único',
+    title: 'Convite digital por R$ 50,00',
+    subtitle: 'Pague online com segurança ou fale no WhatsApp. O link personalizado sai depois da confirmação.',
+    sectionEyebrow: 'Investimento',
+    sectionTitle: 'Seu convite digital por R$ 50,00.',
+    sectionDescription:
+      'Um preço único para o convite personalizado, com abertura animada, trilha, mapa e confirmação por WhatsApp. Pagamento seguro via Mercado Pago.',
+    offerName: 'Convite digital',
+    offerDescription:
+      'Convite personalizado com abertura animada, trilha, mapa, confirmação por WhatsApp e experiência pensada para celular.',
+    offerItems: [
+      '1 página de convite digital personalizado',
+      'Abertura animada e trilha sonora',
+      'Mapa e botão de WhatsApp',
+      'Link exclusivo para compartilhar',
+    ],
+    fromLabel: 'de',
+    validUntilLabel: '',
+    payCta: 'Pagar R$ 50,00',
+    cta: 'Prefiro falar no WhatsApp',
+    whatsappMessage:
+      'Olá! Quero o convite digital do Convites Diversos por R$ 50,00. Pode me ajudar?',
+    heroCta: 'Ver o valor de R$ 50',
+  },
+  en: {
+    badge: 'Single price',
+    title: 'Digital invitation for R$ 50.00',
+    subtitle: 'Pay securely online or message us on WhatsApp. Your personalized link is delivered after confirmation.',
+    sectionEyebrow: 'Pricing',
+    sectionTitle: 'Your digital invitation for R$ 50.00.',
+    sectionDescription:
+      'One flat price for a personalized invitation with animated opening, soundtrack, map and WhatsApp RSVP. Secure checkout with Mercado Pago.',
+    offerName: 'Digital invitation',
+    offerDescription:
+      'Personalized invitation with animated opening, soundtrack, map, WhatsApp RSVP and a mobile-first experience.',
+    offerItems: [
+      'One personalized digital invitation page',
+      'Animated opening and soundtrack',
+      'Map and WhatsApp button',
+      'Exclusive shareable link',
+    ],
+    fromLabel: 'was',
+    validUntilLabel: '',
+    payCta: 'Pay R$ 50.00',
+    cta: 'Prefer WhatsApp',
+    whatsappMessage:
+      'Hi! I want the Convites Diversos digital invitation for R$ 50.00. Can you help me?',
+    heroCta: 'See the R$ 50 price',
+  },
+  es: {
+    badge: 'Precio único',
+    title: 'Invitación digital por R$ 50,00',
+    subtitle: 'Paga en línea con seguridad o escríbenos por WhatsApp. El enlace personalizado sale después de la confirmación.',
+    sectionEyebrow: 'Inversión',
+    sectionTitle: 'Tu invitación digital por R$ 50,00.',
+    sectionDescription:
+      'Un solo precio para la invitación personalizada, con apertura animada, música, mapa y confirmación por WhatsApp. Pago seguro con Mercado Pago.',
+    offerName: 'Invitación digital',
+    offerDescription:
+      'Invitación personalizada con apertura animada, música, mapa, confirmación por WhatsApp y experiencia pensada para celular.',
+    offerItems: [
+      '1 página de invitación digital personalizada',
+      'Apertura animada y música',
+      'Mapa y botón de WhatsApp',
+      'Enlace exclusivo para compartir',
+    ],
+    fromLabel: 'antes',
+    validUntilLabel: '',
+    payCta: 'Pagar R$ 50,00',
+    cta: 'Prefiero WhatsApp',
+    whatsappMessage:
+      '¡Hola! Quiero la invitación digital de Convites Diversos por R$ 50,00. ¿Me ayudas?',
+    heroCta: 'Ver el precio de R$ 50',
+  },
+}
+
 export function getPromoCopy(locale: string): PromoUiCopy {
   if (locale === 'en') return COPY.en
   if (locale === 'es') return COPY.es
   return COPY['pt-BR']
 }
 
-export function getPromoOffer(locale: string) {
-  const copy = getPromoCopy(locale)
+function getStandardCopy(locale: string): PromoUiCopy {
+  if (locale === 'en') return STANDARD_COPY.en
+  if (locale === 'es') return STANDARD_COPY.es
+  return STANDARD_COPY['pt-BR']
+}
+
+export function getPromoOffer(locale: string, now: Date = new Date()) {
+  const promoActive = isPromoActive(now)
+  const copy = promoActive ? getPromoCopy(locale) : getStandardCopy(locale)
   const pricingLocale: PricingLocale = locale === 'en' || locale === 'es' ? locale : 'pt-BR'
   return {
     key: PROMO.planKey,
+    promoActive,
+    /** Chave de dispensa do popup. Muda quando a campanha datada acaba, para a oferta vigente voltar a aparecer. */
+    dismissStorageKey: promoActive ? PROMO.dismissStorageKey : 'offer_unico_padrao_dismissed',
     name: copy.offerName,
     price: formatPriceBRL(PROMO.fromPriceCents, pricingLocale),
     promoPrice: formatPriceBRL(PROMO.priceCents, pricingLocale),
     description: copy.offerDescription,
     items: copy.offerItems,
     whatsappMessage: copy.whatsappMessage,
-    validUntilLabel: copy.validUntilLabel,
+    validUntilLabel: promoActive ? copy.validUntilLabel : '',
     fromLabel: copy.fromLabel,
     payCta: copy.payCta,
     cta: copy.cta,

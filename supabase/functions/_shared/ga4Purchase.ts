@@ -5,6 +5,29 @@ export type Ga4PurchaseOrder = {
   amount_cents: number
   currency: string
   plan_key: string
+  source_path?: string | null
+}
+
+/** Lê gclid e ids da sessão GA4 gravados em `orders.source_path` no checkout. */
+function attributionFromSourcePath(sourcePath: string | null | undefined): {
+  gclid?: string
+  gaClientId?: string
+  gaSessionId?: string
+} {
+  if (!sourcePath) return {}
+  try {
+    const url = new URL(sourcePath, 'https://convitesdiversos.com.br')
+    const gclid = url.searchParams.get('gclid')?.trim() || ''
+    const gaClientId = url.searchParams.get('ga_cid')?.trim() || ''
+    const gaSessionId = url.searchParams.get('ga_sid')?.trim() || ''
+    return {
+      ...(gclid ? { gclid: gclid.slice(0, 200) } : {}),
+      ...(/^\d+\.\d+$/.test(gaClientId) ? { gaClientId } : {}),
+      ...(/^\d+$/.test(gaSessionId) ? { gaSessionId } : {}),
+    }
+  } catch {
+    return {}
+  }
 }
 
 function formatClientId(orderId: string): string {
@@ -26,8 +49,10 @@ async function sendGa4Purchase(order: Ga4PurchaseOrder): Promise<boolean> {
 
   const value = order.amount_cents / 100
   const currency = (order.currency || 'BRL').toUpperCase()
+  const attribution = attributionFromSourcePath(order.source_path)
+  const clientId = attribution.gaClientId || formatClientId(order.id)
   const payload = {
-    client_id: formatClientId(order.id),
+    client_id: clientId,
     user_id: order.id,
     events: [
       {
@@ -37,6 +62,8 @@ async function sendGa4Purchase(order: Ga4PurchaseOrder): Promise<boolean> {
           value,
           currency,
           engagement_time_msec: 1,
+          ...(attribution.gaSessionId ? { session_id: attribution.gaSessionId } : {}),
+          ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
           items: [
             {
               item_id: order.plan_key || 'unico',
@@ -85,7 +112,7 @@ export async function maybeSendGa4Purchase(
     .eq('external_reference', externalReference)
     .eq('status', 'approved')
     .is('ga4_purchase_sent_at', null)
-    .select('id, amount_cents, currency, plan_key')
+    .select('id, amount_cents, currency, plan_key, source_path')
     .maybeSingle()
 
   if (error) {

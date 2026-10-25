@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/useI18n'
 import { buildLeadWhatsappHref } from '../lib/leadContact'
 import { trackEvent, trackPurchase, trackWhatsappLead } from '../lib/analytics'
+import { readAdsClickIds } from '../lib/adsAttribution'
 import { PROMO } from '../config/pricing'
 import { mapOrderStatusToResultKind, resolveOrderPayment } from '../lib/orderStatus'
 
@@ -208,11 +209,13 @@ export function PaymentResultPage({ kind: routeKind }: Props) {
     })
     if (kind === 'success') {
       if (orderId) {
+        const gclid = readAdsClickIds().gclid
         trackPurchase({
           transactionId: orderId,
           value: PROMO.priceCents / 100,
           currency: 'BRL',
           planKey: PROMO.planKey,
+          extra: gclid ? { gclid } : undefined,
         })
       } else {
         trackEvent('purchase', {

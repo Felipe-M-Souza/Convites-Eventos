@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { trackWhatsappLead, trackEvent } from '../lib/analytics'
 import { buildLeadWhatsappHref } from '../lib/leadContact'
 import { useI18n } from '../i18n/useI18n'
-import { getPromoOffer, isPromoActive, PROMO } from '../config/pricing'
+import { getPromoOffer, PROMO } from '../config/pricing'
 import { PayCheckoutButton } from './PayCheckoutButton'
 
 /**
  * Pop-up da oferta de valor único.
- * - Aparece após ~2,5s na página (somente enquanto a promo estiver vigente).
- * - Mostra o preço único com validade até 15/08.
+ * - Aparece após ~2,5s na página.
+ * - Durante a campanha datada, mostra o prazo. Fora dela, mostra o valor único vigente (sem data vencida).
  * - CTA leva direto ao WhatsApp com mensagem contextual da promoção.
  * - Fica oculto pelo resto da sessão se o visitante fechar (sessionStorage).
  *
@@ -38,23 +38,22 @@ export function PromoPopup({ source }: Props) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
-    if (!isPromoActive()) return undefined
     try {
-      if (window.sessionStorage.getItem(PROMO.dismissStorageKey) === '1') return undefined
+      if (window.sessionStorage.getItem(offer.dismissStorageKey) === '1') return undefined
     } catch {
       // sessionStorage indisponível (modo restrito) — segue mostrando.
     }
     const timer = window.setTimeout(() => {
       setOpen(true)
-      trackEvent('promo_popup_view', { source, plan: PROMO.planKey })
+      trackEvent('promo_popup_view', { source, plan: PROMO.planKey, promo_active: offer.promoActive })
     }, SHOW_DELAY_MS)
     return () => window.clearTimeout(timer)
-  }, [source])
+  }, [offer.dismissStorageKey, offer.promoActive, source])
 
   const dismiss = () => {
     setOpen(false)
     try {
-      window.sessionStorage.setItem(PROMO.dismissStorageKey, '1')
+      window.sessionStorage.setItem(offer.dismissStorageKey, '1')
     } catch {
       // ignora
     }
@@ -108,9 +107,11 @@ export function PromoPopup({ source }: Props) {
                 {offer.promoPrice}
               </span>
             </p>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-gold)]">
-              {offer.validUntilLabel}
-            </p>
+            {offer.validUntilLabel ? (
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-gold)]">
+                {offer.validUntilLabel}
+              </p>
+            ) : null}
             <div className="mt-3 space-y-2">
               <PayCheckoutButton
                 source={`promo_popup_${source}_${PROMO.planKey}`}
