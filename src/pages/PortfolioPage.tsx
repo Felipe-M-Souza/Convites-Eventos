@@ -462,22 +462,10 @@ export function PortfolioPage() {
 
           <div className="mt-10 max-w-xl">
             <article className="flex flex-col rounded-[1.6rem] bg-white p-6 shadow-sm ring-2 ring-[color:var(--color-gold)]">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink-muted)]">
-                  {offer.name}
-                </p>
-                <span className="rounded-full bg-[color:var(--color-gold)]/15 px-2.5 py-0.5 text-[0.65rem] font-semibold text-[color:var(--color-gold)]">
-                  {offer.validUntilLabel}
-                </span>
-              </div>
-              <p className="mt-3 flex items-baseline gap-2">
-                <span className="text-base font-medium text-[color:var(--color-ink-muted)] line-through">
-                  {offer.fromLabel} {offer.price}
-                </span>
-                <span className="font-display text-4xl font-semibold text-[color:var(--color-ink)]">
-                  {offer.promoPrice}
-                </span>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--color-ink-muted)]">
+                {offer.name}
               </p>
+              <p className="mt-3 font-display text-4xl font-semibold text-[color:var(--color-ink)]">{offer.promoPrice}</p>
               <p className="mt-4 text-sm leading-7 text-[color:var(--color-ink-muted)]">{offer.description}</p>
               <ul className="mt-5 space-y-2 text-sm text-[color:var(--color-ink)]">
                 {offer.items.map((item) => (

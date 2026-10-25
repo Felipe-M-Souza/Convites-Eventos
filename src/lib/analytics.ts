@@ -1,3 +1,5 @@
+import { captureAdsClickIds, readAdsClickIds } from './adsAttribution'
+
 type AnalyticsParams = Record<string, string | number | boolean | undefined | AnalyticsParams[] | Record<string, string | number | boolean | undefined>[]>
 
 declare global {
@@ -39,6 +41,11 @@ function isGtagScriptEnabled() {
   return typeof window !== 'undefined' && typeof document !== 'undefined' && Boolean(getGtagBootstrapScriptId())
 }
 
+function adsClickParams(): { gclid?: string } {
+  const { gclid } = readAdsClickIds()
+  return gclid ? { gclid } : {}
+}
+
 function ensureGtag() {
   window.dataLayer = window.dataLayer || []
   if (!window.gtag) {
@@ -55,6 +62,7 @@ function sanitizeParams(params: AnalyticsParams) {
 }
 
 export function initAnalytics() {
+  if (typeof window !== 'undefined') captureAdsClickIds(window.location.search)
   if (!isGtagScriptEnabled() || analyticsInitialized) return
 
   ensureGtag()
@@ -227,7 +235,7 @@ export function trackLeadContact(source: string, method: LeadContactMethod, extr
     ...extra,
   })
 
-  window.gtag('event', 'generate_lead', { ...common, currency: 'BRL' })
+  window.gtag('event', 'generate_lead', { ...common, currency: 'BRL', ...adsClickParams() })
 
   if (method === 'whatsapp') {
     window.gtag('event', 'clique_whatsapp', common)

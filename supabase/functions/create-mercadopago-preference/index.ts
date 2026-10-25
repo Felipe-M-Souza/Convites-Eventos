@@ -71,7 +71,7 @@ Deno.serve(async (request) => {
   const payerEmail = typeof body.payerEmail === 'string' ? body.payerEmail.trim().slice(0, 180) : ''
   const payerName = typeof body.payerName === 'string' ? body.payerName.trim().slice(0, 120) : ''
   const customerNote = typeof body.customerNote === 'string' ? body.customerNote.trim().slice(0, 500) : ''
-  const sourcePath = typeof body.sourcePath === 'string' ? body.sourcePath.trim().slice(0, 200) : '/'
+  const sourcePath = typeof body.sourcePath === 'string' ? body.sourcePath.trim().slice(0, 900) : '/'
   const locale = typeof body.locale === 'string' ? body.locale.trim().slice(0, 12) : 'pt-BR'
 
   const orderId = crypto.randomUUID()

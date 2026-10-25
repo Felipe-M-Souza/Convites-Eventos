@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { trackCtaClick, trackEvent } from '../lib/analytics'
+import { buildAttributedSourcePath, captureAdsClickIds } from '../lib/adsAttribution'
 import { PROMO } from '../config/pricing'
 import {
   CheckoutError,
@@ -142,22 +143,34 @@ export function PayCheckoutButton({
     setError(null)
     setLoading(true)
     trackCtaClick(source, 'pagar_mercadopago', 'checkout_pro', { plan: planKey })
+    const price = PROMO.priceCents / 100
     trackEvent('begin_checkout', {
       currency: 'BRL',
-      value: PROMO.priceCents / 100,
+      value: price,
       plan: planKey,
       source,
       has_email: Boolean(trimmedEmail),
+      items: [
+        {
+          item_id: planKey,
+          item_name: 'Convite digital',
+          price,
+          quantity: 1,
+        },
+      ],
     })
 
     try {
+      if (typeof window !== 'undefined') captureAdsClickIds(window.location.search)
       const result = await createMercadoPagoCheckout({
         planKey,
         locale,
         payerEmail: trimmedEmail || undefined,
         customerNote: `WhatsApp: ${normalizedWhatsapp}`,
         sourcePath:
-          typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '/',
+          typeof window !== 'undefined'
+            ? buildAttributedSourcePath(import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() || '')
+            : '/',
       })
       trackEvent('checkout_redirect', {
         order_id: result.orderId,

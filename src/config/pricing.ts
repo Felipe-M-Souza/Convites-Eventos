@@ -1,37 +1,19 @@
 /**
- * Fonte única de preços e urgência promocional.
- * Atualize apenas este arquivo para refletir em home, landings e popup.
+ * Fonte única de preço.
+ * O convite digital tem valor único de R$ 50,00. Atualize apenas este arquivo.
  */
 
 export type PricingLocale = 'pt-BR' | 'en' | 'es'
 
-/** Oferta única vigente: R$ 50,00 até 15/08/2026 (inclusive, horário de Brasília). */
+/** Valor único vigente: R$ 50,00. */
 export const PROMO = {
-  /** Preço promocional em centavos. */
+  /** Preço em centavos. O nome `PROMO` permanece porque o checkout e o analytics já usam esta constante. */
   priceCents: 5_000,
-  /** Preço de referência (riscado) em centavos. */
-  fromPriceCents: 8_000,
-  /** Início da vigência (YYYY-MM-DD, America/Sao_Paulo). */
-  validFrom: '2026-07-13',
-  /** Fim da vigência inclusive (YYYY-MM-DD, America/Sao_Paulo). */
-  validUntil: '2026-08-15',
-  /** Chave para sessionStorage do popup (muda a cada campanha). */
-  dismissStorageKey: 'promo_unico_ago2026_dismissed',
+  /** Chave para sessionStorage do popup. */
+  dismissStorageKey: 'offer_unico_padrao_dismissed',
   /** Identificador estável para analytics. */
   planKey: 'unico' as const,
 } as const
-
-function parseSaoPauloDayBoundary(isoDate: string, endOfDay: boolean): number {
-  // Offset fixo -03:00 cobre o calendário comercial BR nesta campanha (sem DST).
-  const suffix = endOfDay ? 'T23:59:59.999-03:00' : 'T00:00:00.000-03:00'
-  return new Date(`${isoDate}${suffix}`).getTime()
-}
-
-/** Retorna true enquanto a oferta única estiver dentro da vigência. */
-export function isPromoActive(now: Date = new Date()): boolean {
-  const t = now.getTime()
-  return t >= parseSaoPauloDayBoundary(PROMO.validFrom, false) && t <= parseSaoPauloDayBoundary(PROMO.validUntil, true)
-}
 
 export function formatPriceBRL(cents: number, locale: PricingLocale): string {
   const value = cents / 100
@@ -41,7 +23,7 @@ export function formatPriceBRL(cents: number, locale: PricingLocale): string {
   return `R$ ${value.toFixed(2).replace('.', ',')}`
 }
 
-type PromoUiCopy = {
+type OfferCopy = {
   badge: string
   title: string
   subtitle: string
@@ -51,26 +33,21 @@ type PromoUiCopy = {
   offerName: string
   offerDescription: string
   offerItems: string[]
-  fromLabel: string
-  validUntilLabel: string
-  /** CTA principal: inicia Checkout Pro (Mercado Pago). */
   payCta: string
-  /** CTA secundário: WhatsApp. */
   cta: string
   whatsappMessage: string
   heroCta: string
 }
 
-const COPY: Record<PricingLocale, PromoUiCopy> = {
+const COPY: Record<PricingLocale, OfferCopy> = {
   'pt-BR': {
-    badge: 'Oferta por tempo limitado',
+    badge: 'Valor único',
     title: 'Convite digital por R$ 50,00',
-    subtitle:
-      'Valor único promocional válido até 15/08. Pague online com segurança ou fale no WhatsApp.',
-    sectionEyebrow: 'Oferta especial',
-    sectionTitle: 'Valor único de R$ 50,00 até 15/08.',
+    subtitle: 'Pague online com segurança ou fale no WhatsApp. O link personalizado sai depois da confirmação.',
+    sectionEyebrow: 'Investimento',
+    sectionTitle: 'Seu convite digital por R$ 50,00.',
     sectionDescription:
-      'Promoção por tempo limitado: um preço único para o seu convite digital personalizado. Pagamento seguro via Mercado Pago.',
+      'Um preço único para o convite personalizado, com abertura animada, trilha, mapa e confirmação por WhatsApp. Pagamento seguro via Mercado Pago.',
     offerName: 'Convite digital',
     offerDescription:
       'Convite personalizado com abertura animada, trilha, mapa, confirmação por WhatsApp e experiência pensada para celular.',
@@ -80,23 +57,19 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
       'Mapa e botão de WhatsApp',
       'Link exclusivo para compartilhar',
     ],
-    fromLabel: 'de',
-    validUntilLabel: 'Válido até 15/08',
     payCta: 'Pagar R$ 50,00',
     cta: 'Prefiro falar no WhatsApp',
-    whatsappMessage:
-      'Olá! Vi a oferta de valor único no Convites Diversos e quero o convite digital por R$ 50,00 (válido até 15/08). Pode me ajudar?',
-    heroCta: 'Ver oferta de R$ 50',
+    whatsappMessage: 'Olá! Quero o convite digital do Convites Diversos por R$ 50,00. Pode me ajudar?',
+    heroCta: 'Ver o valor de R$ 50',
   },
   en: {
-    badge: 'Limited-time offer',
+    badge: 'Single price',
     title: 'Digital invitation for R$ 50.00',
-    subtitle:
-      'Single promotional price valid until August 15. Pay securely online or message us on WhatsApp.',
-    sectionEyebrow: 'Special offer',
-    sectionTitle: 'Single price of R$ 50.00 until August 15.',
+    subtitle: 'Pay securely online or message us on WhatsApp. Your personalized link is delivered after confirmation.',
+    sectionEyebrow: 'Pricing',
+    sectionTitle: 'Your digital invitation for R$ 50.00.',
     sectionDescription:
-      'Limited-time promotion: one flat price for your personalized digital invitation. Secure checkout with Mercado Pago.',
+      'One flat price for a personalized invitation with animated opening, soundtrack, map and WhatsApp RSVP. Secure checkout with Mercado Pago.',
     offerName: 'Digital invitation',
     offerDescription:
       'Personalized invitation with animated opening, soundtrack, map, WhatsApp RSVP and a mobile-first experience.',
@@ -106,23 +79,19 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
       'Map and WhatsApp button',
       'Exclusive shareable link',
     ],
-    fromLabel: 'was',
-    validUntilLabel: 'Valid until August 15',
     payCta: 'Pay R$ 50.00',
     cta: 'Prefer WhatsApp',
-    whatsappMessage:
-      'Hi! I saw the single-price offer on Convites Diversos and I want the digital invitation for R$ 50.00 (valid until August 15). Can you help me?',
-    heroCta: 'See R$ 50 offer',
+    whatsappMessage: 'Hi! I want the Convites Diversos digital invitation for R$ 50.00. Can you help me?',
+    heroCta: 'See the R$ 50 price',
   },
   es: {
-    badge: 'Oferta por tiempo limitado',
+    badge: 'Precio único',
     title: 'Invitación digital por R$ 50,00',
-    subtitle:
-      'Precio único promocional válido hasta el 15 de agosto. Paga en línea con seguridad o escríbenos por WhatsApp.',
-    sectionEyebrow: 'Oferta especial',
-    sectionTitle: 'Precio único de R$ 50,00 hasta el 15/08.',
+    subtitle: 'Paga en línea con seguridad o escríbenos por WhatsApp. El enlace personalizado sale después de la confirmación.',
+    sectionEyebrow: 'Inversión',
+    sectionTitle: 'Tu invitación digital por R$ 50,00.',
     sectionDescription:
-      'Promoción por tiempo limitado: un solo precio para tu invitación digital personalizada. Pago seguro con Mercado Pago.',
+      'Un solo precio para la invitación personalizada, con apertura animada, música, mapa y confirmación por WhatsApp. Pago seguro con Mercado Pago.',
     offerName: 'Invitación digital',
     offerDescription:
       'Invitación personalizada con apertura animada, música, mapa, confirmación por WhatsApp y experiencia pensada para celular.',
@@ -132,35 +101,24 @@ const COPY: Record<PricingLocale, PromoUiCopy> = {
       'Mapa y botón de WhatsApp',
       'Enlace exclusivo para compartir',
     ],
-    fromLabel: 'antes',
-    validUntilLabel: 'Válido hasta el 15/08',
     payCta: 'Pagar R$ 50,00',
     cta: 'Prefiero WhatsApp',
-    whatsappMessage:
-      '¡Hola! Vi la oferta de precio único en Convites Diversos y quiero la invitación digital por R$ 50,00 (válida hasta el 15/08). ¿Me ayudas?',
-    heroCta: 'Ver oferta de R$ 50',
+    whatsappMessage: '¡Hola! Quiero la invitación digital de Convites Diversos por R$ 50,00. ¿Me ayudas?',
+    heroCta: 'Ver el precio de R$ 50',
   },
 }
 
-export function getPromoCopy(locale: string): PromoUiCopy {
-  if (locale === 'en') return COPY.en
-  if (locale === 'es') return COPY.es
-  return COPY['pt-BR']
-}
-
 export function getPromoOffer(locale: string) {
-  const copy = getPromoCopy(locale)
+  const copy = locale === 'en' ? COPY.en : locale === 'es' ? COPY.es : COPY['pt-BR']
   const pricingLocale: PricingLocale = locale === 'en' || locale === 'es' ? locale : 'pt-BR'
   return {
     key: PROMO.planKey,
+    dismissStorageKey: PROMO.dismissStorageKey,
     name: copy.offerName,
-    price: formatPriceBRL(PROMO.fromPriceCents, pricingLocale),
     promoPrice: formatPriceBRL(PROMO.priceCents, pricingLocale),
     description: copy.offerDescription,
     items: copy.offerItems,
     whatsappMessage: copy.whatsappMessage,
-    validUntilLabel: copy.validUntilLabel,
-    fromLabel: copy.fromLabel,
     payCta: copy.payCta,
     cta: copy.cta,
     badge: copy.badge,
