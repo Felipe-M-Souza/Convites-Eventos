@@ -671,28 +671,68 @@ type PandeiroSealProps = {
   reduce: boolean
 }
 
-/** Pandeiro no lugar do selo: aro de madeira, platinelas e pele. O toque faz tremer e abre o envelope. */
+const PANDEIRO_NOTES = [
+  { glyph: '♪', x: -54, y: -62, rotate: -24, delay: 0, size: 26 },
+  { glyph: '♫', x: 2, y: -72, rotate: 12, delay: 0.05, size: 24 },
+  { glyph: '♪', x: 56, y: -46, rotate: 22, delay: 0.1, size: 22 },
+  { glyph: '♫', x: -28, y: -44, rotate: -16, delay: 0.14, size: 20 },
+  { glyph: '♪', x: 32, y: -58, rotate: 28, delay: 0.08, size: 22 },
+] as const
+
+/** Pandeiro no lugar do selo. O toque gira o aro e solta notas antes de abrir o envelope. */
 function PandeiroSeal({ torn, reduce }: PandeiroSealProps) {
   const jingleAngles = [0, 60, 120, 180, 240, 300]
+  const playNotes = torn && !reduce
 
   return (
-    <motion.div
-      className="relative h-[84px] w-[84px]"
-      animate={
-        torn
-          ? reduce
-            ? { opacity: 0, scale: 0.9 }
-            : { rotate: [0, -18, 16, -10, 8, 0], scale: [1, 1.08, 0.92], opacity: [1, 1, 0] }
-          : { rotate: [-8, 8, -8] }
-      }
-      transition={
-        torn
-          ? { duration: reduce ? 0.2 : 0.55, ease: 'easeInOut' }
-          : { duration: 1.45, repeat: Infinity, ease: 'easeInOut' }
-      }
-      aria-hidden
-    >
-      <svg viewBox="0 0 100 100" className="h-full w-full drop-shadow-[0_8px_14px_rgba(40,24,8,0.38)]">
+    <div className="relative h-[68px] w-[68px] overflow-visible" aria-hidden>
+      {playNotes
+        ? PANDEIRO_NOTES.map((note) => (
+            <motion.span
+              key={`${note.glyph}-${note.x}-${note.y}`}
+              className="pointer-events-none absolute z-10 select-none font-serif leading-none text-[#fff6d2]"
+              style={{
+                left: 34 - note.size / 2,
+                top: 28 - note.size / 2,
+                fontSize: note.size,
+                textShadow:
+                  '0 0 1px #3a220c, 1px 0 0 #3a220c, -1px 0 0 #3a220c, 0 1px 0 #3a220c, 0 -1px 0 #3a220c, 0 2px 6px rgba(40,24,8,0.45)',
+              }}
+              initial={{ opacity: 0, x: 0, y: 6, scale: 0.4, rotate: 0 }}
+              animate={{
+                opacity: [0, 1, 1, 0],
+                x: [0, note.x * 0.45, note.x, note.x],
+                y: [6, note.y * 0.45, note.y, note.y - 8],
+                scale: [0.4, 1.08, 1, 0.92],
+                rotate: [0, note.rotate * 0.4, note.rotate, note.rotate],
+              }}
+              transition={{
+                duration: 0.86,
+                delay: note.delay,
+                ease: [0.16, 0.72, 0.28, 1],
+                times: [0, 0.28, 0.7, 1],
+              }}
+            >
+              {note.glyph}
+            </motion.span>
+          ))
+        : null}
+      <motion.div
+        className="relative h-full w-full"
+        animate={
+          torn
+            ? reduce
+              ? { opacity: 0, scale: 0.92 }
+              : { rotate: [0, 400, 360], scale: [1, 1.08, 1] }
+            : { rotate: [-6, 6, -6] }
+        }
+        transition={
+          torn
+            ? { duration: reduce ? 0.2 : 0.78, ease: [0.16, 0.7, 0.3, 1] }
+            : { duration: 1.6, repeat: Infinity, ease: 'easeInOut' }
+        }
+      >
+      <svg viewBox="0 0 100 100" className="h-full w-full drop-shadow-[0_6px_12px_rgba(40,24,8,0.38)]">
         <defs>
           <radialGradient id="pandeiroSkin" cx="38%" cy="34%" r="70%">
             <stop offset="0%" stopColor="#fff6e4" />
@@ -729,7 +769,8 @@ function PandeiroSeal({ torn, reduce }: PandeiroSealProps) {
         <circle cx="50" cy="50" r="29" fill="url(#pandeiroSkin)" />
         <ellipse cx="41" cy="41" rx="8" ry="4.5" fill="#ffffff" opacity="0.28" />
       </svg>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
 
@@ -1029,13 +1070,13 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
 
   const timing = useMemo(
     () => ({
-      /** No modo futebol o «rasgar» do selo não existe — abre um pouco mais cedo. */
-      sealToFlapMs: reduce ? 220 : soccerGoalMode ? 420 : 780,
+      /** No modo futebol o «rasgar» do selo não existe — abre um pouco mais cedo. O pandeiro espera o giro e as notas. */
+      sealToFlapMs: reduce ? 220 : soccerGoalMode ? 420 : pandeiroSealMode ? 1000 : 780,
       /** Após mostrar o envelope aberto (crossfade + pausa), o cartão sobe. */
       flapToCardMs: reduce ? 200 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
       cardToLeaveMs: reduce ? 480 : 2200,
     }),
-    [reduce, soccerGoalMode],
+    [reduce, soccerGoalMode, pandeiroSealMode],
   )
 
   useEffect(() => {
