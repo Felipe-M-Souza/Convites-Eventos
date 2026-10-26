@@ -812,6 +812,8 @@ type OpeningEnvelopeProps = {
   boxHeightVhCap?: number
   /** Omite = 440 — `openingEnvelopeBoxMaxHeightPx`. */
   boxMaxHeightPx?: number
+  /** Largura em vw no celular. Omite = a largura padrão da abertura. */
+  compactWidthVw?: number
   /**
    * Fundo por detrás das texturas (letterbox / camadas GPU).
    * Usar a cor do pergaminho ou `openingBackdropColor` evita o halo branco no Chrome com 3D/transform.
@@ -845,6 +847,7 @@ function OpeningEnvelope({
   boxWidthMaxPx = 400,
   boxHeightVhCap = 42,
   boxMaxHeightPx = 440,
+  compactWidthVw,
   paperBackgroundColor,
 }: OpeningEnvelopeProps) {
   const compact = useSyncExternalStore(
@@ -862,7 +865,11 @@ function OpeningEnvelope({
     typeof textureZoomMin === 'number' && Number.isFinite(textureZoomMin) && textureZoomMin > 0
       ? Math.max(requestedTextureZoom, textureZoomMin)
       : requestedTextureZoom
-  const envelopeVw = compact ? ENVELOPE_WIDTH_VW_COMPACT : ENVELOPE_WIDTH_VW_DESKTOP
+  const envelopeVw = compact
+    ? compactWidthVw && compactWidthVw > 0
+      ? compactWidthVw
+      : ENVELOPE_WIDTH_VW_COMPACT
+    : ENVELOPE_WIDTH_VW_DESKTOP
 
   const rClosed = naturalHeight / naturalWidth
   const rOpen =
@@ -1264,7 +1271,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 textureOffsetY={soccerGoalMode && flapOpen ? 5 : 0}
                 openClipPath={
                   pandeiroSealMode
-                    ? 'polygon(50% 0.3%, 55.4% 2.5%, 87.6% 32.4%, 92.4% 39.5%, 92.4% 97.5%, 8% 97.5%, 8% 37.5%, 12.4% 31.3%, 44.8% 2.4%)'
+                    ? 'polygon(50% 0.3%, 55.4% 2.5%, 87.6% 32.4%, 90.8% 40%, 90.8% 95%, 9.2% 95%, 9.2% 38.5%, 12.4% 31.3%, 44.8% 2.4%)'
                     : soccerGoalMode
                     ? 'polygon(50% 0%, 94.5% 35%, 94.5% 100%, 5.5% 100%, 5.5% 35%)'
                     : envelopeBlendMode
@@ -1273,12 +1280,13 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 }
                 closedClipPath={
                   pandeiroSealMode
-                    ? 'inset(12.6% 2.4% 11% 3.5%)'
+                    ? 'inset(13.2% 3.7% 13.7% 3.9%)'
                     : envelopeBlendMode
                       ? 'inset(12% 7% 8% 7%)'
                       : undefined
                 }
                 centerTextureCrop={soccerGoalMode}
+                compactWidthVw={pandeiroSealMode ? 70 : undefined}
                 boxWidthMaxPx={envBoxWMax}
                 boxHeightVhCap={envBoxVhCap}
                 boxMaxHeightPx={envBoxPxCap}
