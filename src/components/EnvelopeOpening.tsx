@@ -140,6 +140,28 @@ const sealGold = {
 }
 
 /**
+ * Margem vazia do PNG (fração da imagem). A caixa usa a proporção do arquivo inteiro,
+ * igual às outras molduras; a imagem cresce só o bastante para a faixa branca sair.
+ */
+type FrameMarginCrop = {
+  top: number
+  right: number
+  bottom: number
+  left: number
+  naturalWidth: number
+  naturalHeight: number
+}
+
+const RAFAELE_FRAME_CROP: FrameMarginCrop = {
+  top: 16 / 1536,
+  right: 27 / 1024,
+  bottom: 31 / 1536,
+  left: 38 / 1024,
+  naturalWidth: 1024,
+  naturalHeight: 1536,
+}
+
+/**
  * Moldura de fundo: em viewports estreitas o PNG (muito alto) com object-contain deixa
  * faixas laterais largas; object-cover + object-bottom preenche a largura e preserva
  * sobretudo a base (alianças). A partir de md volta contain para não cortar no desktop.
@@ -147,38 +169,54 @@ const sealGold = {
 function FloralBackdrop({
   frameSrc,
   backdropColor,
-  bleed = false,
+  crop,
 }: {
   frameSrc: string
   /** Vazio = creme padrão; ex. `#141416` para molduras escuras. */
   backdropColor?: string
-  /** Encosta a moldura nas bordas e corta a margem branca do PNG. */
-  bleed?: boolean
+  crop?: FrameMarginCrop
 }) {
   const bg =
     backdropColor?.trim() ||
     'var(--color-cream)'
+  const contentW = crop ? 1 - crop.left - crop.right : 1
+  const contentH = crop ? 1 - crop.top - crop.bottom : 1
   return (
     <div
-      className={
-        bleed
-          ? 'pointer-events-none absolute inset-0 overflow-hidden'
-          : 'pointer-events-none absolute inset-0 overflow-hidden px-2.5 py-2 sm:px-3 sm:py-3 md:p-6'
-      }
+      className="pointer-events-none absolute inset-0 overflow-hidden px-2.5 py-2 sm:px-3 sm:py-3 md:p-6"
       style={{ backgroundColor: bg }}
       aria-hidden
     >
-      <img
-        src={frameSrc}
-        alt=""
-        className={
-          bleed
-            ? 'h-full w-full origin-center scale-[1.08] object-cover object-center'
-            : 'h-full w-full object-cover object-bottom md:object-contain md:object-center'
-        }
-        decoding="async"
-        fetchPriority="high"
-      />
+      {crop ? (
+        <div className="flex h-full w-full items-end justify-center overflow-hidden md:items-center">
+          <div
+            className="relative h-full max-h-full overflow-hidden"
+            style={{ aspectRatio: `${crop.naturalWidth} / ${crop.naturalHeight}` }}
+          >
+            <img
+              src={frameSrc}
+              alt=""
+              className="absolute max-w-none"
+              style={{
+                width: `${(1 / contentW) * 100}%`,
+                height: `${(1 / contentH) * 100}%`,
+                left: `${(-crop.left / contentW) * 100}%`,
+                top: `${(-crop.top / contentH) * 100}%`,
+              }}
+              decoding="async"
+              fetchPriority="high"
+            />
+          </div>
+        </div>
+      ) : (
+        <img
+          src={frameSrc}
+          alt=""
+          className="h-full w-full object-cover object-bottom md:object-contain md:object-center"
+          decoding="async"
+          fetchPriority="high"
+        />
+      )}
     </div>
   )
 }
@@ -1078,7 +1116,11 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
         transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
       }}
     >
-      <FloralBackdrop frameSrc={frameSrc} backdropColor={backdropColor} bleed={pandeiroSealMode} />
+      <FloralBackdrop
+        frameSrc={frameSrc}
+        backdropColor={backdropColor}
+        crop={pandeiroSealMode ? RAFAELE_FRAME_CROP : undefined}
+      />
       {openingFrameSubtitle ? (
         <div className="pointer-events-none absolute inset-x-0 top-[clamp(6.1rem,15vh,8.5rem)] z-[12] flex justify-center px-8 text-center">
           <p className="max-w-[min(82vw,520px)] whitespace-pre-wrap font-display text-sm leading-snug text-emerald-950/85 [text-shadow:0_1px_10px_rgba(255,255,255,0.78)] md:text-base">
