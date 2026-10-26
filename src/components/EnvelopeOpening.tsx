@@ -1223,7 +1223,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 textureOffsetY={soccerGoalMode && flapOpen ? 5 : 0}
                 openClipPath={
                   pandeiroSealMode
-                    ? 'inset(0.6% 8.2% 2.4% 8.7%)'
+                    ? 'polygon(50% 0.3%, 55.4% 2.5%, 87.6% 32.4%, 92.4% 39.5%, 92.4% 97.5%, 8% 97.5%, 8% 37.5%, 12.4% 31.3%, 44.8% 2.4%)'
                     : soccerGoalMode
                     ? 'polygon(50% 0%, 94.5% 35%, 94.5% 100%, 5.5% 100%, 5.5% 35%)'
                     : envelopeBlendMode

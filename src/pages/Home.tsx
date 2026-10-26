@@ -25,6 +25,22 @@ function buildInviteDescription(message: string, fallback: string): string {
   return text.length > 170 ? `${text.slice(0, 167)}...` : text
 }
 
+/**
+ * Título que o modelo de aniversário gravava em todo convite novo.
+ * Na aba, ele escondia o nome e a idade reais (por exemplo, “50 anos” na festa de 41).
+ */
+const STOCK_BIRTHDAY_SEO_TITLE = 'Convite digital aniversário 50 anos | Convites Diversos'
+
+function inviteTabTitle(name: string, preview: string, seoTitle: string): string {
+  const stored = seoTitle.trim()
+  const host = name.trim()
+  const occasion = preview.trim()
+  if (stored && stored !== STOCK_BIRTHDAY_SEO_TITLE) return stored
+  if (host && occasion) return `${host} | ${occasion}`
+  if (host) return `${host} | Convite digital`
+  return 'Convite digital | Convites Diversos'
+}
+
 export function Home() {
   const { data: baseEventData, status, inviteNotFound, inviteSlug } = useEventData()
   const { locale, t } = useI18n()
@@ -58,13 +74,13 @@ export function Home() {
 
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
-    const title = eventData.seoTitle.trim() || `${eventData.coupleNames} | Convite digital`
+    const title = inviteTabTitle(eventData.coupleNames, eventData.openingPreviewTitle, eventData.seoTitle)
     const description = eventData.seoDescription.trim() || buildInviteDescription(eventData.message, t('invite.openingFallback'))
     const image = eventData.coverImageUrl?.trim() || buildSiteUrl('/images/hero-couple.jpg')
     const url = buildSiteUrl(`/c/${encodeURIComponent(inviteSlug)}`)
 
     applySeoMeta({ title, description, image, url })
-  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.seoDescription, eventData.seoTitle, inviteSlug, status, t])
+  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.openingPreviewTitle, eventData.seoDescription, eventData.seoTitle, inviteSlug, status, t])
 
   if (isCmsConfigured && status === 'loading') {
     return (

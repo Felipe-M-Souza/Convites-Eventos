@@ -271,9 +271,8 @@ export function getNewInvitePayload(template: InviteCreationTemplate): EventData
     openingPreviewTitle: '50 anos — uma festa à altura',
     eventDetailsHeading: 'Detalhes da festa',
     dressCodeLabel: 'Vestimenta',
-    seoTitle: 'Convite digital aniversário 50 anos | Convites Diversos',
-    seoDescription:
-      'Convite digital para celebrar os 50 anos: data, local, mapa e confirmação por WhatsApp num único link.',
+    seoTitle: '',
+    seoDescription: '',
     coupleNames: 'Nome do aniversariante',
     verse: 'A vida é feita de momentos que merecem ser celebrados com quem amamos.',
     weddingDateLabel: '20 de junho de 2026',
