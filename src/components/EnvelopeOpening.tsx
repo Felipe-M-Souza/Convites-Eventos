@@ -27,14 +27,17 @@ const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 const SOCCER_GOAL_SLUG_FALLBACKS: readonly string[] = ['san-barssoti']
 /** Slugs que usam borboleta no lugar do selo mesmo sem `openingInteractionMode` no JSON guardado. */
 const BUTTERFLY_SEAL_SLUG_FALLBACKS: readonly string[] = ['cleyzamara']
+/** Slugs que usam um pandeiro no lugar do selo (tema pagode). */
+const PANDEIRO_SEAL_SLUGS: readonly string[] = ['rafaele-41-anos']
 
 /**
  * Envelopes com fundo branco recortado (PNG com transparência) para que a moldura apareça
  * ao redor da arte, sem “bordas brancas” — fechado e aberto. Sobrepõe o URL guardado no CMS.
  */
 type EnvelopeTransparentOverride = {
-  closed: string
-  open: string
+  /** Vazio = mantém a arte guardada no convite. */
+  closed?: string
+  open?: string
   /** Dimensões nativas da arte fechada (define a proporção da caixa). */
   naturalWidth?: number
   naturalHeight?: number
@@ -64,6 +67,17 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride
     textureZoom: 1,
     sealAnchorY: 0.57,
     boxHeightVhCap: 52,
+  },
+  /**
+   * JPG 1536×1024 com margem branca. Zoom 1 mostra o envelope inteiro;
+   * a mistura multiply (no slug) some com a faixa branca que cortava a moldura.
+   * O pandeiro fica na ponta da aba.
+   */
+  'rafaele-41-anos': {
+    naturalWidth: 1536,
+    naturalHeight: 1024,
+    textureZoom: 1,
+    sealAnchorY: 0.71,
   },
 }
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
@@ -133,24 +147,35 @@ const sealGold = {
 function FloralBackdrop({
   frameSrc,
   backdropColor,
+  bleed = false,
 }: {
   frameSrc: string
   /** Vazio = creme padrão; ex. `#141416` para molduras escuras. */
   backdropColor?: string
+  /** Encosta a moldura nas bordas e corta a margem branca do PNG. */
+  bleed?: boolean
 }) {
   const bg =
     backdropColor?.trim() ||
     'var(--color-cream)'
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden px-2.5 py-2 sm:px-3 sm:py-3 md:p-6"
+      className={
+        bleed
+          ? 'pointer-events-none absolute inset-0 overflow-hidden'
+          : 'pointer-events-none absolute inset-0 overflow-hidden px-2.5 py-2 sm:px-3 sm:py-3 md:p-6'
+      }
       style={{ backgroundColor: bg }}
       aria-hidden
     >
       <img
         src={frameSrc}
         alt=""
-        className="h-full w-full object-cover object-bottom md:object-contain md:object-center"
+        className={
+          bleed
+            ? 'h-full w-full origin-center scale-[1.08] object-cover object-center'
+            : 'h-full w-full object-cover object-bottom md:object-contain md:object-center'
+        }
         decoding="async"
         fetchPriority="high"
       />
@@ -603,6 +628,73 @@ function ButterflySeal({ reduce, torn, onUserGesture, onFlewAway, ariaLabel }: B
   )
 }
 
+type PandeiroSealProps = {
+  torn: boolean
+  reduce: boolean
+}
+
+/** Pandeiro no lugar do selo: aro de madeira, platinelas e pele. O toque faz tremer e abre o envelope. */
+function PandeiroSeal({ torn, reduce }: PandeiroSealProps) {
+  const jingleAngles = [0, 60, 120, 180, 240, 300]
+
+  return (
+    <motion.div
+      className="relative h-[84px] w-[84px]"
+      animate={
+        torn
+          ? reduce
+            ? { opacity: 0, scale: 0.9 }
+            : { rotate: [0, -18, 16, -10, 8, 0], scale: [1, 1.08, 0.92], opacity: [1, 1, 0] }
+          : { rotate: [-8, 8, -8] }
+      }
+      transition={
+        torn
+          ? { duration: reduce ? 0.2 : 0.55, ease: 'easeInOut' }
+          : { duration: 1.45, repeat: Infinity, ease: 'easeInOut' }
+      }
+      aria-hidden
+    >
+      <svg viewBox="0 0 100 100" className="h-full w-full drop-shadow-[0_8px_14px_rgba(40,24,8,0.38)]">
+        <defs>
+          <radialGradient id="pandeiroSkin" cx="38%" cy="34%" r="70%">
+            <stop offset="0%" stopColor="#fff6e4" />
+            <stop offset="58%" stopColor="#f0d7a8" />
+            <stop offset="100%" stopColor="#d7b27a" />
+          </radialGradient>
+          <linearGradient id="pandeiroWood" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#e7c48a" />
+            <stop offset="42%" stopColor="#b57a3a" />
+            <stop offset="100%" stopColor="#6d3e16" />
+          </linearGradient>
+          <radialGradient id="pandeiroMetal" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="42%" stopColor="#d9dde4" />
+            <stop offset="100%" stopColor="#8b919a" />
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="50" r="47" fill="url(#pandeiroWood)" />
+        <circle cx="50" cy="50" r="41.5" fill="none" stroke="#5c3414" strokeWidth="1.3" opacity="0.6" />
+        {jingleAngles.map((deg) => {
+          const rad = (deg * Math.PI) / 180
+          const rx = 50 + Math.cos(rad) * 39.2
+          const ry = 50 + Math.sin(rad) * 39.2
+          const px = -Math.sin(rad) * 3.15
+          const py = Math.cos(rad) * 3.15
+          return (
+            <g key={deg}>
+              <circle cx={rx - px} cy={ry - py} r="3.2" fill="url(#pandeiroMetal)" stroke="#6d5424" strokeWidth="0.45" />
+              <circle cx={rx + px} cy={ry + py} r="3.2" fill="url(#pandeiroMetal)" stroke="#6d5424" strokeWidth="0.45" />
+            </g>
+          )
+        })}
+        <circle cx="50" cy="50" r="32" fill="#6a3d16" />
+        <circle cx="50" cy="50" r="29" fill="url(#pandeiroSkin)" />
+        <ellipse cx="41" cy="41" rx="8" ry="4.5" fill="#ffffff" opacity="0.28" />
+      </svg>
+    </motion.div>
+  )
+}
+
 type OpeningEnvelopeProps = {
   closedSrc: string
   openSrc: string
@@ -827,6 +919,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const butterflySealMode =
     data.openingInteractionMode === 'butterfly' ||
     (typeof inviteSlug === 'string' && BUTTERFLY_SEAL_SLUG_FALLBACKS.includes(inviteSlug))
+  const pandeiroSealMode = typeof inviteSlug === 'string' && PANDEIRO_SEAL_SLUGS.includes(inviteSlug)
   const envelopeBlendMode =
     typeof inviteSlug === 'string' && ENVELOPE_BLEND_SLUG_FALLBACKS.includes(inviteSlug)
   const rockGuitarSealMode = envelopeBlendMode
@@ -836,12 +929,12 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
    * Em convites com envelopes JPG (ex.: futebol), a margem clara vem dentro da própria imagem.
    * Deixar a camada transparente + multiply faz o branco do JPG assumir a textura real da moldura.
    */
-  const shouldMultiplyEnvelope = Boolean(backdropColor) || soccerGoalMode || envelopeBlendMode
+  const shouldMultiplyEnvelope = Boolean(backdropColor) || soccerGoalMode || envelopeBlendMode || pandeiroSealMode
   /** Arte de envelope com fundo recortado (transparente) para o slug atual, se existir. */
   const envelopeOverride =
     typeof inviteSlug === 'string' ? ENVELOPE_TRANSPARENT_OVERRIDES[inviteSlug] : undefined
   const openingStagePaperBg =
-    (soccerGoalMode || envelopeBlendMode || butterflySealMode || Boolean(envelopeOverride)) && !backdropColor
+    (soccerGoalMode || envelopeBlendMode || butterflySealMode || pandeiroSealMode || Boolean(envelopeOverride)) && !backdropColor
       ? 'transparent'
       : backdropColor || 'var(--color-cream)'
   const darkOpeningBackdrop = Boolean(backdropColor)
@@ -985,7 +1078,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
         transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
       }}
     >
-      <FloralBackdrop frameSrc={frameSrc} backdropColor={backdropColor} />
+      <FloralBackdrop frameSrc={frameSrc} backdropColor={backdropColor} bleed={pandeiroSealMode} />
       {openingFrameSubtitle ? (
         <div className="pointer-events-none absolute inset-x-0 top-[clamp(6.1rem,15vh,8.5rem)] z-[12] flex justify-center px-8 text-center">
           <p className="max-w-[min(82vw,520px)] whitespace-pre-wrap font-display text-sm leading-snug text-emerald-950/85 [text-shadow:0_1px_10px_rgba(255,255,255,0.78)] md:text-base">
@@ -1087,13 +1180,21 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 textureOffsetX={soccerGoalMode && !flapOpen ? -6 : 0}
                 textureOffsetY={soccerGoalMode && flapOpen ? 5 : 0}
                 openClipPath={
-                  soccerGoalMode
+                  pandeiroSealMode
+                    ? 'inset(0.6% 8.2% 2.4% 8.7%)'
+                    : soccerGoalMode
                     ? 'polygon(50% 0%, 94.5% 35%, 94.5% 100%, 5.5% 100%, 5.5% 35%)'
                     : envelopeBlendMode
                       ? 'polygon(50% 5%, 88% 34%, 88% 90%, 12% 90%, 12% 34%)'
                     : undefined
                 }
-                closedClipPath={envelopeBlendMode ? 'inset(12% 7% 8% 7%)' : undefined}
+                closedClipPath={
+                  pandeiroSealMode
+                    ? 'inset(12.6% 2.4% 11% 3.5%)'
+                    : envelopeBlendMode
+                      ? 'inset(12% 7% 8% 7%)'
+                      : undefined
+                }
                 centerTextureCrop={soccerGoalMode}
                 boxWidthMaxPx={envBoxWMax}
                 boxHeightVhCap={envBoxVhCap}
@@ -1129,6 +1230,17 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                       onStrummed={handleRockStrum}
                       ariaLabel={data.openingSealHint?.trim() || t('invite.openingFallback')}
                     />
+                  ) : pandeiroSealMode ? (
+                    <button
+                      type="button"
+                      disabled={inProgress}
+                      onClick={handleSealClick}
+                      className="cursor-pointer rounded-full border-0 bg-transparent p-0 outline-none transition hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-amber-700/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none"
+                      style={{ touchAction: 'manipulation' }}
+                      aria-label="Clique no pandeiro para abrir o convite"
+                    >
+                      <PandeiroSeal torn={sealTorn} reduce={Boolean(reduce)} />
+                    </button>
                   ) : (
                     <button
                       type="button"
@@ -1175,7 +1287,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
             }`}
             style={openingTextStyle()}
           >
-            {data.openingSealHint}
+            {pandeiroSealMode ? 'Clique no pandeiro para abrir o convite' : data.openingSealHint}
           </p>
           <p
             className={`font-display text-sm tracking-wide transition-opacity duration-300 ${
