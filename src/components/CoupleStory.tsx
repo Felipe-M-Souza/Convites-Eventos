@@ -10,7 +10,8 @@ export function CoupleStory({ data }: Props) {
   const reduce = useReducedMotion()
   const { t } = useI18n()
   const story = data.coupleStory.trim()
-  if (!story) return null
+  const image = data.coupleStoryImageUrl.trim()
+  if (!story && !image) return null
 
   const heading = data.coupleStoryHeading.trim() || t('invite.coupleStoryHeading')
 
@@ -24,9 +25,18 @@ export function CoupleStory({ data }: Props) {
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
     >
       <h2 className="font-display text-3xl text-[color:var(--color-ink)] md:text-4xl">{heading}</h2>
-      <p className="mt-6 whitespace-pre-wrap text-base leading-relaxed text-[color:var(--color-ink-muted)] md:text-lg">
-        {story}
-      </p>
+      {image ? (
+        <img
+          src={image}
+          alt={heading}
+          className="mx-auto mt-8 aspect-[3/2] w-full rounded-[1.6rem] object-cover shadow-sm"
+        />
+      ) : null}
+      {story ? (
+        <p className="mt-6 whitespace-pre-wrap text-base leading-relaxed text-[color:var(--color-ink-muted)] md:text-lg">
+          {story}
+        </p>
+      ) : null}
     </motion.section>
   )
 }
