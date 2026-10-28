@@ -56,10 +56,14 @@ export type TranslationKey =
   | 'invite.mapButton'
   | 'invite.rsvpButton'
   | 'invite.giftsButton'
-  | 'invite.giftsQrScan'
   | 'invite.giftsQrClick'
-  | 'invite.giftsQrRest'
-  | 'invite.giftsQrScanOnly'
+  | 'invite.giftsQrPixKey'
+  | 'invite.giftsQrPixCode'
+  | 'invite.giftsQrOpen'
+  | 'invite.giftsQrCopy'
+  | 'invite.giftsQrCopiedKey'
+  | 'invite.giftsQrCopiedCode'
+  | 'invite.giftsQrCopiedText'
   | 'invite.galleryHeading'
   | 'invite.galleryDescription'
   | 'guestUploads.defaultTitle'
@@ -201,10 +205,14 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.mapButton': 'Ver no mapa',
     'invite.rsvpButton': 'Confirmar presença',
     'invite.giftsButton': 'Lista de presentes',
-    'invite.giftsQrScan': 'Escaneie ou',
     'invite.giftsQrClick': 'clique aqui',
-    'invite.giftsQrRest': 'para presentear',
-    'invite.giftsQrScanOnly': 'Escaneie para presentear',
+    'invite.giftsQrPixKey': 'Escaneie ou {link} para copiar a chave Pix',
+    'invite.giftsQrPixCode': 'Escaneie ou {link} para copiar o Pix',
+    'invite.giftsQrOpen': 'Escaneie ou {link} para abrir',
+    'invite.giftsQrCopy': 'Escaneie ou {link} para copiar',
+    'invite.giftsQrCopiedKey': 'Chave Pix copiada',
+    'invite.giftsQrCopiedCode': 'Pix copiado. Cole no aplicativo do banco.',
+    'invite.giftsQrCopiedText': 'Texto copiado',
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Alguns registros que ajudam a contar a história desse momento.',
     'guestUploads.defaultTitle': 'Compartilhe suas fotos e vídeos do evento',
@@ -347,10 +355,14 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.mapButton': 'View map',
     'invite.rsvpButton': 'Confirm attendance',
     'invite.giftsButton': 'Gift registry',
-    'invite.giftsQrScan': 'Scan or',
     'invite.giftsQrClick': 'click here',
-    'invite.giftsQrRest': 'to send a gift',
-    'invite.giftsQrScanOnly': 'Scan to send a gift',
+    'invite.giftsQrPixKey': 'Scan or {link} to copy the Pix key',
+    'invite.giftsQrPixCode': 'Scan or {link} to copy the Pix code',
+    'invite.giftsQrOpen': 'Scan or {link} to open',
+    'invite.giftsQrCopy': 'Scan or {link} to copy',
+    'invite.giftsQrCopiedKey': 'Pix key copied',
+    'invite.giftsQrCopiedCode': 'Pix copied. Paste it in your bank app.',
+    'invite.giftsQrCopiedText': 'Text copied',
     'invite.galleryHeading': 'Moments',
     'invite.galleryDescription': 'A few memories that help tell the story of this moment.',
     'guestUploads.defaultTitle': 'Share your event photos and videos',
@@ -493,10 +505,14 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.mapButton': 'Ver mapa',
     'invite.rsvpButton': 'Confirmar asistencia',
     'invite.giftsButton': 'Lista de regalos',
-    'invite.giftsQrScan': 'Escanea o',
     'invite.giftsQrClick': 'haz clic aquí',
-    'invite.giftsQrRest': 'para regalar',
-    'invite.giftsQrScanOnly': 'Escanea para regalar',
+    'invite.giftsQrPixKey': 'Escanea o {link} para copiar la clave Pix',
+    'invite.giftsQrPixCode': 'Escanea o {link} para copiar el Pix',
+    'invite.giftsQrOpen': 'Escanea o {link} para abrir',
+    'invite.giftsQrCopy': 'Escanea o {link} para copiar',
+    'invite.giftsQrCopiedKey': 'Clave Pix copiada',
+    'invite.giftsQrCopiedCode': 'Pix copiado. Pégalo en la aplicación del banco.',
+    'invite.giftsQrCopiedText': 'Texto copiado',
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Algunos recuerdos que ayudan a contar la historia de este momento.',
     'guestUploads.defaultTitle': 'Comparte tus fotos y videos del evento',

@@ -1,15 +1,17 @@
 import { useId, useRef, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { galleryObjectPath, getGalleryPublicUrl, removeGalleryObject } from '../../lib/galleryStorage'
+import { readQrFromFile } from '../../lib/qrPayload'
 
 type Props = {
   supabase: SupabaseClient
   storageFolder: string
   value: string
   onChange: (url: string) => void
+  onPayload?: (payload: string) => void
 }
 
-export function GiftsQrCodeField({ supabase, storageFolder, value, onChange }: Props) {
+export function GiftsQrCodeField({ supabase, storageFolder, value, onChange, onPayload }: Props) {
   const inputId = useId()
   const fileRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
@@ -35,6 +37,9 @@ export function GiftsQrCodeField({ supabase, storageFolder, value, onChange }: P
       })
       if (uploadError) throw new Error(uploadError.message)
       onChange(getGalleryPublicUrl(supabase, objectPath))
+      const payload = await readQrFromFile(file).catch(() => null)
+      onPayload?.(payload ?? '')
+      if (!payload) setError('A imagem foi enviada, mas o QR não pôde ser lido. Confira se o código está nítido.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha no upload do QR Code.')
     } finally {
@@ -50,6 +55,7 @@ export function GiftsQrCodeField({ supabase, storageFolder, value, onChange }: P
     try {
       await removeGalleryObject(supabase, value)
       onChange('')
+      onPayload?.('')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha ao remover o QR Code.')
     } finally {

@@ -27,6 +27,7 @@ export const inviteTranslatableFields = [
   'rsvpWhatsappMessage',
   'giftsButtonLabel',
   'giftsIntro',
+  'giftsQrCaption',
   'guestUploadsTitle',
   'guestUploadsDescription',
   'footerThanks',
@@ -206,6 +207,16 @@ export const eventData = {
   giftsIntro: '',
   /** URL da imagem do QR Code da lista de presentes (PNG, opcional). */
   giftsQrCodeImageUrl: '',
+  /**
+   * Conteúdo lido do QR. Vazio = o convite lê a imagem.
+   * O “clique aqui” usa este conteúdo, e não o link da lista.
+   */
+  giftsQrPayload: '',
+  /**
+   * Frase abaixo do QR. Use {link} onde fica “clique aqui”.
+   * Vazio = frase automática conforme o QR (Pix, site ou texto).
+   */
+  giftsQrCaption: '',
   /** Tamanho exibido do QR Code em px (largura e altura). */
   giftsQrCodeSizePx: 180,
   /** Fotos da galeria (URLs públicas ou caminhos em `public/`). */
