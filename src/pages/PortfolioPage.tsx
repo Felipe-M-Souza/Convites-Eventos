@@ -206,6 +206,9 @@ export function PortfolioPage() {
             <h1 className="mt-5 font-display text-5xl font-semibold leading-none sm:text-6xl">
               {t('portfolio.heroTitle')}
             </h1>
+            <p className="mt-6 inline-flex max-w-xl rounded-full border border-[color:var(--color-gold)]/50 bg-white px-4 py-2 text-sm font-medium leading-6 text-[color:var(--color-ink)]">
+              {t('portfolio.noGiftFeeShort')}
+            </p>
             <p className="mt-6 max-w-xl text-base leading-8 text-[color:var(--color-ink-muted)] sm:text-lg">
               {t('portfolio.heroDescription')}
             </p>
@@ -466,6 +469,9 @@ export function PortfolioPage() {
                 {offer.name}
               </p>
               <p className="mt-3 font-display text-4xl font-semibold text-[color:var(--color-ink)]">{offer.promoPrice}</p>
+              <p className="mt-4 rounded-2xl bg-[color:var(--color-cream)] px-4 py-3 text-sm font-medium leading-6 text-[color:var(--color-ink)]">
+                {t('portfolio.noGiftFee')}
+              </p>
               <p className="mt-4 text-sm leading-7 text-[color:var(--color-ink-muted)]">{offer.description}</p>
               <ul className="mt-5 space-y-2 text-sm text-[color:var(--color-ink)]">
                 {offer.items.map((item) => (
