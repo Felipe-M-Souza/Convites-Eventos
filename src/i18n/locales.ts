@@ -56,6 +56,10 @@ export type TranslationKey =
   | 'invite.mapButton'
   | 'invite.rsvpButton'
   | 'invite.giftsButton'
+  | 'invite.giftsQrScan'
+  | 'invite.giftsQrClick'
+  | 'invite.giftsQrRest'
+  | 'invite.giftsQrScanOnly'
   | 'invite.galleryHeading'
   | 'invite.galleryDescription'
   | 'guestUploads.defaultTitle'
@@ -197,6 +201,10 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.mapButton': 'Ver no mapa',
     'invite.rsvpButton': 'Confirmar presença',
     'invite.giftsButton': 'Lista de presentes',
+    'invite.giftsQrScan': 'Escaneie ou',
+    'invite.giftsQrClick': 'clique aqui',
+    'invite.giftsQrRest': 'para presentear',
+    'invite.giftsQrScanOnly': 'Escaneie para presentear',
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Alguns registros que ajudam a contar a história desse momento.',
     'guestUploads.defaultTitle': 'Compartilhe suas fotos e vídeos do evento',
@@ -339,6 +347,10 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.mapButton': 'View map',
     'invite.rsvpButton': 'Confirm attendance',
     'invite.giftsButton': 'Gift registry',
+    'invite.giftsQrScan': 'Scan or',
+    'invite.giftsQrClick': 'click here',
+    'invite.giftsQrRest': 'to send a gift',
+    'invite.giftsQrScanOnly': 'Scan to send a gift',
     'invite.galleryHeading': 'Moments',
     'invite.galleryDescription': 'A few memories that help tell the story of this moment.',
     'guestUploads.defaultTitle': 'Share your event photos and videos',
@@ -481,6 +493,10 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.mapButton': 'Ver mapa',
     'invite.rsvpButton': 'Confirmar asistencia',
     'invite.giftsButton': 'Lista de regalos',
+    'invite.giftsQrScan': 'Escanea o',
+    'invite.giftsQrClick': 'haz clic aquí',
+    'invite.giftsQrRest': 'para regalar',
+    'invite.giftsQrScanOnly': 'Escanea para regalar',
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Algunos recuerdos que ayudan a contar la historia de este momento.',
     'guestUploads.defaultTitle': 'Comparte tus fotos y videos del evento',

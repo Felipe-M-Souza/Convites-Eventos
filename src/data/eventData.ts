@@ -423,9 +423,11 @@ const defaultInviteShowcase = {
     'https://www.google.com/maps/place/Campo+Da+Ford/@-23.5255801,-46.7652351,17z',
   guestGuideHeading: 'Para os convidados',
   guestGuideLodging:
-    'Osasco tem hotéis perto da Rodovia Castelo Branco. Vale reservar com antecedência: o sábado de maio costuma encher.',
+    'A recepção é no Terraço Itália, na Avenida Ipiranga, 344, República. Quem vem de fora encontra hotel na mesma avenida, a poucos minutos a pé: Delplaza Excelsior (nº 770) e Delplaza Marabá (nº 757). A estação República do metrô também fica ali perto.',
   guestGuideParking:
-    'O Campo da Ford tem estacionamento no local. Chegue um pouco antes das 15h para estacionar com calma.',
+    'O Edifício Itália tem manobrista na entrada da Avenida Ipiranga, 344. O valet é cobrado à parte, então vale confirmar o valor na chegada. Quem preferir, vem de metrô: a estação República fica a uma curta caminhada.',
+  giftsIntro:
+    'Sua presença já é o nosso maior presente. Se quiser presentear, clique em Lista de presentes. Se for mais fácil, também pode fazer um Pix.',
   guestGuideDress:
     'Esporte chique. Cores claras e tecidos leves combinam com a tarde. O branco fica reservado à noiva.',
   guestGuideBeauty:
@@ -451,9 +453,11 @@ const defaultInviteShowcase = {
       receptionAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
       guestGuideHeading: 'For the guests',
       guestGuideLodging:
-        'Osasco has hotels near the Castelo Branco highway. Book ahead: a Saturday in May tends to fill up.',
+        'The reception is at Terraço Itália, Avenida Ipiranga 344, in República. Two hotels on the same avenue are a short walk away: Delplaza Excelsior (no. 770) and Delplaza Marabá (no. 757). República metro station is nearby too.',
       guestGuideParking:
-        'Campo da Ford has on-site parking. Arrive a little before 3:00 p.m. so you can park without a rush.',
+        'Edifício Itália has a valet at the entrance on Avenida Ipiranga 344. Valet is charged separately, so confirm the price when you arrive. República metro station is a short walk away.',
+      giftsIntro:
+        'Your presence is already our best gift. If you would like to give something, click the gift list button. A Pix transfer is welcome too, if that is easier.',
       guestGuideDress:
         'Smart casual. Light colors and light fabrics suit the afternoon. White is reserved for the bride.',
       guestGuideBeauty:
@@ -473,9 +477,11 @@ const defaultInviteShowcase = {
       receptionAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
       guestGuideHeading: 'Para los invitados',
       guestGuideLodging:
-        'Osasco tiene hoteles cerca de la autopista Castelo Branco. Conviene reservar con tiempo: un sábado de mayo suele llenarse.',
+        'La recepción es en Terraço Itália, Avenida Ipiranga 344, en República. Hay hoteles en la misma avenida, a pocos minutos a pie: Delplaza Excelsior (n.º 770) y Delplaza Marabá (n.º 757). La estación de metro República también queda cerca.',
       guestGuideParking:
-        'Campo da Ford tiene estacionamiento en el lugar. Llega un poco antes de las 15h para estacionar con calma.',
+        'El Edifício Itália tiene valet en la entrada de la Avenida Ipiranga 344. El valet se cobra aparte, así que conviene confirmar el valor al llegar. La estación República queda a una corta caminata.',
+      giftsIntro:
+        'Tu presencia ya es nuestro mejor regalo. Si quieres hacer un regalo, haz clic en Lista de presentes. Si te queda más fácil, también puedes hacer un Pix.',
       guestGuideDress:
         'Elegante sport. Los colores claros y las telas livianas combinan con la tarde. El blanco queda reservado para la novia.',
       guestGuideBeauty:
@@ -517,6 +523,42 @@ export function withDefaultInviteShowcase(data: EventData, slug: string, stored?
     }
   }
 
+  next = replaceDefaultInviteCopy(next)
+
+  return next
+}
+
+const legacyDefaultLodging =
+  'Osasco tem hotéis perto da Rodovia Castelo Branco. Vale reservar com antecedência: o sábado de maio costuma encher.'
+const legacyDefaultParking =
+  'O Campo da Ford tem estacionamento no local. Chegue um pouco antes das 15h para estacionar com calma.'
+
+function withShowcaseTranslation(
+  data: EventData,
+  field: 'guestGuideLodging' | 'guestGuideParking' | 'giftsIntro',
+): EventData {
+  const translations: InviteTranslations = { ...data.translations }
+  for (const locale of inviteTranslationLocales) {
+    const current = translations[locale]?.[field]?.trim()
+    const sample = defaultInviteShowcase.translations[locale]?.[field]?.trim()
+    if (current || !sample) continue
+    translations[locale] = { ...(translations[locale] ?? {}), [field]: sample }
+  }
+  return { ...data, translations }
+}
+
+/** Troca o texto antigo de Osasco no convite default pelo Terraço Itália, sem apagar o que já foi reescrito. */
+function replaceDefaultInviteCopy(data: EventData): EventData {
+  let next = data
+  if (next.guestGuideLodging.trim() === legacyDefaultLodging) {
+    next = withShowcaseTranslation({ ...next, guestGuideLodging: defaultInviteShowcase.guestGuideLodging }, 'guestGuideLodging')
+  }
+  if (next.guestGuideParking.trim() === legacyDefaultParking) {
+    next = withShowcaseTranslation({ ...next, guestGuideParking: defaultInviteShowcase.guestGuideParking }, 'guestGuideParking')
+  }
+  if (!next.giftsIntro.trim()) {
+    next = withShowcaseTranslation({ ...next, giftsIntro: defaultInviteShowcase.giftsIntro }, 'giftsIntro')
+  }
   return next
 }
 

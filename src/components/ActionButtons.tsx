@@ -105,8 +105,29 @@ export function ActionButtons({ data }: Props) {
                   style={{ width: `${giftsQrCodeSizePx}px`, height: `${giftsQrCodeSizePx}px` }}
                   loading="lazy"
                 />
-                <p className="text-center text-xs font-medium tracking-wide text-[color:var(--color-ink-muted)]">
-                  Escaneie para presentear
+                <p className="max-w-[16rem] text-center text-xs font-medium leading-5 tracking-wide text-[color:var(--color-ink-muted)]">
+                  {giftsHref ? (
+                    <>
+                      {t('invite.giftsQrScan')}{' '}
+                      <a
+                        href={giftsHref}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline decoration-[color:var(--color-gold)]/50 underline-offset-2 text-[color:var(--color-ink)]"
+                        onClick={() =>
+                          trackEvent('invite_action_click', {
+                            action_type: 'gifts',
+                            page_path: getCurrentPagePath(),
+                          })
+                        }
+                      >
+                        {t('invite.giftsQrClick')}
+                      </a>{' '}
+                      {t('invite.giftsQrRest')}
+                    </>
+                  ) : (
+                    t('invite.giftsQrScanOnly')
+                  )}
                 </p>
               </div>
             ) : null}
