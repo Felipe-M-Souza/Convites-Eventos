@@ -41,6 +41,74 @@ function Field({
   )
 }
 
+function OptionalImageField({
+  label,
+  value,
+  inputClass,
+  busy,
+  error,
+  onUrl,
+  onFile,
+}: {
+  label: string
+  value: string
+  inputClass: string
+  busy: boolean
+  error: string | null
+  onUrl: (value: string) => void
+  onFile: (file: File | null) => void
+}) {
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <Field label={label}>
+      <input
+        className={inputClass}
+        value={value}
+        placeholder="https://"
+        onChange={(event) => onUrl(event.target.value)}
+      />
+      {supabase ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            disabled={busy}
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null
+              event.target.value = ''
+              onFile(file)
+            }}
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => fileRef.current?.click()}
+            className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-50"
+          >
+            {busy ? 'A enviar…' : 'Enviar imagem'}
+          </button>
+          {value.trim() ? (
+            <button
+              type="button"
+              onClick={() => onUrl('')}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100"
+            >
+              Remover
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {value.trim() ? (
+        <img src={value} alt="" className="mt-3 h-32 w-full rounded-xl object-cover" />
+      ) : null}
+    </Field>
+  )
+}
+
 type InviteRow = { id: string; slug: string }
 type PortfolioTestimonialStatus = 'pending' | 'approved' | 'rejected'
 type PortfolioTestimonialRow = {
@@ -166,6 +234,8 @@ export function AdminEditor({ onSignOut }: Props) {
   const [copiedShareLink, setCopiedShareLink] = useState(false)
   const [coverUploading, setCoverUploading] = useState(false)
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null)
+  const [blockImageBusy, setBlockImageBusy] = useState<null | 'coupleStoryImageUrl' | 'ceremonyImageUrl' | 'receptionImageUrl'>(null)
+  const [blockImageErrors, setBlockImageErrors] = useState<Partial<Record<'coupleStoryImageUrl' | 'ceremonyImageUrl' | 'receptionImageUrl', string>>>({})
   const [activeTranslationLocale, setActiveTranslationLocale] = useState<InviteTranslationLocale>('en')
   const coverFileRef = useRef<HTMLInputElement>(null)
   const openingEnvelopeClosedRef = useRef<HTMLInputElement>(null)
@@ -444,6 +514,27 @@ export function AdminEditor({ onSignOut }: Props) {
     } finally {
       setCoverUploading(false)
       if (coverFileRef.current) coverFileRef.current.value = ''
+    }
+  }
+
+  const handleBlockImage = async (
+    field: 'coupleStoryImageUrl' | 'ceremonyImageUrl' | 'receptionImageUrl',
+    file: File | null,
+  ) => {
+    if (!supabase || !file) return
+    setBlockImageErrors((current) => ({ ...current, [field]: undefined }))
+    setBlockImageBusy(field)
+    try {
+      const jpeg = await resizeImageToJpeg(file, COVER_MAX_EDGE, COVER_JPEG_QUALITY)
+      const publicUrl = await uploadGalleryJpeg(supabase, jpeg, inviteSlug)
+      set(field)(publicUrl)
+    } catch (error) {
+      setBlockImageErrors((current) => ({
+        ...current,
+        [field]: error instanceof Error ? error.message : 'Não foi possível enviar a imagem.',
+      }))
+    } finally {
+      setBlockImageBusy(null)
     }
   }
 
@@ -1097,7 +1188,7 @@ export function AdminEditor({ onSignOut }: Props) {
           <legend className="px-1 font-display text-lg text-stone-800">História, cerimônia e dicas</legend>
           <p className="text-sm leading-relaxed text-stone-500">
             Deixe um bloco em branco para ele não aparecer no convite. Cerimônia ou recepção preenchidas substituem o
-            cartão único de local.
+            cartão único de local. A imagem de cada bloco é opcional: envie um arquivo ou cole o endereço.
           </p>
           <Field label="História — título">
             <input
@@ -1114,6 +1205,15 @@ export function AdminEditor({ onSignOut }: Props) {
               onChange={(e) => set('coupleStory')(e.target.value)}
             />
           </Field>
+          <OptionalImageField
+            label="História — imagem"
+            value={form.coupleStoryImageUrl}
+            inputClass={inputClass}
+            busy={blockImageBusy === 'coupleStoryImageUrl'}
+            error={blockImageErrors.coupleStoryImageUrl ?? null}
+            onUrl={(value) => set('coupleStoryImageUrl')(value)}
+            onFile={(file) => void handleBlockImage('coupleStoryImageUrl', file)}
+          />
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-4">
               <Field label="Cerimônia — título">
@@ -1131,6 +1231,15 @@ export function AdminEditor({ onSignOut }: Props) {
               <Field label="Cerimônia — mapa">
                 <input className={inputClass} value={form.ceremonyMapsLink} onChange={(e) => set('ceremonyMapsLink')(e.target.value)} />
               </Field>
+              <OptionalImageField
+                label="Cerimônia — imagem"
+                value={form.ceremonyImageUrl}
+                inputClass={inputClass}
+                busy={blockImageBusy === 'ceremonyImageUrl'}
+                error={blockImageErrors.ceremonyImageUrl ?? null}
+                onUrl={(value) => set('ceremonyImageUrl')(value)}
+                onFile={(file) => void handleBlockImage('ceremonyImageUrl', file)}
+              />
             </div>
             <div className="space-y-4">
               <Field label="Recepção — título">
@@ -1148,6 +1257,15 @@ export function AdminEditor({ onSignOut }: Props) {
               <Field label="Recepção — mapa">
                 <input className={inputClass} value={form.receptionMapsLink} onChange={(e) => set('receptionMapsLink')(e.target.value)} />
               </Field>
+              <OptionalImageField
+                label="Recepção — imagem"
+                value={form.receptionImageUrl}
+                inputClass={inputClass}
+                busy={blockImageBusy === 'receptionImageUrl'}
+                error={blockImageErrors.receptionImageUrl ?? null}
+                onUrl={(value) => set('receptionImageUrl')(value)}
+                onFile={(file) => void handleBlockImage('receptionImageUrl', file)}
+              />
             </div>
           </div>
           <Field label="Guia do convidado — título">

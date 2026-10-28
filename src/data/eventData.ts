@@ -232,16 +232,22 @@ export const eventData = {
    */
   coupleStoryHeading: '',
   coupleStory: '',
+  /** Foto opcional da secção «O casal». Vazio = sem imagem. */
+  coupleStoryImageUrl: '',
   ceremonyTitle: '',
   ceremonyTime: '',
   ceremonyVenue: '',
   ceremonyAddress: '',
   ceremonyMapsLink: '',
+  /** Foto opcional do cartão de cerimônia. Vazio = sem imagem. */
+  ceremonyImageUrl: '',
   receptionTitle: '',
   receptionTime: '',
   receptionVenue: '',
   receptionAddress: '',
   receptionMapsLink: '',
+  /** Foto opcional do cartão de recepção. Vazio = sem imagem. */
+  receptionImageUrl: '',
   guestGuideHeading: '',
   guestGuideLodging: '',
   guestGuideParking: '',
@@ -391,8 +397,8 @@ function isLegacyGalleryPhotos(photos: string[]): boolean {
   return LEGACY_GALLERY_PHOTOS.every((url, i) => photos[i] === url)
 }
 
-export function inviteMomentFilled(time: string, venue: string, address: string): boolean {
-  return Boolean(time.trim() || venue.trim() || address.trim())
+export function inviteMomentFilled(time: string, venue: string, address: string, image = ''): boolean {
+  return Boolean(time.trim() || venue.trim() || address.trim() || image.trim())
 }
 
 /**
@@ -424,6 +430,12 @@ const defaultInviteShowcase = {
     'Esporte chique. Cores claras e tecidos leves combinam com a tarde. O branco fica reservado à noiva.',
   guestGuideBeauty:
     'Se for se arrumar em salão, reserve a manhã do dia 9. O caminho até Osasco pede uma folga antes da cerimônia.',
+  coupleStoryImageUrl:
+    'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
+  ceremonyImageUrl:
+    'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1200&q=80',
+  receptionImageUrl:
+    'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80',
   translations: {
     en: {
       coupleStoryHeading: 'The couple',
@@ -472,25 +484,40 @@ const defaultInviteShowcase = {
   } satisfies InviteTranslations,
 }
 
+function storedHasKey(stored: unknown, key: string): boolean {
+  return Boolean(stored && typeof stored === 'object' && !Array.isArray(stored) && Object.prototype.hasOwnProperty.call(stored, key))
+}
+
 export function withDefaultInviteShowcase(data: EventData, slug: string, stored?: unknown): EventData {
   if (slug !== 'default') return data
-  if (stored && typeof stored === 'object' && !Array.isArray(stored) && Object.prototype.hasOwnProperty.call(stored, 'coupleStory')) {
-    return data
-  }
 
   const translations: InviteTranslations = { ...data.translations }
-  for (const locale of inviteTranslationLocales) {
-    translations[locale] = {
-      ...(data.translations?.[locale] ?? {}),
-      ...(defaultInviteShowcase.translations[locale] ?? {}),
+  let next: EventData = data
+
+  if (!storedHasKey(stored, 'coupleStory')) {
+    for (const locale of inviteTranslationLocales) {
+      translations[locale] = {
+        ...(data.translations?.[locale] ?? {}),
+        ...(defaultInviteShowcase.translations[locale] ?? {}),
+      }
+    }
+    next = {
+      ...data,
+      ...defaultInviteShowcase,
+      translations,
     }
   }
 
-  return {
-    ...data,
-    ...defaultInviteShowcase,
-    translations,
+  if (!storedHasKey(stored, 'coupleStoryImageUrl')) {
+    next = {
+      ...next,
+      coupleStoryImageUrl: defaultInviteShowcase.coupleStoryImageUrl,
+      ceremonyImageUrl: defaultInviteShowcase.ceremonyImageUrl,
+      receptionImageUrl: defaultInviteShowcase.receptionImageUrl,
+    }
   }
+
+  return next
 }
 
 /** Junta o JSON guardado no CMS com os valores por omissão (novas chaves no código). */

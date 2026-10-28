@@ -13,6 +13,7 @@ function ScheduleCard({
   address,
   mapsLink,
   mapsLabel,
+  imageUrl,
 }: {
   eyebrow: string
   time: string
@@ -20,23 +21,27 @@ function ScheduleCard({
   address: string
   mapsLink: string
   mapsLabel: string
+  imageUrl: string
 }) {
   return (
-    <div className="rounded-2xl border border-stone-200/80 bg-white/70 p-6 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-widest text-[color:var(--color-gold)]">{eyebrow}</p>
-      {time ? <p className="mt-2 font-display text-xl text-[color:var(--color-ink)]">{time}</p> : null}
-      {venue ? <p className="mt-2 font-display text-xl text-[color:var(--color-ink)]">{venue}</p> : null}
-      {address ? <p className="mt-2 text-sm leading-relaxed text-[color:var(--color-ink-muted)]">{address}</p> : null}
-      {mapsLink ? (
-        <a
-          href={mapsLink}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex text-sm font-medium text-[color:var(--color-gold)] underline decoration-[color:var(--color-gold)]/40 underline-offset-4"
-        >
-          {mapsLabel}
-        </a>
-      ) : null}
+    <div className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white/70 shadow-sm">
+      {imageUrl ? <img src={imageUrl} alt={eyebrow} className="aspect-[4/3] w-full object-cover" /> : null}
+      <div className="p-6">
+        <p className="text-xs font-medium uppercase tracking-widest text-[color:var(--color-gold)]">{eyebrow}</p>
+        {time ? <p className="mt-2 font-display text-xl text-[color:var(--color-ink)]">{time}</p> : null}
+        {venue ? <p className="mt-2 font-display text-xl text-[color:var(--color-ink)]">{venue}</p> : null}
+        {address ? <p className="mt-2 text-sm leading-relaxed text-[color:var(--color-ink-muted)]">{address}</p> : null}
+        {mapsLink ? (
+          <a
+            href={mapsLink}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex text-sm font-medium text-[color:var(--color-gold)] underline decoration-[color:var(--color-gold)]/40 underline-offset-4"
+          >
+            {mapsLabel}
+          </a>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -44,8 +49,8 @@ function ScheduleCard({
 export function EventDetails({ data }: Props) {
   const reduce = useReducedMotion()
   const { t } = useI18n()
-  const ceremony = inviteMomentFilled(data.ceremonyTime, data.ceremonyVenue, data.ceremonyAddress)
-  const reception = inviteMomentFilled(data.receptionTime, data.receptionVenue, data.receptionAddress)
+  const ceremony = inviteMomentFilled(data.ceremonyTime, data.ceremonyVenue, data.ceremonyAddress, data.ceremonyImageUrl)
+  const reception = inviteMomentFilled(data.receptionTime, data.receptionVenue, data.receptionAddress, data.receptionImageUrl)
   const hasSchedule = ceremony || reception
   const mapsLabel = data.mapsButtonLabel?.trim() || t('invite.mapButton')
 
@@ -80,6 +85,7 @@ export function EventDetails({ data }: Props) {
                 address={data.ceremonyAddress}
                 mapsLink={data.ceremonyMapsLink.trim()}
                 mapsLabel={mapsLabel}
+                imageUrl={data.ceremonyImageUrl.trim()}
               />
             ) : null}
             {reception ? (
@@ -90,6 +96,7 @@ export function EventDetails({ data }: Props) {
                 address={data.receptionAddress}
                 mapsLink={data.receptionMapsLink.trim()}
                 mapsLabel={mapsLabel}
+                imageUrl={data.receptionImageUrl.trim()}
               />
             ) : null}
           </div>
