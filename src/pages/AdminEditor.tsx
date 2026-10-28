@@ -153,6 +153,7 @@ const translationFieldLabels: Record<InviteTranslatableField, string> = {
   rsvpWhatsappMessage: 'Mensagem WhatsApp',
   giftsButtonLabel: 'Botão lista de presentes',
   giftsIntro: 'Texto lista de presentes',
+  giftsQrCaption: 'Frase abaixo do QR',
   guestUploadsTitle: 'Uploads — título',
   guestUploadsDescription: 'Uploads — descrição',
   footerThanks: 'Rodapé — agradecimento',
@@ -181,6 +182,7 @@ const longTranslationFields = new Set<InviteTranslatableField>([
   'notes',
   'rsvpWhatsappMessage',
   'giftsIntro',
+  'giftsQrCaption',
   'guestUploadsDescription',
   'footerContact',
   'coupleStory',
@@ -1602,6 +1604,7 @@ export function AdminEditor({ onSignOut }: Props) {
                 storageFolder={inviteSlug}
                 value={form.giftsQrCodeImageUrl}
                 onChange={(url) => set('giftsQrCodeImageUrl')(url)}
+                onPayload={(payload) => set('giftsQrPayload')(payload)}
               />
             ) : (
               <input
@@ -1611,6 +1614,18 @@ export function AdminEditor({ onSignOut }: Props) {
                 onChange={(e) => set('giftsQrCodeImageUrl')(e.target.value)}
               />
             )}
+          </Field>
+          <Field label="Frase abaixo do QR">
+            <textarea
+              className={`${inputClass} min-h-[72px]`}
+              placeholder="Escaneie ou {link} para copiar a chave Pix"
+              value={form.giftsQrCaption}
+              onChange={(e) => set('giftsQrCaption')(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-stone-500">
+              Deixe em branco para a frase seguir o QR. Escreva {'{link}'} onde deve aparecer “clique aqui”. Esse clique
+              copia o Pix ou abre o endereço que está no código, e não a lista de presentes.
+            </p>
           </Field>
           <Field label="QR Code — tamanho (px)">
             <div className="flex flex-wrap items-center gap-3">

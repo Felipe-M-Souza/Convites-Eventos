@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { EventData } from '../data/eventData'
 import { buildRsvpWhatsappHref } from '../lib/whatsappLink'
 import { getCurrentPagePath, trackEvent } from '../lib/analytics'
+import { classifyQrPayload, readQrFromUrl, type QrAction } from '../lib/qrPayload'
 import { useI18n } from '../i18n/useI18n'
 
 type Props = {
@@ -26,6 +28,158 @@ function withUtm(href: string, campaign: string): string {
   }
 }
 
+const linkClass =
+  'underline decoration-[color:var(--color-gold)]/50 underline-offset-2 text-[color:var(--color-ink)]'
+
+function useQrAction(imageUrl: string, manualPayload: string) {
+  const stored = manualPayload.trim()
+  const [payload, setPayload] = useState(stored)
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(stored ? 'ready' : 'idle')
+
+  useEffect(() => {
+    if (stored) {
+      setPayload(stored)
+      setStatus('ready')
+      return undefined
+    }
+    if (!imageUrl) {
+      setPayload('')
+      setStatus('idle')
+      return undefined
+    }
+    let cancelled = false
+    setStatus('loading')
+    readQrFromUrl(imageUrl)
+      .then((value) => {
+        if (cancelled) return
+        setPayload(value ?? '')
+        setStatus(value ? 'ready' : 'error')
+      })
+      .catch(() => {
+        if (cancelled) return
+        setPayload('')
+        setStatus('error')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [imageUrl, stored])
+
+  return { action: classifyQrPayload(payload), status }
+}
+
+function QrCaptionBlock({
+  action,
+  caption,
+  notice,
+  onNotice,
+}: {
+  action: QrAction | null
+  caption: string
+  notice: string
+  onNotice: (value: string) => void
+}) {
+  const { t } = useI18n()
+  if (!action) return null
+
+  const template =
+    caption.trim() ||
+    (action.kind === 'url'
+      ? t('invite.giftsQrOpen')
+      : action.kind === 'pix-key'
+        ? t('invite.giftsQrPixKey')
+        : action.kind === 'pix-code'
+          ? t('invite.giftsQrPixCode')
+          : t('invite.giftsQrCopy'))
+  const key = action.kind === 'pix-key' || action.kind === 'pix-code' ? action.key : ''
+
+  const activate = () => {
+    trackEvent('invite_action_click', {
+      action_type: 'gifts_qr',
+      page_path: getCurrentPagePath(),
+    })
+    if (action.kind === 'url') return
+    const copied =
+      action.kind === 'pix-key'
+        ? t('invite.giftsQrCopiedKey')
+        : action.kind === 'pix-code'
+          ? t('invite.giftsQrCopiedCode')
+          : t('invite.giftsQrCopiedText')
+    navigator.clipboard
+      .writeText(action.copyText)
+      .then(() => onNotice(copied))
+      .catch(() => onNotice(action.copyText))
+  }
+
+  return (
+    <div className="max-w-[16rem] text-center text-xs font-medium leading-5 tracking-wide text-[color:var(--color-ink-muted)]">
+      <div>
+        <QrCaption
+          template={template}
+          linkLabel={t('invite.giftsQrClick')}
+          href={action.kind === 'url' ? action.href : undefined}
+          onCopy={activate}
+        />
+      </div>
+      {key ? <p className="mt-1 break-all text-[color:var(--color-ink)]">{key}</p> : null}
+      {notice ? <p className="mt-1 text-[color:var(--color-ink)]">{notice}</p> : null}
+    </div>
+  )
+}
+
+function QrCaption({
+  template,
+  linkLabel,
+  href,
+  onCopy,
+}: {
+  template: string
+  linkLabel: string
+  href?: string
+  onCopy: () => void
+}) {
+  const token = '{link}'
+  const link = href ? (
+    <a href={href} target="_blank" rel="noreferrer" className={linkClass} onClick={onCopy}>
+      {linkLabel}
+    </a>
+  ) : (
+    <button type="button" className={linkClass} onClick={onCopy}>
+      {linkLabel}
+    </button>
+  )
+
+  if (template.includes(token)) {
+    const [before, after] = template.split(token)
+    return (
+      <>
+        {before}
+        {link}
+        {after}
+      </>
+    )
+  }
+
+  const folded = template.toLocaleLowerCase()
+  const needle = linkLabel.toLocaleLowerCase()
+  const at = folded.indexOf(needle)
+  if (at >= 0) {
+    return (
+      <>
+        {template.slice(0, at)}
+        {link}
+        {template.slice(at + linkLabel.length)}
+      </>
+    )
+  }
+
+  return (
+    <>
+      {template} {link}
+    </>
+  )
+}
+
 export function ActionButtons({ data }: Props) {
   const reduce = useReducedMotion()
   const { t } = useI18n()
@@ -37,6 +191,8 @@ export function ActionButtons({ data }: Props) {
   const mapsHref = withUtm(data.mapsLink, 'maps_click')
   const rsvpHref = withUtm(buildRsvpWhatsappHref(data), 'rsvp_click')
   const giftsHref = withUtm(data.giftsLink, 'gifts_click')
+  const qr = useQrAction(giftsQrCode, data.giftsQrPayload ?? '')
+  const [qrNotice, setQrNotice] = useState('')
 
   return (
     <motion.div
@@ -105,30 +261,12 @@ export function ActionButtons({ data }: Props) {
                   style={{ width: `${giftsQrCodeSizePx}px`, height: `${giftsQrCodeSizePx}px` }}
                   loading="lazy"
                 />
-                <p className="max-w-[16rem] text-center text-xs font-medium leading-5 tracking-wide text-[color:var(--color-ink-muted)]">
-                  {giftsHref ? (
-                    <>
-                      {t('invite.giftsQrScan')}{' '}
-                      <a
-                        href={giftsHref}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline decoration-[color:var(--color-gold)]/50 underline-offset-2 text-[color:var(--color-ink)]"
-                        onClick={() =>
-                          trackEvent('invite_action_click', {
-                            action_type: 'gifts',
-                            page_path: getCurrentPagePath(),
-                          })
-                        }
-                      >
-                        {t('invite.giftsQrClick')}
-                      </a>{' '}
-                      {t('invite.giftsQrRest')}
-                    </>
-                  ) : (
-                    t('invite.giftsQrScanOnly')
-                  )}
-                </p>
+                <QrCaptionBlock
+                  action={qr.action}
+                  caption={data.giftsQrCaption ?? ''}
+                  notice={qrNotice}
+                  onNotice={setQrNotice}
+                />
               </div>
             ) : null}
           </div>

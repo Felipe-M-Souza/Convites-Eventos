@@ -31,6 +31,7 @@
     "@remotion/cli": "^4.0.451",
     "@supabase/supabase-js": "^2.103.0",
     "framer-motion": "^12.38.0",
+    "jsqr": "^1.4.0",
     "jszip": "^3.10.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
