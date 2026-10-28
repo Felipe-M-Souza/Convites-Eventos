@@ -104,6 +104,11 @@ const content: Record<Locale, PortfolioContent> = {
           'Sim. A estrutura é adaptada para casamento, bodas, aniversário infantil, 15 anos, chá de bebê, chá revelação, homenagem e outras celebrações.',
       },
       {
+        question: 'Vocês cobram taxa sobre os presentes?',
+        answer:
+          'Não. O convite pode ter o link da lista que o casal escolher. O valor do presente vai direto para quem celebra. A Convites Diversos cobra só o convite, no valor único de R$ 50,00.',
+      },
+      {
         question: 'Como o convite é entregue para compartilhar com os convidados?',
         answer:
           'Após a finalização, o convite fica disponível em um link pronto para ser enviado por WhatsApp, redes sociais, e-mail ou mensagem direta.',
@@ -204,6 +209,11 @@ const content: Record<Locale, PortfolioContent> = {
           'Yes. The structure can be adapted for weddings, anniversaries, birthdays, baby showers, memorials and other celebrations.',
       },
       {
+        question: 'Do you charge a fee on gifts?',
+        answer:
+          'No. The invitation can link to the gift list the couple chooses. The gift amount goes straight to the people celebrating. Convites Diversos charges only for the invitation, a flat R$ 50.00.',
+      },
+      {
         question: 'How is the invitation delivered?',
         answer:
           'After approval, the invitation is available as a link ready to share by WhatsApp, social media, email or direct message.',
@@ -302,6 +312,11 @@ const content: Record<Locale, PortfolioContent> = {
         question: '¿Puedo usar la misma estructura para distintas ocasiones?',
         answer:
           'Sí. La estructura se adapta a bodas, aniversarios, cumpleaños, baby showers, homenajes y otras celebraciones.',
+      },
+      {
+        question: '¿Cobran comisión sobre los regalos?',
+        answer:
+          'No. La invitación puede llevar el enlace de la lista que elija la pareja. El valor del regalo va directo a quien celebra. Convites Diversos cobra solo la invitación, con un precio único de R$ 50,00.',
       },
       {
         question: '¿Cómo se entrega la invitación?',

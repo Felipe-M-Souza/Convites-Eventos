@@ -87,6 +87,8 @@ export type TranslationKey =
   | 'portfolio.ctaModels'
   | 'portfolio.ctaBudget'
   | 'portfolio.heroNote'
+  | 'portfolio.noGiftFee'
+  | 'portfolio.noGiftFeeShort'
   | 'portfolio.highlightsEyebrow'
   | 'portfolio.portfolioEyebrow'
   | 'portfolio.portfolioTitle'
@@ -217,6 +219,8 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.ctaModels': 'Ver tipos de convite',
     'portfolio.ctaBudget': 'Fale conosco',
     'portfolio.heroNote': 'Cada projeto pode ter seu próprio link, identidade visual e experiência personalizada para o tipo de evento.',
+    'portfolio.noGiftFee': 'Não cobramos taxa de presentes. O valor da lista vai direto para quem celebra.',
+    'portfolio.noGiftFeeShort': 'Não cobramos taxa de presentes',
     'portfolio.highlightsEyebrow': 'Destaques',
     'portfolio.portfolioEyebrow': 'O que o portfólio entrega',
     'portfolio.portfolioTitle': 'Uma vitrine digital refinada para transformar convite em experiência.',
@@ -348,6 +352,8 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.ctaModels': 'See invitation types',
     'portfolio.ctaBudget': 'Request a quote or contact us',
     'portfolio.heroNote': 'Each project can have its own link, visual identity and personalized experience for the event type.',
+    'portfolio.noGiftFee': 'We don’t charge a fee on gifts. The list amount goes straight to the people celebrating.',
+    'portfolio.noGiftFeeShort': 'We don’t charge a fee on gifts',
     'portfolio.highlightsEyebrow': 'Highlights',
     'portfolio.portfolioEyebrow': 'What the portfolio delivers',
     'portfolio.portfolioTitle': 'A refined digital showcase that turns an invitation into an experience.',
@@ -479,6 +485,8 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.ctaModels': 'Ver tipos de invitación',
     'portfolio.ctaBudget': 'Solicitar presupuesto o contacto',
     'portfolio.heroNote': 'Cada proyecto puede tener su propio enlace, identidad visual y experiencia personalizada para el tipo de evento.',
+    'portfolio.noGiftFee': 'No cobramos comisión sobre los regalos. El valor de la lista va directo a quien celebra.',
+    'portfolio.noGiftFeeShort': 'No cobramos comisión sobre los regalos',
     'portfolio.highlightsEyebrow': 'Destacados',
     'portfolio.portfolioEyebrow': 'Qué entrega el portafolio',
     'portfolio.portfolioTitle': 'Una vitrina digital refinada para transformar la invitación en experiencia.',
