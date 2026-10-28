@@ -5,8 +5,10 @@ import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured } from '../lib/supabase'
 import { HeroSection } from '../components/HeroSection'
 import { CoupleMessage } from '../components/CoupleMessage'
+import { CoupleStory } from '../components/CoupleStory'
 import { CountdownTimer } from '../components/CountdownTimer'
 import { EventDetails } from '../components/EventDetails'
+import { GuestGuide } from '../components/GuestGuide'
 import { ActionButtons } from '../components/ActionButtons'
 import { PhotoGallery } from '../components/PhotoGallery'
 import { GuestUploadsSection } from '../components/GuestUploadsSection'
@@ -144,8 +146,10 @@ export function Home() {
             <HeroSection data={eventData} onContinue={scrollToInvite} />
             <main>
               <CoupleMessage data={eventData} />
+              <CoupleStory data={eventData} />
               <CountdownTimer targetIso={eventData.weddingDateTime} />
               <EventDetails data={eventData} />
+              <GuestGuide data={eventData} />
               <ActionButtons data={eventData} />
               <PhotoGallery photos={eventData.galleryPhotos} />
               <GuestUploadsSection

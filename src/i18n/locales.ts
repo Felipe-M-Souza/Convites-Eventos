@@ -41,9 +41,18 @@ export type TranslationKey =
   | 'invite.countdown.seconds'
   | 'invite.detailsHeading'
   | 'invite.detailsDateTime'
+  | 'invite.detailsDate'
   | 'invite.detailsVenue'
   | 'invite.detailsDressCode'
   | 'invite.detailsNotes'
+  | 'invite.coupleStoryHeading'
+  | 'invite.ceremonyTitle'
+  | 'invite.receptionTitle'
+  | 'invite.guestGuideHeading'
+  | 'invite.guestGuideLodging'
+  | 'invite.guestGuideParking'
+  | 'invite.guestGuideDress'
+  | 'invite.guestGuideBeauty'
   | 'invite.mapButton'
   | 'invite.rsvpButton'
   | 'invite.giftsButton'
@@ -173,9 +182,18 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.countdown.seconds': 'Seg',
     'invite.detailsHeading': 'Detalhes do evento',
     'invite.detailsDateTime': 'Data e horário',
+    'invite.detailsDate': 'Data',
     'invite.detailsVenue': 'Local',
     'invite.detailsDressCode': 'Traje',
     'invite.detailsNotes': 'Observações',
+    'invite.coupleStoryHeading': 'O casal',
+    'invite.ceremonyTitle': 'Cerimônia',
+    'invite.receptionTitle': 'Recepção',
+    'invite.guestGuideHeading': 'Para os convidados',
+    'invite.guestGuideLodging': 'Hospedagem',
+    'invite.guestGuideParking': 'Estacionamento',
+    'invite.guestGuideDress': 'Traje',
+    'invite.guestGuideBeauty': 'Beleza',
     'invite.mapButton': 'Ver no mapa',
     'invite.rsvpButton': 'Confirmar presença',
     'invite.giftsButton': 'Lista de presentes',
@@ -306,9 +324,18 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.countdown.seconds': 'Sec',
     'invite.detailsHeading': 'Event details',
     'invite.detailsDateTime': 'Date and time',
+    'invite.detailsDate': 'Date',
     'invite.detailsVenue': 'Venue',
     'invite.detailsDressCode': 'Dress code',
     'invite.detailsNotes': 'Notes',
+    'invite.coupleStoryHeading': 'The couple',
+    'invite.ceremonyTitle': 'Ceremony',
+    'invite.receptionTitle': 'Reception',
+    'invite.guestGuideHeading': 'For the guests',
+    'invite.guestGuideLodging': 'Where to stay',
+    'invite.guestGuideParking': 'Parking',
+    'invite.guestGuideDress': 'Dress code',
+    'invite.guestGuideBeauty': 'Beauty',
     'invite.mapButton': 'View map',
     'invite.rsvpButton': 'Confirm attendance',
     'invite.giftsButton': 'Gift registry',
@@ -439,9 +466,18 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.countdown.seconds': 'Seg',
     'invite.detailsHeading': 'Detalles del evento',
     'invite.detailsDateTime': 'Fecha y hora',
+    'invite.detailsDate': 'Fecha',
     'invite.detailsVenue': 'Lugar',
     'invite.detailsDressCode': 'Vestimenta',
     'invite.detailsNotes': 'Observaciones',
+    'invite.coupleStoryHeading': 'La pareja',
+    'invite.ceremonyTitle': 'Ceremonia',
+    'invite.receptionTitle': 'Recepción',
+    'invite.guestGuideHeading': 'Para los invitados',
+    'invite.guestGuideLodging': 'Hospedaje',
+    'invite.guestGuideParking': 'Estacionamiento',
+    'invite.guestGuideDress': 'Vestimenta',
+    'invite.guestGuideBeauty': 'Belleza',
     'invite.mapButton': 'Ver mapa',
     'invite.rsvpButton': 'Confirmar asistencia',
     'invite.giftsButton': 'Lista de regalos',
