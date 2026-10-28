@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { eventData, mergeInvitePayload, type EventData } from '../data/eventData'
+import { eventData, mergeInvitePayload, withDefaultInviteShowcase, type EventData } from '../data/eventData'
 import { demoInvitesBySlug } from '../data/demoInvites'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import {
@@ -68,7 +68,7 @@ export function EventDataProvider({ inviteSlug, children }: ProviderProps) {
     }
 
     setInviteId(row.id as string)
-    setData(mergeInvitePayload(row.payload))
+    setData(withDefaultInviteShowcase(mergeInvitePayload(row.payload), inviteSlug, row.payload))
     setSource('supabase')
     setStatus('ready')
     setInviteNotFound(false)

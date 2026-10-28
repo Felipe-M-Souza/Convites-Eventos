@@ -89,6 +89,21 @@ const translationFieldLabels: Record<InviteTranslatableField, string> = {
   guestUploadsDescription: 'Uploads — descrição',
   footerThanks: 'Rodapé — agradecimento',
   footerContact: 'Rodapé — contato/nota',
+  coupleStoryHeading: 'História — título',
+  coupleStory: 'História do casal',
+  ceremonyTitle: 'Cerimônia — título',
+  ceremonyTime: 'Cerimônia — horário',
+  ceremonyVenue: 'Cerimônia — local',
+  ceremonyAddress: 'Cerimônia — endereço',
+  receptionTitle: 'Recepção — título',
+  receptionTime: 'Recepção — horário',
+  receptionVenue: 'Recepção — local',
+  receptionAddress: 'Recepção — endereço',
+  guestGuideHeading: 'Guia — título',
+  guestGuideLodging: 'Guia — hospedagem',
+  guestGuideParking: 'Guia — estacionamento',
+  guestGuideDress: 'Guia — traje',
+  guestGuideBeauty: 'Guia — beleza',
 }
 
 const longTranslationFields = new Set<InviteTranslatableField>([
@@ -100,6 +115,11 @@ const longTranslationFields = new Set<InviteTranslatableField>([
   'giftsIntro',
   'guestUploadsDescription',
   'footerContact',
+  'coupleStory',
+  'guestGuideLodging',
+  'guestGuideParking',
+  'guestGuideDress',
+  'guestGuideBeauty',
 ])
 
 function buildAdminInvitePayload(form: EventData): EventData {
@@ -1070,6 +1090,85 @@ export function AdminEditor({ onSignOut }: Props) {
           </Field>
           <Field label="Link Google Maps">
             <input className={inputClass} value={form.mapsLink} onChange={(e) => set('mapsLink')(e.target.value)} />
+          </Field>
+        </fieldset>
+
+        <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
+          <legend className="px-1 font-display text-lg text-stone-800">História, cerimônia e dicas</legend>
+          <p className="text-sm leading-relaxed text-stone-500">
+            Deixe um bloco em branco para ele não aparecer no convite. Cerimônia ou recepção preenchidas substituem o
+            cartão único de local.
+          </p>
+          <Field label="História — título">
+            <input
+              className={inputClass}
+              value={form.coupleStoryHeading}
+              onChange={(e) => set('coupleStoryHeading')(e.target.value)}
+              placeholder="O casal"
+            />
+          </Field>
+          <Field label="História do casal">
+            <textarea
+              className={`${inputClass} min-h-[96px]`}
+              value={form.coupleStory}
+              onChange={(e) => set('coupleStory')(e.target.value)}
+            />
+          </Field>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-4">
+              <Field label="Cerimônia — título">
+                <input className={inputClass} value={form.ceremonyTitle} onChange={(e) => set('ceremonyTitle')(e.target.value)} placeholder="Cerimônia" />
+              </Field>
+              <Field label="Cerimônia — horário">
+                <input className={inputClass} value={form.ceremonyTime} onChange={(e) => set('ceremonyTime')(e.target.value)} />
+              </Field>
+              <Field label="Cerimônia — local">
+                <input className={inputClass} value={form.ceremonyVenue} onChange={(e) => set('ceremonyVenue')(e.target.value)} />
+              </Field>
+              <Field label="Cerimônia — endereço">
+                <input className={inputClass} value={form.ceremonyAddress} onChange={(e) => set('ceremonyAddress')(e.target.value)} />
+              </Field>
+              <Field label="Cerimônia — mapa">
+                <input className={inputClass} value={form.ceremonyMapsLink} onChange={(e) => set('ceremonyMapsLink')(e.target.value)} />
+              </Field>
+            </div>
+            <div className="space-y-4">
+              <Field label="Recepção — título">
+                <input className={inputClass} value={form.receptionTitle} onChange={(e) => set('receptionTitle')(e.target.value)} placeholder="Recepção" />
+              </Field>
+              <Field label="Recepção — horário">
+                <input className={inputClass} value={form.receptionTime} onChange={(e) => set('receptionTime')(e.target.value)} />
+              </Field>
+              <Field label="Recepção — local">
+                <input className={inputClass} value={form.receptionVenue} onChange={(e) => set('receptionVenue')(e.target.value)} />
+              </Field>
+              <Field label="Recepção — endereço">
+                <input className={inputClass} value={form.receptionAddress} onChange={(e) => set('receptionAddress')(e.target.value)} />
+              </Field>
+              <Field label="Recepção — mapa">
+                <input className={inputClass} value={form.receptionMapsLink} onChange={(e) => set('receptionMapsLink')(e.target.value)} />
+              </Field>
+            </div>
+          </div>
+          <Field label="Guia do convidado — título">
+            <input
+              className={inputClass}
+              value={form.guestGuideHeading}
+              onChange={(e) => set('guestGuideHeading')(e.target.value)}
+              placeholder="Para os convidados"
+            />
+          </Field>
+          <Field label="Hospedagem">
+            <textarea className={`${inputClass} min-h-[72px]`} value={form.guestGuideLodging} onChange={(e) => set('guestGuideLodging')(e.target.value)} />
+          </Field>
+          <Field label="Estacionamento">
+            <textarea className={`${inputClass} min-h-[72px]`} value={form.guestGuideParking} onChange={(e) => set('guestGuideParking')(e.target.value)} />
+          </Field>
+          <Field label="Traje">
+            <textarea className={`${inputClass} min-h-[72px]`} value={form.guestGuideDress} onChange={(e) => set('guestGuideDress')(e.target.value)} />
+          </Field>
+          <Field label="Beleza">
+            <textarea className={`${inputClass} min-h-[72px]`} value={form.guestGuideBeauty} onChange={(e) => set('guestGuideBeauty')(e.target.value)} />
           </Field>
         </fieldset>
 

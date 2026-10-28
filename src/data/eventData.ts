@@ -31,6 +31,21 @@ export const inviteTranslatableFields = [
   'guestUploadsDescription',
   'footerThanks',
   'footerContact',
+  'coupleStoryHeading',
+  'coupleStory',
+  'ceremonyTitle',
+  'ceremonyTime',
+  'ceremonyVenue',
+  'ceremonyAddress',
+  'receptionTitle',
+  'receptionTime',
+  'receptionVenue',
+  'receptionAddress',
+  'guestGuideHeading',
+  'guestGuideLodging',
+  'guestGuideParking',
+  'guestGuideDress',
+  'guestGuideBeauty',
 ] as const
 
 export type InviteTranslatableField = (typeof inviteTranslatableFields)[number]
@@ -211,6 +226,27 @@ export const eventData = {
   backgroundAudioUrl: '/audio/velha-infancia.mp3',
   footerThanks: 'Obrigado por fazer parte da nossa história.',
   footerContact: 'Dúvidas? Fale com os noivos pelo WhatsApp do RSVP.',
+  /**
+   * Blocos opcionais. Vazio = a secção não aparece.
+   * Cerimônia e recepção substituem o cartão único de local quando algum dos dois está preenchido.
+   */
+  coupleStoryHeading: '',
+  coupleStory: '',
+  ceremonyTitle: '',
+  ceremonyTime: '',
+  ceremonyVenue: '',
+  ceremonyAddress: '',
+  ceremonyMapsLink: '',
+  receptionTitle: '',
+  receptionTime: '',
+  receptionVenue: '',
+  receptionAddress: '',
+  receptionMapsLink: '',
+  guestGuideHeading: '',
+  guestGuideLodging: '',
+  guestGuideParking: '',
+  guestGuideDress: '',
+  guestGuideBeauty: '',
   translations: {} as InviteTranslations,
 }
 
@@ -353,6 +389,108 @@ const LEGACY_GALLERY_PHOTOS = [
 function isLegacyGalleryPhotos(photos: string[]): boolean {
   if (photos.length !== LEGACY_GALLERY_PHOTOS.length) return false
   return LEGACY_GALLERY_PHOTOS.every((url, i) => photos[i] === url)
+}
+
+export function inviteMomentFilled(time: string, venue: string, address: string): boolean {
+  return Boolean(time.trim() || venue.trim() || address.trim())
+}
+
+/**
+ * Conteúdo de exemplo do convite `/c/default` (Elaine e Leonardo).
+ * Só entra quando o payload ainda não tem a chave `coupleStory`, para o admin poder editar e gravar por cima.
+ */
+const defaultInviteShowcase = {
+  coupleStoryHeading: 'O casal',
+  coupleStory:
+    'Tem dias que a gente guarda para dividir com quem importa. Elaine e Leonardo preparam este para celebrar o amor, a parceria e os planos que agora têm data, hora e endereço. A sua presença é o que transforma o convite em festa.',
+  ceremonyTitle: 'Cerimônia',
+  ceremonyTime: '15h00',
+  ceremonyVenue: 'Campo da Ford',
+  ceremonyAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
+  ceremonyMapsLink:
+    'https://www.google.com/maps/place/Campo+Da+Ford/@-23.5255801,-46.7652351,17z',
+  receptionTitle: 'Recepção',
+  receptionTime: '18h00',
+  receptionVenue: 'Campo da Ford',
+  receptionAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
+  receptionMapsLink:
+    'https://www.google.com/maps/place/Campo+Da+Ford/@-23.5255801,-46.7652351,17z',
+  guestGuideHeading: 'Para os convidados',
+  guestGuideLodging:
+    'Osasco tem hotéis perto da Rodovia Castelo Branco. Vale reservar com antecedência: o sábado de maio costuma encher.',
+  guestGuideParking:
+    'O Campo da Ford tem estacionamento no local. Chegue um pouco antes das 15h para estacionar com calma.',
+  guestGuideDress:
+    'Esporte chique. Cores claras e tecidos leves combinam com a tarde. O branco fica reservado à noiva.',
+  guestGuideBeauty:
+    'Se for se arrumar em salão, reserve a manhã do dia 9. O caminho até Osasco pede uma folga antes da cerimônia.',
+  translations: {
+    en: {
+      coupleStoryHeading: 'The couple',
+      coupleStory:
+        'Some days are meant to be shared with the people who matter. Elaine and Leonardo prepared this one to celebrate love, partnership and the plans that now have a date, a time and an address. Your presence is what turns the invitation into a party.',
+      ceremonyTitle: 'Ceremony',
+      ceremonyTime: '3:00 p.m.',
+      ceremonyVenue: 'Campo da Ford',
+      ceremonyAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
+      receptionTitle: 'Reception',
+      receptionTime: '6:00 p.m.',
+      receptionVenue: 'Campo da Ford',
+      receptionAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
+      guestGuideHeading: 'For the guests',
+      guestGuideLodging:
+        'Osasco has hotels near the Castelo Branco highway. Book ahead: a Saturday in May tends to fill up.',
+      guestGuideParking:
+        'Campo da Ford has on-site parking. Arrive a little before 3:00 p.m. so you can park without a rush.',
+      guestGuideDress:
+        'Smart casual. Light colors and light fabrics suit the afternoon. White is reserved for the bride.',
+      guestGuideBeauty:
+        'If you are getting ready at a salon, book the morning of the 9th. The drive to Osasco needs a margin before the ceremony.',
+    },
+    es: {
+      coupleStoryHeading: 'La pareja',
+      coupleStory:
+        'Hay días que se guardan para compartir con quien importa. Elaine y Leonardo preparan este para celebrar el amor, la compañía y los planes que ahora tienen fecha, hora y dirección. Tu presencia es lo que convierte la invitación en fiesta.',
+      ceremonyTitle: 'Ceremonia',
+      ceremonyTime: '15h00',
+      ceremonyVenue: 'Campo da Ford',
+      ceremonyAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
+      receptionTitle: 'Recepción',
+      receptionTime: '18h00',
+      receptionVenue: 'Campo da Ford',
+      receptionAddress: 'Rua Henry Ford - Pres. Altino, Osasco - SP, 06210-108',
+      guestGuideHeading: 'Para los invitados',
+      guestGuideLodging:
+        'Osasco tiene hoteles cerca de la autopista Castelo Branco. Conviene reservar con tiempo: un sábado de mayo suele llenarse.',
+      guestGuideParking:
+        'Campo da Ford tiene estacionamiento en el lugar. Llega un poco antes de las 15h para estacionar con calma.',
+      guestGuideDress:
+        'Elegante sport. Los colores claros y las telas livianas combinan con la tarde. El blanco queda reservado para la novia.',
+      guestGuideBeauty:
+        'Si te vas a arreglar en un salón, reserva la mañana del día 9. El camino hasta Osasco pide un margen antes de la ceremonia.',
+    },
+  } satisfies InviteTranslations,
+}
+
+export function withDefaultInviteShowcase(data: EventData, slug: string, stored?: unknown): EventData {
+  if (slug !== 'default') return data
+  if (stored && typeof stored === 'object' && !Array.isArray(stored) && Object.prototype.hasOwnProperty.call(stored, 'coupleStory')) {
+    return data
+  }
+
+  const translations: InviteTranslations = { ...data.translations }
+  for (const locale of inviteTranslationLocales) {
+    translations[locale] = {
+      ...(data.translations?.[locale] ?? {}),
+      ...(defaultInviteShowcase.translations[locale] ?? {}),
+    }
+  }
+
+  return {
+    ...data,
+    ...defaultInviteShowcase,
+    translations,
+  }
 }
 
 /** Junta o JSON guardado no CMS com os valores por omissão (novas chaves no código). */
