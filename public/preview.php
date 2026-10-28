@@ -181,7 +181,11 @@ $image = $origin . '/images/hero-couple.jpg';
 
 $debugInfo = [];
 $payload = fetch_invite_payload($slug, $debugInfo);
-if (is_array($payload)) {
+$inviteEnabled = !is_array($payload) || !array_key_exists('inviteEnabled', $payload) || $payload['inviteEnabled'] !== false;
+if (is_array($payload) && !$inviteEnabled) {
+    $title = 'Este convite ainda não está liberado';
+    $description = 'Assim que o pagamento for aprovado, ele fica disponível para os convidados. A visualização é vitalícia.';
+} elseif (is_array($payload)) {
     $couple = trim((string)($payload['coupleNames'] ?? ''));
     $message = trim(preg_replace('/\s+/u', ' ', (string)($payload['message'] ?? '')) ?? '');
     $cover = trim((string)($payload['coverImageUrl'] ?? ''));

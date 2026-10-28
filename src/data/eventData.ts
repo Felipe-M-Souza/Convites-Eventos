@@ -191,6 +191,11 @@ export const eventData = {
   dressCode: 'Esporte fino',
   /** Mostrar o cartão de traje / dress code em «Detalhes do evento». */
   dressCodeEnabled: true,
+  /**
+   * false = o link público não abre o convite.
+   * Quem acessa vê o aviso de visualização vitalícia após a aprovação do pagamento.
+   */
+  inviteEnabled: true,
   notes: 'Estacionamento no local. Cerimônia e festa no mesmo endereço.',
   mapsLink:
     'https://www.google.com/maps/search/?api=1&query=Espa%C3%A7o+Jardim+Imperial+S%C3%A3o+Paulo',
