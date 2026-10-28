@@ -74,20 +74,46 @@ export function Home() {
     return undefined
   }, [inviteUnlocked])
 
+  const inviteEnabled = eventData.inviteEnabled !== false
+
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
+    const url = buildSiteUrl(`/c/${encodeURIComponent(inviteSlug)}`)
+    if (!inviteEnabled) {
+      applySeoMeta({
+        title: t('invite.disabledTitle'),
+        description: t('invite.disabledDescription'),
+        image: buildSiteUrl('/images/hero-couple.jpg'),
+        url,
+      })
+      return
+    }
     const title = inviteTabTitle(eventData.coupleNames, eventData.openingPreviewTitle, eventData.seoTitle)
     const description = eventData.seoDescription.trim() || buildInviteDescription(eventData.message, t('invite.openingFallback'))
     const image = eventData.coverImageUrl?.trim() || buildSiteUrl('/images/hero-couple.jpg')
-    const url = buildSiteUrl(`/c/${encodeURIComponent(inviteSlug)}`)
 
     applySeoMeta({ title, description, image, url })
-  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.openingPreviewTitle, eventData.seoDescription, eventData.seoTitle, inviteSlug, status, t])
+  }, [eventData.coupleNames, eventData.coverImageUrl, eventData.message, eventData.openingPreviewTitle, eventData.seoDescription, eventData.seoTitle, inviteEnabled, inviteSlug, status, t])
 
   if (isCmsConfigured && status === 'loading') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-[color:var(--color-cream)] text-stone-500">
         <p className="font-display text-lg">{t('common.loadingInvite')}</p>
+      </div>
+    )
+  }
+
+  if (status !== 'loading' && !inviteEnabled) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[color:var(--color-cream)] px-6 text-center">
+        <p className="font-display text-3xl text-[color:var(--color-ink)] sm:text-4xl">{t('invite.disabledTitle')}</p>
+        <p className="max-w-md text-base leading-7 text-[color:var(--color-ink-muted)]">{t('invite.disabledDescription')}</p>
+        <Link
+          to="/"
+          className="mt-2 rounded-full border border-stone-300 bg-white px-6 py-2.5 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
+        >
+          {t('common.backHome')}
+        </Link>
       </div>
     )
   }

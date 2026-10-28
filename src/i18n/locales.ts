@@ -30,6 +30,8 @@ export type TranslationKey =
   | 'common.loadingInvite'
   | 'common.inviteNotFound'
   | 'common.inviteNotFoundDescription'
+  | 'invite.disabledTitle'
+  | 'invite.disabledDescription'
   | 'invite.openingFallback'
   | 'invite.heroContinue'
   | 'invite.messageHeading'
@@ -179,6 +181,9 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'common.loadingInvite': 'A carregar o convite...',
     'common.inviteNotFound': 'Convite não encontrado',
     'common.inviteNotFoundDescription': 'Não há nenhum convite com este link. Confira o endereço ou peça um novo ao organizador.',
+    'invite.disabledTitle': 'Este convite ainda não está liberado',
+    'invite.disabledDescription':
+      'Assim que o pagamento for aprovado, ele fica disponível para os convidados. A visualização é vitalícia.',
     'invite.openingFallback': 'Você recebeu um convite especial.',
     'invite.heroContinue': 'Ver convite',
     'invite.messageHeading': 'Uma mensagem especial',
@@ -329,6 +334,9 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'common.loadingInvite': 'Loading invitation...',
     'common.inviteNotFound': 'Invitation not found',
     'common.inviteNotFoundDescription': 'There is no invitation at this link. Check the address or ask the host for a new one.',
+    'invite.disabledTitle': 'This invitation is not available yet',
+    'invite.disabledDescription':
+      'Once payment is approved, guests can open it. Viewing lasts for life.',
     'invite.openingFallback': 'You received a special invitation.',
     'invite.heroContinue': 'View invitation',
     'invite.messageHeading': 'A special message',
@@ -479,6 +487,9 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'common.loadingInvite': 'Cargando invitación...',
     'common.inviteNotFound': 'Invitación no encontrada',
     'common.inviteNotFoundDescription': 'No hay ninguna invitación en este enlace. Revisa la dirección o solicita una nueva al anfitrión.',
+    'invite.disabledTitle': 'Esta invitación todavía no está disponible',
+    'invite.disabledDescription':
+      'Cuando se apruebe el pago, los invitados podrán abrirla. La visualización queda de por vida.',
     'invite.openingFallback': 'Has recibido una invitación especial.',
     'invite.heroContinue': 'Ver invitación',
     'invite.messageHeading': 'Un mensaje especial',

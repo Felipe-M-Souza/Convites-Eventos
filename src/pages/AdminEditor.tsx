@@ -225,6 +225,8 @@ export function AdminEditor({ onSignOut }: Props) {
   const { data, refresh, inviteId, inviteSlug, inviteNotFound, status } = useEventData()
   const [form, setForm] = useState<EventData>(() => structuredClone(data))
   const [saving, setSaving] = useState(false)
+  const [accessBusy, setAccessBusy] = useState(false)
+  const [publicEnabled, setPublicEnabled] = useState(() => data.inviteEnabled !== false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [inviteRows, setInviteRows] = useState<InviteRow[]>([])
   const [newSlugDraft, setNewSlugDraft] = useState('')
@@ -287,6 +289,10 @@ export function AdminEditor({ onSignOut }: Props) {
   }, [data])
 
   useEffect(() => {
+    setPublicEnabled(data.inviteEnabled !== false)
+  }, [inviteId, data.inviteEnabled])
+
+  useEffect(() => {
     loadInviteList()
   }, [inviteSlug, status])
 
@@ -338,6 +344,37 @@ export function AdminEditor({ onSignOut }: Props) {
     setMessage({ type: 'ok', text: 'Alterações guardadas.' })
     await refresh()
     loadInviteList()
+  }
+
+  const handleInviteAccess = async (enabled: boolean) => {
+    if (!supabase || !inviteId) return
+    setAccessBusy(true)
+    setMessage(null)
+    const { data: row, error: readError } = await supabase
+      .from('invite_config')
+      .select('payload')
+      .eq('id', inviteId)
+      .maybeSingle()
+    if (readError || !row || !row.payload || typeof row.payload !== 'object' || Array.isArray(row.payload)) {
+      setAccessBusy(false)
+      setMessage({ type: 'err', text: readError?.message ?? 'Não foi possível ler o convite para alterar a visualização.' })
+      return
+    }
+    const payload = { ...(row.payload as Record<string, unknown>), inviteEnabled: enabled }
+    const { error } = await supabase.from('invite_config').update({ payload }).eq('id', inviteId).select('id').single()
+    setAccessBusy(false)
+    if (error) {
+      setMessage({ type: 'err', text: error.message })
+      return
+    }
+    set('inviteEnabled')(enabled)
+    setPublicEnabled(enabled)
+    setMessage({
+      type: 'ok',
+      text: enabled
+        ? 'Convite reativado. O link público voltou a abrir.'
+        : 'Convite desativado. O link público mostra o aviso de pagamento.',
+    })
   }
 
   const handleCreateInvite = async () => {
@@ -719,6 +756,33 @@ export function AdminEditor({ onSignOut }: Props) {
           </button>
         </div>
       </header>
+
+      <section
+        className={`mb-8 rounded-xl border p-5 shadow-sm ${
+          publicEnabled ? 'border-stone-200 bg-white/80' : 'border-amber-300 bg-amber-50'
+        }`}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-lg text-stone-800">Visualização pública</h2>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-stone-600">
+              {publicEnabled
+                ? 'O link está liberado para os convidados.'
+                : 'O link está desativado. Quem tentar abrir o convite vê que a visualização vitalícia vale após a aprovação do pagamento.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={accessBusy || !supabase || !inviteId}
+            onClick={() => void handleInviteAccess(!publicEnabled)}
+            className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50 ${
+              publicEnabled ? 'bg-stone-800' : 'bg-[color:var(--color-gold)]'
+            }`}
+          >
+            {accessBusy ? 'A guardar…' : publicEnabled ? 'Desativar convite' : 'Reativar convite'}
+          </button>
+        </div>
+      </section>
 
       {supabase ? (
         <div className="mb-8 rounded-xl border border-stone-200 bg-white/80 p-4 shadow-sm">
