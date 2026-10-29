@@ -1,25 +1,24 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import type { EventData, GuestbookSample } from '../../data/eventData'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import type { EventData } from '../../data/eventData'
 import { useI18n } from '../../i18n/useI18n'
-import { insertInviteMessage, listApprovedInviteMessages, validateGuestbookDraft, type InviteMessage } from '../../lib/inviteMessages'
+import { insertInviteMessage, listVisibleInviteMessages, validateGuestbookDraft, type InviteMessage } from '../../lib/inviteMessages'
+import { SageDots, useSagePager } from './SageDots'
 
 type Props = {
   inviteSlug: string
   data: EventData
 }
 
-function SampleCard({ item }: { item: GuestbookSample }) {
-  return (
-    <article className="rounded-2xl bg-white/80 px-4 py-4 text-left shadow-sm">
-      <p className="font-display text-lg text-[#3f4a38]">{item.name}</p>
-      <p className="mt-2 text-sm leading-6 text-[#5c6a56]">{item.message}</p>
-    </article>
-  )
+type Slide = {
+  key: string
+  name: string
+  message: string
+  when?: string
 }
 
 export function GuestbookSection({ inviteSlug, data }: Props) {
   const { locale, t } = useI18n()
-  const [approved, setApproved] = useState<InviteMessage[]>([])
+  const [messages, setMessages] = useState<InviteMessage[]>([])
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
@@ -28,13 +27,31 @@ export function GuestbookSection({ inviteSlug, data }: Props) {
 
   useEffect(() => {
     let cancelled = false
-    void listApprovedInviteMessages(inviteSlug).then((rows) => {
-      if (!cancelled) setApproved(rows)
+    void listVisibleInviteMessages(inviteSlug).then((rows) => {
+      if (!cancelled) setMessages(rows)
     })
     return () => {
       cancelled = true
     }
   }, [inviteSlug])
+
+  const slides = useMemo<Slide[]>(() => {
+    const fromGuests = messages.map((item) => ({
+      key: item.id,
+      name: item.guest_name,
+      message: item.message,
+      when: new Date(item.created_at).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' }),
+    }))
+    const fromSamples = data.guestbookSamples.map((item, index) => ({
+      key: `sample-${index}-${item.name}`,
+      name: item.name,
+      message: item.message,
+    }))
+    return [...fromGuests, ...fromSamples]
+  }, [data.guestbookSamples, locale, messages])
+
+  const { index, select } = useSagePager(slides.length)
+  const current = slides[index]
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -43,9 +60,11 @@ export function GuestbookSection({ inviteSlug, data }: Props) {
       setStatus({ type: 'err', text: t('invite.sageGuestbookShort') })
       return
     }
+    const sentName = name.trim()
+    const sentMessage = message.trim()
     setSending(true)
     setStatus(null)
-    const error = await insertInviteMessage(inviteSlug, name, message)
+    const error = await insertInviteMessage(inviteSlug, sentName, sentMessage)
     setSending(false)
     if (error) {
       setStatus({ type: 'err', text: t('invite.sageGuestbookError') })
@@ -54,6 +73,24 @@ export function GuestbookSection({ inviteSlug, data }: Props) {
     setName('')
     setMessage('')
     setStatus({ type: 'ok', text: t('invite.sageGuestbookSuccess') })
+    const rows = await listVisibleInviteMessages(inviteSlug)
+    const already = rows.some((row) => row.guest_name === sentName && row.message === sentMessage)
+    setMessages(
+      already
+        ? rows
+        : [
+            {
+              id: `local-${Date.now()}`,
+              invite_slug: inviteSlug,
+              guest_name: sentName,
+              message: sentMessage,
+              status: 'approved',
+              created_at: new Date().toISOString(),
+            },
+            ...rows,
+          ],
+    )
+    select(0)
   }
 
   return (
@@ -90,20 +127,21 @@ export function GuestbookSection({ inviteSlug, data }: Props) {
           <p className={`text-sm leading-6 ${status.type === 'ok' ? 'text-[#3f6b45]' : 'text-[#8a4b3a]'}`}>{status.text}</p>
         ) : null}
       </form>
-      <div className="mx-auto mt-8 grid max-w-md gap-3">
-        {approved.map((item) => (
-          <article key={item.id} className="rounded-2xl bg-white/80 px-4 py-4 text-left shadow-sm">
-            <p className="font-display text-lg text-[#3f4a38]">{item.guest_name}</p>
-            <p className="mt-1 text-xs text-[#8aa184]">
-              {new Date(item.created_at).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[#5c6a56]">{item.message}</p>
+      {current ? (
+        <div className="mx-auto mt-8 max-w-sm">
+          <article className="flex min-h-44 flex-col justify-center rounded-[28px] bg-white px-6 py-6 text-left shadow-sm">
+            <p className="font-display text-2xl text-[#3f4a38]">{current.name}</p>
+            {current.when ? <p className="mt-1 text-xs text-[#8aa184]">{current.when}</p> : null}
+            <p className="mt-3 text-sm leading-7 text-[#5c6a56]">{current.message}</p>
           </article>
-        ))}
-        {data.guestbookSamples.map((item) => (
-          <SampleCard key={`${item.name}-${item.message}`} item={item} />
-        ))}
-      </div>
+          <SageDots
+            count={slides.length}
+            index={index}
+            onSelect={select}
+            label={(dot) => t('invite.pagerDot', { n: dot + 1 })}
+          />
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -85,6 +85,7 @@ export type TranslationKey =
   | 'invite.sageGuestbookSuccess'
   | 'invite.sageGuestbookError'
   | 'invite.sageGuestbookShort'
+  | 'invite.pagerDot'
   | 'invite.sageGifts'
   | 'guestUploads.defaultTitle'
   | 'guestUploads.defaultDescription'
@@ -252,9 +253,10 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.sageGuestbookPlaceholder': 'Escreva um recado para o casal',
     'invite.sageGuestbookSend': 'Enviar mensagem',
     'invite.sageGuestbookSending': 'Enviando...',
-    'invite.sageGuestbookSuccess': 'Mensagem enviada. Ela aparece no convite depois da aprovação.',
+    'invite.sageGuestbookSuccess': 'Mensagem enviada. Ela já aparece no convite.',
     'invite.sageGuestbookError': 'Não foi possível enviar agora. Tente de novo em instantes.',
     'invite.sageGuestbookShort': 'Escreva pelo menos uma frase curta.',
+    'invite.pagerDot': 'Mostrar item {n}',
     'invite.sageGifts': 'Caixa de presentes',
     'guestUploads.defaultTitle': 'Compartilhe suas fotos e vídeos do evento',
     'guestUploads.defaultDescription': 'Envie um registro deste momento especial. O conteúdo será publicado no convite após aprovação do responsável.',
@@ -423,9 +425,10 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.sageGuestbookPlaceholder': 'Leave a note for the couple',
     'invite.sageGuestbookSend': 'Send message',
     'invite.sageGuestbookSending': 'Sending...',
-    'invite.sageGuestbookSuccess': 'Message sent. It appears on the invitation after approval.',
+    'invite.sageGuestbookSuccess': 'Message sent. It is already on the invitation.',
     'invite.sageGuestbookError': 'The message could not be sent right now. Please try again shortly.',
     'invite.sageGuestbookShort': 'Write at least a short sentence.',
+    'invite.pagerDot': 'Show item {n}',
     'invite.sageGifts': 'Gift box',
     'guestUploads.defaultTitle': 'Share your event photos and videos',
     'guestUploads.defaultDescription': 'Send a memory from this special moment. The content will appear on the invitation after host approval.',
@@ -594,9 +597,10 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.sageGuestbookPlaceholder': 'Escribe una nota para la pareja',
     'invite.sageGuestbookSend': 'Enviar mensaje',
     'invite.sageGuestbookSending': 'Enviando...',
-    'invite.sageGuestbookSuccess': 'Mensaje enviado. Aparece en la invitación después de la aprobación.',
+    'invite.sageGuestbookSuccess': 'Mensaje enviado. Ya aparece en la invitación.',
     'invite.sageGuestbookError': 'No fue posible enviar ahora. Inténtalo de nuevo en un momento.',
     'invite.sageGuestbookShort': 'Escribe al menos una frase corta.',
+    'invite.pagerDot': 'Mostrar elemento {n}',
     'invite.sageGifts': 'Caja de regalos',
     'guestUploads.defaultTitle': 'Comparte tus fotos y videos del evento',
     'guestUploads.defaultDescription': 'Envía un recuerdo de este momento especial. El contenido se publicará en la invitación después de la aprobación del anfitrión.',

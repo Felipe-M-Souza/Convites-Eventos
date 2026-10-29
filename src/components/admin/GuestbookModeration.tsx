@@ -36,8 +36,8 @@ export function GuestbookModeration({ inviteSlug }: Props) {
     <div className="space-y-3 rounded-xl border border-stone-200 bg-stone-50/80 p-4">
       <p className="text-sm font-medium text-stone-800">Recados dos convidados</p>
       <p className="text-xs leading-5 text-stone-500">
-        Uma mensagem nova fica pendente. Ela só aparece no convite depois de aprovada. Se a lista não carregar, rode a
-        migration `019_invite_messages.sql` no Supabase.
+        O recado aparece no convite assim que é enviado. Use Ocultar para tirá-lo da página. Se a lista não carregar,
+        rode a migration `019_invite_messages.sql` no Supabase.
       </p>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {rows.length === 0 && !error ? <p className="text-sm text-stone-500">Nenhum recado enviado ainda.</p> : null}

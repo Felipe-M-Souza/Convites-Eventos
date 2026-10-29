@@ -22,13 +22,13 @@ export function validateGuestbookDraft(name: string, message: string): 'name' | 
   return null
 }
 
-export async function listApprovedInviteMessages(inviteSlug: string): Promise<InviteMessage[]> {
+export async function listVisibleInviteMessages(inviteSlug: string): Promise<InviteMessage[]> {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('invite_messages')
     .select('id, invite_slug, guest_name, message, status, created_at')
     .eq('invite_slug', inviteSlug)
-    .eq('status', 'approved')
+    .in('status', ['pending', 'approved'])
     .order('created_at', { ascending: false })
     .limit(40)
   if (error) return []
@@ -49,13 +49,17 @@ export async function listInviteMessages(inviteSlug: string): Promise<{ rows: In
 
 export async function insertInviteMessage(inviteSlug: string, name: string, message: string): Promise<string | null> {
   if (!supabase) return 'unavailable'
-  const { error } = await supabase.from('invite_messages').insert({
+  const row = {
     invite_slug: inviteSlug,
     guest_name: name.trim(),
     message: message.trim(),
-    status: 'pending',
-  })
-  return error ? error.message : null
+  }
+  const approved = await supabase.from('invite_messages').insert({ ...row, status: 'approved' })
+  if (!approved.error) return null
+  const blocked = /row-level security|policy/i.test(approved.error.message)
+  if (!blocked) return approved.error.message
+  const pending = await supabase.from('invite_messages').insert({ ...row, status: 'pending' })
+  return pending.error ? pending.error.message : null
 }
 
 export async function setInviteMessageStatus(id: string, status: InviteMessage['status']): Promise<string | null> {

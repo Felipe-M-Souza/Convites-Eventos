@@ -9,6 +9,7 @@ import { googleCalendarUrl, monthCells, parseIsoLocal, weekdayLabels } from '../
 import { buildRsvpWhatsappHref } from '../../lib/whatsappLink'
 import { getCurrentPagePath, trackEvent } from '../../lib/analytics'
 import { GuestbookSection } from './GuestbookSection'
+import { SageDots, useSagePager } from './SageDots'
 import { SageLeaves } from './SageLeaves'
 
 type Props = {
@@ -110,7 +111,7 @@ export function SageInvite({ data, inviteSlug }: Props) {
   const names = coupleNameParts(data.coupleNames)
   const when = useMemo(() => parseIsoLocal(data.weddingDateTime), [data.weddingDateTime])
   const photos = data.galleryPhotos.filter((photo) => photo.trim())
-  const [photoIndex, setPhotoIndex] = useState(0)
+  const { index: photoIndex, select: selectPhoto } = useSagePager(photos.length)
   const [now, setNow] = useState(() => Date.now())
   const ceremony = inviteMomentFilled(data.ceremonyTime, data.ceremonyVenue, data.ceremonyAddress, data.ceremonyImageUrl)
   const reception = inviteMomentFilled(data.receptionTime, data.receptionVenue, data.receptionAddress, data.receptionImageUrl)
@@ -131,12 +132,6 @@ export function SageInvite({ data, inviteSlug }: Props) {
     const id = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(id)
   }, [])
-
-  useEffect(() => {
-    if (photos.length < 2) return undefined
-    const id = window.setInterval(() => setPhotoIndex((index) => (index + 1) % photos.length), 3500)
-    return () => window.clearInterval(id)
-  }, [photos.length])
 
   const diff = when ? Math.max(0, when.getTime() - now) : 0
   const countdown = [
@@ -217,17 +212,12 @@ export function SageInvite({ data, inviteSlug }: Props) {
             <div className="relative mx-auto mt-8 max-w-sm overflow-hidden rounded-[28px] bg-white p-4 shadow-sm">
               <img src={photos[photoIndex]} alt="" className="aspect-[4/5] w-full rounded-2xl object-cover" />
             </div>
-            <div className="mt-4 flex justify-center gap-2">
-              {photos.map((photo, index) => (
-                <button
-                  key={`${photo}-${index}`}
-                  type="button"
-                  aria-label={`${index + 1}`}
-                  onClick={() => setPhotoIndex(index)}
-                  className={`h-2.5 w-2.5 rounded-full ${index === photoIndex ? 'bg-[#5f734f]' : 'bg-[#c5d5be]'}`}
-                />
-              ))}
-            </div>
+            <SageDots
+              count={photos.length}
+              index={photoIndex}
+              onSelect={selectPhoto}
+              label={(dot) => t('invite.pagerDot', { n: dot + 1 })}
+            />
           </section>
         ) : null}
 
