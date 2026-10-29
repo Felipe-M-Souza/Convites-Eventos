@@ -1045,7 +1045,7 @@ export function AdminEditor({ onSignOut }: Props) {
               onChange={(value) => set('guestbookSamples')(textToSamples(value))}
               placeholder={'Marina | Que este dia seja leve.'}
             />
-            <p className="mt-1 text-xs text-stone-500">Uma linha por recado, no formato nome | mensagem. Os recados enviados pelos convidados entram à parte, depois da aprovação.</p>
+            <p className="mt-1 text-xs text-stone-500">Uma linha por recado, no formato nome | mensagem. Os recados dos convidados aparecem no convite na hora.</p>
           </Field>
           <GuestbookModeration inviteSlug={inviteSlug} />
         </fieldset>
