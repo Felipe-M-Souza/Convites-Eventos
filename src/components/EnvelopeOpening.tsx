@@ -102,11 +102,12 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride
     openNaturalWidth: 1202,
     openNaturalHeight: 1309,
     textureZoom: 1,
-    sealAnchorY: 0.78,
-    boxHeightVhCap: 70,
-    boxWidthMaxPx: 336,
-    boxMaxHeightPx: 520,
-    compactWidthVw: 66,
+    /** Ponta da aba no PNG (y≈742/949). Sem o deslocamento de -8px o selo fica no V. */
+    sealAnchorY: 0.76,
+    boxHeightVhCap: 58,
+    boxWidthMaxPx: 300,
+    boxMaxHeightPx: 420,
+    compactWidthVw: 58,
     fitVisibleArt: true,
   },
 }
@@ -1230,7 +1231,13 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
         </div>
       ) : null}
 
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center justify-center px-3 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:py-5 md:max-w-none md:px-5 md:py-10">
+      <div
+        className={`relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-4 md:max-w-none md:px-5 md:py-10 ${
+          palomaEnvelope
+            ? 'justify-start pt-[25vh] md:justify-center md:pt-10'
+            : 'justify-center py-4 pt-[max(0.75rem,env(safe-area-inset-top))] sm:py-5'
+        }`}
+      >
         <div
           className="flex w-full max-w-full flex-col items-center justify-center gap-3 sm:gap-4 md:gap-8"
           style={layoutOffsetTop ? { marginTop: layoutOffsetTop } : undefined}
@@ -1281,7 +1288,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
 
             <div
               className={`relative z-[20] mx-auto flex w-full justify-center ${
-                palomaEnvelope ? '-mt-[7rem] md:-mt-12' : ''
+                palomaEnvelope ? 'md:-mt-8' : ''
               }`}
               style={{
                 maxWidth: envBoxWMax,
@@ -1323,9 +1330,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 textureZoomMin={soccerGoalMode ? (flapOpen ? 1.1 : 1.17) : undefined}
                 visualAspectRatio={soccerGoalMode ? (flapOpen ? 1.36 : 1.9) : undefined}
                 textureOffsetX={soccerGoalMode && !flapOpen ? -6 : 0}
-                textureOffsetY={
-                  soccerGoalMode && flapOpen ? 5 : envelopeOverride?.fitVisibleArt && !flapOpen ? -8 : 0
-                }
+                textureOffsetY={soccerGoalMode && flapOpen ? 5 : 0}
                 openClipPath={
                   pandeiroSealMode
                     ? 'polygon(50% 0.3%, 55.4% 2.5%, 87.6% 32.4%, 90.8% 40%, 90.8% 95%, 9.2% 95%, 9.2% 38.5%, 12.4% 31.3%, 44.8% 2.4%)'
@@ -1410,7 +1415,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
 
         <div
           className={`mb-7 flex w-full max-w-[min(94vw,320px)] shrink-0 flex-col items-center space-y-2 px-1 text-center sm:max-w-[min(90vw,300px)] md:mb-9 md:max-w-[300px] ${
-            palomaEnvelope ? 'mt-[7rem] md:mt-12' : ''
+            palomaEnvelope ? 'md:mt-8' : ''
           } ${
             darkOpeningBackdrop
               ? '[&_p]:[text-shadow:0_1px_14px_rgba(0,0,0,0.88),0_0_20px_rgba(0,0,0,0.55)]'
