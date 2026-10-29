@@ -50,6 +50,19 @@ type EnvelopeTransparentOverride = {
   sealAnchorY?: number
   /** Teto de altura da caixa em vh (dá mais espaço a artes altas/retrato). */
   boxHeightVhCap?: number
+  /** Teto da largura da caixa, em px. */
+  boxWidthMaxPx?: number
+  /** Teto da altura da caixa, em px. */
+  boxMaxHeightPx?: number
+  /** Largura da caixa no celular, em vw. */
+  compactWidthVw?: number
+  /** Sobe o envelope para encostar na moldura (valor CSS, ex.: -1.5rem). */
+  marginTop?: string
+  /**
+   * A caixa usa a proporção da arte que está na tela.
+   * Evita o letterbox da arte fechada quando o PNG aberto é mais alto.
+   */
+  fitVisibleArt?: boolean
 }
 
 const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride> = {
@@ -78,6 +91,23 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride
     naturalHeight: 1024,
     textureZoom: 1,
     sealAnchorY: 0.71,
+  },
+  /**
+   * Churrasco 1657×949 (fechado) e 1202×1309 (aberto). O painel gravou 1024×682,
+   * e o zoom padrão cortava as laterais — mais no celular. O selo fica na ponta da aba.
+   */
+  'paloma-48': {
+    naturalWidth: 1657,
+    naturalHeight: 949,
+    openNaturalWidth: 1202,
+    openNaturalHeight: 1309,
+    textureZoom: 1,
+    sealAnchorY: 0.78,
+    boxHeightVhCap: 70,
+    boxWidthMaxPx: 336,
+    boxMaxHeightPx: 520,
+    compactWidthVw: 66,
+    fitVisibleArt: true,
   },
 }
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
@@ -170,11 +200,14 @@ function FloralBackdrop({
   frameSrc,
   backdropColor,
   crop,
+  flushTop = false,
 }: {
   frameSrc: string
   /** Vazio = creme padrão; ex. `#141416` para molduras escuras. */
   backdropColor?: string
   crop?: FrameMarginCrop
+  /** Encosta a moldura no topo da tela, sem a faixa creme. */
+  flushTop?: boolean
 }) {
   const bg =
     backdropColor?.trim() ||
@@ -183,7 +216,9 @@ function FloralBackdrop({
   const contentH = crop ? 1 - crop.top - crop.bottom : 1
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden px-2.5 py-2 sm:px-3 sm:py-3 md:p-6"
+      className={`pointer-events-none absolute inset-0 overflow-hidden ${
+        flushTop ? 'px-2.5 pb-2 pt-0 sm:px-3 sm:pb-3 sm:pt-0 md:px-6 md:pb-6 md:pt-0' : 'px-2.5 py-2 sm:px-3 sm:py-3 md:p-6'
+      }`}
       style={{ backgroundColor: bg }}
       aria-hidden
     >
@@ -212,7 +247,11 @@ function FloralBackdrop({
         <img
           src={frameSrc}
           alt=""
-          className="h-full w-full object-cover object-bottom md:object-contain md:object-center"
+          className={
+            flushTop
+              ? 'h-[calc(100%+22px)] w-full -translate-y-3 object-cover object-top md:h-[calc(100%+16px)] md:-translate-y-3 md:object-contain md:object-top'
+              : 'h-full w-full object-cover object-bottom md:object-contain md:object-center'
+          }
           decoding="async"
           fetchPriority="high"
         />
@@ -800,6 +839,8 @@ type OpeningEnvelopeProps = {
   closedClipPath?: string
   /** Centraliza o crop do zoom para cortar canvas branco tanto acima como abaixo. */
   centerTextureCrop?: boolean
+  /** A caixa acompanha a arte visível, sem letterbox entre fechado e aberto. */
+  fitVisibleArt?: boolean
   /** Moldura escura: mistura multiplicativa suavisa halos claros residuais no PNG. */
   multiplyBlend: boolean
   showOpenArt: boolean
@@ -839,6 +880,7 @@ function OpeningEnvelope({
   openClipPath,
   closedClipPath,
   centerTextureCrop = false,
+  fitVisibleArt = false,
   multiplyBlend,
   showOpenArt,
   cardOut,
@@ -885,7 +927,8 @@ function OpeningEnvelope({
   const useVisualCrop =
     typeof visualAspectRatio === 'number' && Number.isFinite(visualAspectRatio) && visualAspectRatio > 0
   const visualBoxHeightOverWidth = useVisualCrop ? 1 / visualAspectRatio : undefined
-  const boxHeightOverWidth = visualBoxHeightOverWidth ?? Math.max(rClosed, rOpen)
+  const visibleRatio = showOpenArt ? rOpen : rClosed
+  const boxHeightOverWidth = visualBoxHeightOverWidth ?? (fitVisibleArt ? visibleRatio : Math.max(rClosed, rOpen))
 
   const hasDistinctOpenDims =
     typeof openNaturalWidth === 'number' &&
@@ -895,7 +938,7 @@ function OpeningEnvelope({
     openNaturalWidth > 0 &&
     openNaturalHeight > 0
   /** Fechado 3:2 + aberto 1:1: caixa quadrada com cover cortava as laterais do fechado → contain. */
-  const useObjectContain = hasDistinctOpenDims && Math.abs(rOpen - rClosed) > 0.001
+  const useObjectContain = !fitVisibleArt && hasDistinctOpenDims && Math.abs(rOpen - rClosed) > 0.001
 
   const wMax = boxWidthMaxPx > 0 ? boxWidthMaxPx : 400
   const vhCap = boxHeightVhCap > 0 ? boxHeightVhCap : 42
@@ -920,7 +963,7 @@ function OpeningEnvelope({
     minWidth: useVisualCrop || useObjectContain ? ('auto' as const) : '100%',
     transform: centerTextureCrop
       ? `translate(calc(-50% + ${textureOffsetX}px), calc(-50% + ${textureOffsetY}px)) scale(${textureZoom})`
-      : `translateX(calc(-50% + ${textureOffsetX}px)) scale(${textureZoom})`,
+      : `translate(calc(-50% + ${textureOffsetX}px), ${textureOffsetY}px) scale(${textureZoom})`,
     transformOrigin: centerTextureCrop ? ('center center' as const) : ('top center' as const),
     ...(multiplyBlend ? { mixBlendMode: 'multiply' as const } : {}),
   }
@@ -1026,7 +1069,8 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const darkOpeningBackdrop = Boolean(backdropColor)
   const soccerOpeningTextClass = soccerGoalMode && !darkOpeningBackdrop
   const layoutOffsetTop = data.openingLayoutOffsetTop?.trim() || (envelopeBlendMode ? 'clamp(2rem, 5vh, 3.75rem)' : '')
-  const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim()
+  const palomaEnvelope = inviteSlug === 'paloma-48'
+  const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim() || envelopeOverride?.marginTop || ''
   const envelopeSrc =
     envelopeOverride?.closed || data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
   const envelopeOpenSrc =
@@ -1047,11 +1091,15 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const previewTitle = data.openingPreviewTitle?.trim() || t('invite.openingFallback')
 
   const envBoxWMax =
-    typeof data.openingEnvelopeBoxWidthMaxPx === 'number' &&
-    Number.isFinite(data.openingEnvelopeBoxWidthMaxPx) &&
-    data.openingEnvelopeBoxWidthMaxPx > 0
-      ? data.openingEnvelopeBoxWidthMaxPx
-      : 400
+    typeof envelopeOverride?.boxWidthMaxPx === 'number' &&
+    Number.isFinite(envelopeOverride.boxWidthMaxPx) &&
+    envelopeOverride.boxWidthMaxPx > 0
+      ? envelopeOverride.boxWidthMaxPx
+      : typeof data.openingEnvelopeBoxWidthMaxPx === 'number' &&
+          Number.isFinite(data.openingEnvelopeBoxWidthMaxPx) &&
+          data.openingEnvelopeBoxWidthMaxPx > 0
+        ? data.openingEnvelopeBoxWidthMaxPx
+        : 400
   const envBoxVhCap =
     typeof envelopeOverride?.boxHeightVhCap === 'number' &&
     Number.isFinite(envelopeOverride.boxHeightVhCap) &&
@@ -1063,11 +1111,15 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
       ? data.openingEnvelopeBoxHeightVhCap
       : 42
   const envBoxPxCap =
-    typeof data.openingEnvelopeBoxMaxHeightPx === 'number' &&
-    Number.isFinite(data.openingEnvelopeBoxMaxHeightPx) &&
-    data.openingEnvelopeBoxMaxHeightPx > 0
-      ? data.openingEnvelopeBoxMaxHeightPx
-      : 440
+    typeof envelopeOverride?.boxMaxHeightPx === 'number' &&
+    Number.isFinite(envelopeOverride.boxMaxHeightPx) &&
+    envelopeOverride.boxMaxHeightPx > 0
+      ? envelopeOverride.boxMaxHeightPx
+      : typeof data.openingEnvelopeBoxMaxHeightPx === 'number' &&
+          Number.isFinite(data.openingEnvelopeBoxMaxHeightPx) &&
+          data.openingEnvelopeBoxMaxHeightPx > 0
+        ? data.openingEnvelopeBoxMaxHeightPx
+        : 440
 
   /** Pré-carrega o PNG aberto para o crossfade não “piscar”. */
   useEffect(() => {
@@ -1168,6 +1220,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
         frameSrc={frameSrc}
         backdropColor={backdropColor}
         crop={pandeiroSealMode ? RAFAELE_FRAME_CROP : undefined}
+        flushTop={palomaEnvelope}
       />
       {openingFrameSubtitle ? (
         <div className="pointer-events-none absolute inset-x-0 top-[clamp(6.1rem,15vh,8.5rem)] z-[12] flex justify-center px-8 text-center">
@@ -1227,7 +1280,9 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
             </motion.div>
 
             <div
-              className="relative z-[20] mx-auto flex w-full justify-center"
+              className={`relative z-[20] mx-auto flex w-full justify-center ${
+                palomaEnvelope ? '-mt-[7rem] md:-mt-12' : ''
+              }`}
               style={{
                 maxWidth: envBoxWMax,
                 ...(envelopeMarginTopOnly ? { marginTop: envelopeMarginTopOnly } : {}),
@@ -1268,7 +1323,9 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 textureZoomMin={soccerGoalMode ? (flapOpen ? 1.1 : 1.17) : undefined}
                 visualAspectRatio={soccerGoalMode ? (flapOpen ? 1.36 : 1.9) : undefined}
                 textureOffsetX={soccerGoalMode && !flapOpen ? -6 : 0}
-                textureOffsetY={soccerGoalMode && flapOpen ? 5 : 0}
+                textureOffsetY={
+                  soccerGoalMode && flapOpen ? 5 : envelopeOverride?.fitVisibleArt && !flapOpen ? -8 : 0
+                }
                 openClipPath={
                   pandeiroSealMode
                     ? 'polygon(50% 0.3%, 55.4% 2.5%, 87.6% 32.4%, 90.8% 40%, 90.8% 95%, 9.2% 95%, 9.2% 38.5%, 12.4% 31.3%, 44.8% 2.4%)'
@@ -1286,7 +1343,8 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                       : undefined
                 }
                 centerTextureCrop={soccerGoalMode}
-                compactWidthVw={pandeiroSealMode ? 70 : undefined}
+                fitVisibleArt={envelopeOverride?.fitVisibleArt}
+                compactWidthVw={envelopeOverride?.compactWidthVw ?? (pandeiroSealMode ? 70 : undefined)}
                 boxWidthMaxPx={envBoxWMax}
                 boxHeightVhCap={envBoxVhCap}
                 boxMaxHeightPx={envBoxPxCap}
@@ -1352,6 +1410,8 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
 
         <div
           className={`mb-7 flex w-full max-w-[min(94vw,320px)] shrink-0 flex-col items-center space-y-2 px-1 text-center sm:max-w-[min(90vw,300px)] md:mb-9 md:max-w-[300px] ${
+            palomaEnvelope ? 'mt-[7rem] md:mt-12' : ''
+          } ${
             darkOpeningBackdrop
               ? '[&_p]:[text-shadow:0_1px_14px_rgba(0,0,0,0.88),0_0_20px_rgba(0,0,0,0.55)]'
               : '[&_p]:[text-shadow:0_0_10px_rgba(250,247,242,0.95),0_0_22px_rgba(250,247,242,0.82)]'
