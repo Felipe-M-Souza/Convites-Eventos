@@ -29,6 +29,8 @@ const SOCCER_GOAL_SLUG_FALLBACKS: readonly string[] = ['san-barssoti']
 const BUTTERFLY_SEAL_SLUG_FALLBACKS: readonly string[] = ['cleyzamara']
 /** Slugs que usam um pandeiro no lugar do selo (tema pagode). */
 const PANDEIRO_SEAL_SLUGS: readonly string[] = ['rafaele-41-anos']
+/** Brinde (chopp + caipirinha) no lugar do selo, antes de abrir o envelope. */
+const TOAST_BEFORE_FLAP_MS = 980
 
 /**
  * Envelopes com fundo branco recortado (PNG com transparência) para que a moldura apareça
@@ -102,8 +104,8 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride
     openNaturalWidth: 1202,
     openNaturalHeight: 1309,
     textureZoom: 1,
-    /** Ponta da aba no PNG (y≈742/949). Sem o deslocamento de -8px o selo fica no V. */
-    sealAnchorY: 0.76,
+    /** O par de copos fica na ponta da aba; o centro do desenho é um pouco acima do V. */
+    sealAnchorY: 0.66,
     boxHeightVhCap: 58,
     boxWidthMaxPx: 300,
     boxMaxHeightPx: 420,
@@ -814,6 +816,158 @@ function PandeiroSeal({ torn, reduce }: PandeiroSealProps) {
   )
 }
 
+type ChurrascoToastProps = {
+  torn: boolean
+  reduce: boolean
+}
+
+/** Caneca de chopp e caipirinha. Em repouso balançam; no toque brindam. */
+function ChurrascoToast({ torn, reduce }: ChurrascoToastProps) {
+  const cheering = torn && !reduce
+
+  return (
+    <div className="relative h-[72px] w-[118px] overflow-visible" aria-hidden>
+      {cheering ? (
+        <>
+          <motion.span
+            className="pointer-events-none absolute left-1/2 top-1 z-20 text-lg text-amber-100"
+            style={{ textShadow: '0 1px 4px rgba(80,40,8,0.45)' }}
+            initial={{ opacity: 0, x: '-50%', y: 8, scale: 0.4 }}
+            animate={{ opacity: [0, 1, 0], y: [8, -18, -28], scale: [0.4, 1.15, 0.7] }}
+            transition={{ duration: 0.7, delay: 0.28, ease: 'easeOut' }}
+          >
+            ✦
+          </motion.span>
+          <motion.span
+            className="pointer-events-none absolute left-[18%] top-2 z-20 font-serif text-xl text-[#fff3c4]"
+            style={{ textShadow: '0 1px 3px rgba(60,30,8,0.5)' }}
+            initial={{ opacity: 0, y: 4, rotate: -12 }}
+            animate={{ opacity: [0, 1, 0], y: [4, -26, -36], rotate: -20 }}
+            transition={{ duration: 0.8, delay: 0.18, ease: 'easeOut' }}
+          >
+            ♪
+          </motion.span>
+          <motion.span
+            className="pointer-events-none absolute right-[14%] top-3 z-20 font-serif text-lg text-[#fff3c4]"
+            style={{ textShadow: '0 1px 3px rgba(60,30,8,0.5)' }}
+            initial={{ opacity: 0, y: 6, rotate: 10 }}
+            animate={{ opacity: [0, 1, 0], y: [6, -22, -34], rotate: 18 }}
+            transition={{ duration: 0.8, delay: 0.26, ease: 'easeOut' }}
+          >
+            ♫
+          </motion.span>
+        </>
+      ) : null}
+
+      <motion.div
+        className="absolute bottom-0 left-0 h-[68px] w-[62px]"
+        style={{ transformOrigin: '78% 92%' }}
+        initial={false}
+        animate={
+          torn
+            ? reduce
+              ? { opacity: 0, x: 8, rotate: 10 }
+              : { x: [0, 12, 7, 9], rotate: [0, 16, 8, 11], opacity: 1 }
+            : { x: 0, rotate: [-3, 2, -3], y: [0, -2, 0] }
+        }
+        transition={
+          torn
+            ? { duration: reduce ? 0.2 : 0.82, ease: [0.22, 1, 0.36, 1], times: [0, 0.38, 0.58, 1] }
+            : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }
+        }
+      >
+        <svg viewBox="0 0 70 78" className="h-full w-full drop-shadow-[0_5px_8px_rgba(40,20,6,0.35)]">
+          <defs>
+            <linearGradient id="choppGlass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+              <stop offset="40%" stopColor="#e7f4ff" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#9ec4de" stopOpacity="0.45" />
+            </linearGradient>
+            <linearGradient id="choppBeer" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f6c14a" />
+              <stop offset="55%" stopColor="#e0921a" />
+              <stop offset="100%" stopColor="#b86a0c" />
+            </linearGradient>
+            <radialGradient id="choppFoam" cx="40%" cy="35%" r="70%">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="70%" stopColor="#fff6e4" />
+              <stop offset="100%" stopColor="#f0e0c0" />
+            </radialGradient>
+          </defs>
+          <path
+            d="M16 26 C4 26 4 52 16 52"
+            fill="none"
+            stroke="#f4e7c8"
+            strokeWidth="5.5"
+            strokeLinecap="round"
+          />
+          <path d="M16 27 C8 27 8 51 16 51" fill="none" stroke="#ffffff" strokeWidth="1.4" opacity="0.55" />
+          <path
+            d="M20 18 h32 a4 4 0 0 1 4 4 v32 c0 10 -8 16 -20 16 s-20 -6 -20 -16 V22 a4 4 0 0 1 4 -4 z"
+            fill="url(#choppGlass)"
+            stroke="#fffaf0"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M22 34 h28 v20 c0 8 -6 12 -14 12 s-14 -4 -14 -12 z"
+            fill="url(#choppBeer)"
+          />
+          <ellipse cx="36" cy="34" rx="14" ry="3.2" fill="#f6d98a" opacity="0.9" />
+          <path d="M26 22 h4" stroke="#ffffff" strokeWidth="1.6" strokeLinecap="round" opacity="0.7" />
+          <circle cx="28" cy="16" r="7" fill="url(#choppFoam)" />
+          <circle cx="38" cy="13" r="8" fill="url(#choppFoam)" />
+          <circle cx="48" cy="17" r="6" fill="url(#choppFoam)" />
+          <ellipse cx="36" cy="20" rx="16" ry="6" fill="url(#choppFoam)" />
+        </svg>
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-0 right-0 h-[64px] w-[52px]"
+        style={{ transformOrigin: '22% 94%' }}
+        initial={false}
+        animate={
+          torn
+            ? reduce
+              ? { opacity: 0, x: -8, rotate: -10 }
+              : { x: [0, -12, -7, -9], rotate: [0, -16, -8, -11], opacity: 1 }
+            : { x: 0, rotate: [3, -2, 3], y: [0, -2, 0] }
+        }
+        transition={
+          torn
+            ? { duration: reduce ? 0.2 : 0.82, ease: [0.22, 1, 0.36, 1], times: [0, 0.38, 0.58, 1] }
+            : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }
+        }
+      >
+        <svg viewBox="0 0 58 72" className="h-full w-full drop-shadow-[0_5px_8px_rgba(40,20,6,0.35)]">
+          <defs>
+            <linearGradient id="caipiGlass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#d5efe4" stopOpacity="0.35" />
+            </linearGradient>
+            <linearGradient id="caipiDrink" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#e7f5a8" />
+              <stop offset="45%" stopColor="#b6d84a" />
+              <stop offset="100%" stopColor="#6ea318" />
+            </linearGradient>
+          </defs>
+          <path d="M8 16 H50 L44 58 Q29 66 14 58 Z" fill="url(#caipiGlass)" stroke="#fffaf0" strokeWidth="1.2" />
+          <path d="M14 34 H44 L40 56 Q29 62 18 56 Z" fill="url(#caipiDrink)" />
+          <g fill="#ffffff" opacity="0.72">
+            <rect x="20" y="36" width="8" height="7" rx="1.2" transform="rotate(-12 24 39)" />
+            <rect x="30" y="40" width="7" height="6" rx="1.2" transform="rotate(8 33 43)" />
+          </g>
+          <path d="M16 22 h3" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" opacity="0.75" />
+          <g transform="translate(42 6) rotate(-28)">
+            <path d="M2 10 A 12 12 0 0 1 16 2 L 2 2 Z" fill="#7fbf2a" stroke="#4e7a12" strokeWidth="1.1" />
+            <path d="M2 10 A 8 8 0 0 1 12 4 L 2 4 Z" fill="#e4f58a" />
+            <path d="M2 10 L 2 3" stroke="#f7f8d2" strokeWidth="1.2" />
+          </g>
+        </svg>
+      </motion.div>
+    </div>
+  )
+}
+
 type OpeningEnvelopeProps = {
   closedSrc: string
   openSrc: string
@@ -1130,13 +1284,21 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
 
   const timing = useMemo(
     () => ({
-      /** No modo futebol o «rasgar» do selo não existe — abre um pouco mais cedo. O pandeiro espera o giro e as notas. */
-      sealToFlapMs: reduce ? 220 : soccerGoalMode ? 420 : pandeiroSealMode ? 1000 : 780,
+      /** No modo futebol o «rasgar» do selo não existe — abre um pouco mais cedo. O pandeiro espera o giro e as notas. O brinde espera as taças se tocarem. */
+      sealToFlapMs: reduce
+        ? 220
+        : soccerGoalMode
+          ? 420
+          : pandeiroSealMode
+            ? 1000
+            : palomaEnvelope
+              ? TOAST_BEFORE_FLAP_MS
+              : 780,
       /** Após mostrar o envelope aberto (crossfade + pausa), o cartão sobe. */
       flapToCardMs: reduce ? 200 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
       cardToLeaveMs: reduce ? 480 : 2200,
     }),
-    [reduce, soccerGoalMode, pandeiroSealMode],
+    [reduce, soccerGoalMode, pandeiroSealMode, palomaEnvelope],
   )
 
   useEffect(() => {
@@ -1395,6 +1557,17 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                     >
                       <PandeiroSeal torn={sealTorn} reduce={Boolean(reduce)} />
                     </button>
+                  ) : palomaEnvelope ? (
+                    <button
+                      type="button"
+                      disabled={inProgress}
+                      onClick={handleSealClick}
+                      className="cursor-pointer border-0 bg-transparent p-0 outline-none transition hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none"
+                      style={{ touchAction: 'manipulation' }}
+                      aria-label="Clique no brinde para abrir o convite"
+                    >
+                      <ChurrascoToast torn={sealTorn} reduce={Boolean(reduce)} />
+                    </button>
                   ) : (
                     <button
                       type="button"
@@ -1443,7 +1616,11 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
             }`}
             style={openingTextStyle()}
           >
-            {pandeiroSealMode ? 'Clique no pandeiro para abrir o convite' : data.openingSealHint}
+            {pandeiroSealMode
+              ? 'Clique no pandeiro para abrir o convite'
+              : palomaEnvelope
+                ? 'Clique no brinde para abrir o convite'
+                : data.openingSealHint}
           </p>
           <p
             className={`font-display text-sm tracking-wide transition-opacity duration-300 ${
