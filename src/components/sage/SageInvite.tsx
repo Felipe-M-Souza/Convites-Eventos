@@ -50,28 +50,26 @@ function PhotoEnvelope({ photos, seal }: { photos: string[]; seal: string }) {
   const left = photos[0]
   const right = photos[1] ?? photos[0]
   return (
-    <div className="relative mx-auto mt-8 h-[300px] w-full max-w-[360px]">
+    <div className="sage-envelope relative mx-auto mt-6 w-full max-w-[340px] pt-28">
       {left ? (
-        <img
-          src={left}
-          alt=""
-          className="absolute left-4 top-0 z-10 h-40 w-32 -rotate-6 rounded-sm border-[6px] border-white object-cover shadow-md"
-        />
+        <div className="sage-float-a absolute left-[2%] top-3 z-10 w-[48%]">
+          <img src={left} alt="" className="aspect-[4/5] w-full rounded-sm border-[6px] border-white object-cover shadow-md" />
+        </div>
       ) : null}
       {right ? (
-        <img
-          src={right}
-          alt=""
-          className="absolute right-3 top-1 z-10 h-44 w-36 rotate-6 rounded-sm border-[6px] border-white object-cover shadow-md"
-        />
+        <div className="sage-float-b absolute right-[1%] top-0 z-10 w-[46%]">
+          <img src={right} alt="" className="aspect-[4/5] w-full rounded-sm border-[6px] border-white object-cover shadow-md" />
+        </div>
       ) : null}
-      <svg viewBox="0 0 360 220" className="absolute bottom-0 left-0 z-20 w-full drop-shadow-md" aria-hidden>
-        <path d="M24 78h312v128H24z" fill="#8ea484" />
-        <path d="M24 78 L180 156 L336 78" fill="#7d9474" />
-        <path d="M24 206 L180 128 L336 206" fill="none" stroke="#6f8568" strokeWidth="1.5" />
-      </svg>
-      <div className="absolute bottom-[92px] left-1/2 z-30 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-[#c6a15a] text-[11px] font-semibold tracking-wide text-[#3f3424] shadow">
-        {seal}
+      <div className="relative z-20">
+        <svg viewBox="0 0 360 250" className="block w-full drop-shadow-md" aria-hidden>
+          <path d="M16 88h328v150H16z" fill="#8ea484" />
+          <path d="M16 238 L180 156 L344 238" fill="none" stroke="#76906c" strokeWidth="1.4" />
+          <path d="M16 88 L180 168 L344 88" fill="#7d9474" />
+        </svg>
+        <div className="sage-seal absolute left-1/2 top-[67.2%] z-30 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#c6a15a] text-[11px] font-semibold tracking-wide text-[#3f3424] shadow-[0_4px_10px_rgba(70,55,20,0.28)]">
+          {seal}
+        </div>
       </div>
     </div>
   )

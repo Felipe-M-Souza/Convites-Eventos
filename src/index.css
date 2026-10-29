@@ -27,3 +27,40 @@ body {
 #root {
   min-height: 100dvh;
 }
+
+@keyframes sage-float-a {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-12.5deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-12.5deg);
+  }
+}
+
+@keyframes sage-float-b {
+  0%,
+  100% {
+    transform: translateY(0) rotate(9.6deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(9.6deg);
+  }
+}
+
+.sage-float-a {
+  transform: rotate(-12.5deg);
+  animation: sage-float-a 4.6s ease-in-out infinite;
+}
+
+.sage-float-b {
+  transform: rotate(9.6deg);
+  animation: sage-float-b 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sage-float-a,
+  .sage-float-b {
+    animation: none;
+  }
+}
