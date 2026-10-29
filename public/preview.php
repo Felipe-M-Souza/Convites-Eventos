@@ -181,6 +181,9 @@ $image = $origin . '/images/hero-couple.jpg';
 
 $debugInfo = [];
 $payload = fetch_invite_payload($slug, $debugInfo);
+if ($slug === 'default-verde' && !is_array($payload)) {
+    $payload = fetch_invite_payload('default', $debugInfo);
+}
 $inviteEnabled = !is_array($payload) || !array_key_exists('inviteEnabled', $payload) || $payload['inviteEnabled'] !== false;
 if (is_array($payload) && !$inviteEnabled) {
     $title = 'Este convite ainda não está liberado';

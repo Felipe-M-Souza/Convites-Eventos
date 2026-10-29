@@ -15,6 +15,8 @@ import { GuestUploadsSection } from '../components/GuestUploadsSection'
 import { Footer } from '../components/Footer'
 import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
+import { SageCover } from '../components/sage/SageCover'
+import { SageInvite } from '../components/sage/SageInvite'
 import { applySeoMeta } from '../lib/seoMeta'
 import { trackEvent } from '../lib/analytics'
 import { buildSiteUrl } from '../lib/siteUrl'
@@ -75,6 +77,7 @@ export function Home() {
   }, [inviteUnlocked])
 
   const inviteEnabled = eventData.inviteEnabled !== false
+  const sageInvite = eventData.inviteTheme === 'sage'
 
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
@@ -137,7 +140,7 @@ export function Home() {
   }
 
   return (
-    <div className="min-h-dvh bg-[color:var(--color-cream)]">
+    <div className={`min-h-dvh ${sageInvite ? 'bg-[#f4f7f2]' : 'bg-[color:var(--color-cream)]'}`}>
       {audio ? (
         <MusicToggle
           key={audio}
@@ -148,6 +151,20 @@ export function Home() {
       ) : null}
       <AnimatePresence mode="wait">
         {!inviteUnlocked ? (
+          sageInvite ? (
+            <SageCover
+              key="sage-cover"
+              data={eventData}
+              onOpen={() => {
+                trackEvent('invite_opened', {
+                  invite_slug: inviteSlug,
+                  page_path: window.location.pathname,
+                })
+                setInviteUnlocked(true)
+              }}
+              onOpenGesture={audio ? primeMusicOnSeal : undefined}
+            />
+          ) : (
           <EnvelopeOpening
             key="envelope-opening"
             data={eventData}
@@ -161,6 +178,9 @@ export function Home() {
             }}
             onSealUserGesture={audio ? primeMusicOnSeal : undefined}
           />
+          )
+        ) : sageInvite ? (
+          <SageInvite key="sage-invite" data={eventData} inviteSlug={inviteSlug} />
         ) : (
           <motion.div
             key="invite-main"

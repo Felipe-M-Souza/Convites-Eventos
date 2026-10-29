@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { eventData, mergeInvitePayload, withDefaultInviteShowcase, type EventData } from '../data/eventData'
+import { eventData, mergeInvitePayload, sageCloneSlug, withDefaultInviteShowcase, withSageClone, type EventData } from '../data/eventData'
 import { demoInvitesBySlug } from '../data/demoInvites'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import {
@@ -56,6 +56,24 @@ export function EventDataProvider({ inviteSlug, children }: ProviderProps) {
       setInviteId(null)
       setInviteNotFound(false)
       return
+    }
+
+    if (!row && inviteSlug === sageCloneSlug) {
+      const { data: base, error: baseError } = await supabase
+        .from('invite_config')
+        .select('id, payload')
+        .eq('slug', 'default')
+        .maybeSingle()
+
+      if (!baseError && base) {
+        const merged = withDefaultInviteShowcase(mergeInvitePayload(base.payload), 'default', base.payload)
+        setInviteId(null)
+        setData(withSageClone(merged))
+        setSource('supabase')
+        setStatus('ready')
+        setInviteNotFound(false)
+        return
+      }
     }
 
     if (!row) {
