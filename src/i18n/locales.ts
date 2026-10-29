@@ -68,6 +68,24 @@ export type TranslationKey =
   | 'invite.giftsQrCopiedText'
   | 'invite.galleryHeading'
   | 'invite.galleryDescription'
+  | 'invite.sageOpen'
+  | 'invite.sageWelcome'
+  | 'invite.sageCeremonyInfo'
+  | 'invite.sageAt'
+  | 'invite.sageAddCalendar'
+  | 'invite.sageReceptionPlace'
+  | 'invite.sageDirections'
+  | 'invite.sageProgram'
+  | 'invite.sageGuestbook'
+  | 'invite.sageGuestbookName'
+  | 'invite.sageGuestbookMessage'
+  | 'invite.sageGuestbookPlaceholder'
+  | 'invite.sageGuestbookSend'
+  | 'invite.sageGuestbookSending'
+  | 'invite.sageGuestbookSuccess'
+  | 'invite.sageGuestbookError'
+  | 'invite.sageGuestbookShort'
+  | 'invite.sageGifts'
   | 'guestUploads.defaultTitle'
   | 'guestUploads.defaultDescription'
   | 'guestUploads.emptyCount'
@@ -220,6 +238,24 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.giftsQrCopiedText': 'Texto copiado',
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Alguns registros que ajudam a contar a história desse momento.',
+    'invite.sageOpen': 'Abrir',
+    'invite.sageWelcome': 'Convidamos cordialmente',
+    'invite.sageCeremonyInfo': 'Info da cerimônia',
+    'invite.sageAt': 'Às',
+    'invite.sageAddCalendar': 'Adicionar ao calendário',
+    'invite.sageReceptionPlace': 'Local da recepção',
+    'invite.sageDirections': 'Como chegar',
+    'invite.sageProgram': 'Programa do dia',
+    'invite.sageGuestbook': 'Livro de mensagens',
+    'invite.sageGuestbookName': 'Seu nome',
+    'invite.sageGuestbookMessage': 'Mensagem',
+    'invite.sageGuestbookPlaceholder': 'Escreva um recado para o casal',
+    'invite.sageGuestbookSend': 'Enviar mensagem',
+    'invite.sageGuestbookSending': 'Enviando...',
+    'invite.sageGuestbookSuccess': 'Mensagem enviada. Ela aparece no convite depois da aprovação.',
+    'invite.sageGuestbookError': 'Não foi possível enviar agora. Tente de novo em instantes.',
+    'invite.sageGuestbookShort': 'Escreva pelo menos uma frase curta.',
+    'invite.sageGifts': 'Caixa de presentes',
     'guestUploads.defaultTitle': 'Compartilhe suas fotos e vídeos do evento',
     'guestUploads.defaultDescription': 'Envie um registro deste momento especial. O conteúdo será publicado no convite após aprovação do responsável.',
     'guestUploads.emptyCount': 'Ainda não há registros publicados.',
@@ -373,6 +409,24 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.giftsQrCopiedText': 'Text copied',
     'invite.galleryHeading': 'Moments',
     'invite.galleryDescription': 'A few memories that help tell the story of this moment.',
+    'invite.sageOpen': 'Open',
+    'invite.sageWelcome': 'We warmly invite you',
+    'invite.sageCeremonyInfo': 'Ceremony',
+    'invite.sageAt': 'At',
+    'invite.sageAddCalendar': 'Add to calendar',
+    'invite.sageReceptionPlace': 'Reception venue',
+    'invite.sageDirections': 'Directions',
+    'invite.sageProgram': 'Plan for the day',
+    'invite.sageGuestbook': 'Message book',
+    'invite.sageGuestbookName': 'Your name',
+    'invite.sageGuestbookMessage': 'Message',
+    'invite.sageGuestbookPlaceholder': 'Leave a note for the couple',
+    'invite.sageGuestbookSend': 'Send message',
+    'invite.sageGuestbookSending': 'Sending...',
+    'invite.sageGuestbookSuccess': 'Message sent. It appears on the invitation after approval.',
+    'invite.sageGuestbookError': 'The message could not be sent right now. Please try again shortly.',
+    'invite.sageGuestbookShort': 'Write at least a short sentence.',
+    'invite.sageGifts': 'Gift box',
     'guestUploads.defaultTitle': 'Share your event photos and videos',
     'guestUploads.defaultDescription': 'Send a memory from this special moment. The content will appear on the invitation after host approval.',
     'guestUploads.emptyCount': 'No published memories yet.',
@@ -526,6 +580,24 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.giftsQrCopiedText': 'Texto copiado',
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Algunos recuerdos que ayudan a contar la historia de este momento.',
+    'invite.sageOpen': 'Abrir',
+    'invite.sageWelcome': 'Les invitamos cordialmente',
+    'invite.sageCeremonyInfo': 'Información de la ceremonia',
+    'invite.sageAt': 'A las',
+    'invite.sageAddCalendar': 'Añadir al calendario',
+    'invite.sageReceptionPlace': 'Lugar de la recepción',
+    'invite.sageDirections': 'Cómo llegar',
+    'invite.sageProgram': 'Programa del día',
+    'invite.sageGuestbook': 'Libro de mensajes',
+    'invite.sageGuestbookName': 'Tu nombre',
+    'invite.sageGuestbookMessage': 'Mensaje',
+    'invite.sageGuestbookPlaceholder': 'Escribe una nota para la pareja',
+    'invite.sageGuestbookSend': 'Enviar mensaje',
+    'invite.sageGuestbookSending': 'Enviando...',
+    'invite.sageGuestbookSuccess': 'Mensaje enviado. Aparece en la invitación después de la aprobación.',
+    'invite.sageGuestbookError': 'No fue posible enviar ahora. Inténtalo de nuevo en un momento.',
+    'invite.sageGuestbookShort': 'Escribe al menos una frase corta.',
+    'invite.sageGifts': 'Caja de regalos',
     'guestUploads.defaultTitle': 'Comparte tus fotos y videos del evento',
     'guestUploads.defaultDescription': 'Envía un recuerdo de este momento especial. El contenido se publicará en la invitación después de la aprobación del anfitrión.',
     'guestUploads.emptyCount': 'Aún no hay recuerdos publicados.',

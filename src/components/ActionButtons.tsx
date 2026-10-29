@@ -8,6 +8,8 @@ import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
+  /** No modelo verde, mapa e confirmação ficam em blocos próprios. */
+  giftsOnly?: boolean
 }
 
 const btn =
@@ -180,7 +182,7 @@ function QrCaption({
   )
 }
 
-export function ActionButtons({ data }: Props) {
+export function ActionButtons({ data, giftsOnly = false }: Props) {
   const reduce = useReducedMotion()
   const { t } = useI18n()
   const giftsSectionEnabled = data.giftsSectionEnabled !== false
@@ -196,12 +198,13 @@ export function ActionButtons({ data }: Props) {
 
   return (
     <motion.div
-      className="mx-auto flex max-w-2xl flex-col items-center gap-5 px-6 pb-6"
+      className={`mx-auto flex max-w-2xl flex-col items-center gap-5 pb-6 ${giftsOnly ? 'px-0' : 'px-6'}`}
       initial={reduce ? false : { opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.55, delay: 0.05 }}
     >
+      {giftsOnly ? null : (
       <div className="flex w-full flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:justify-center">
         <a
           className={btn}
@@ -232,6 +235,7 @@ export function ActionButtons({ data }: Props) {
           {data.rsvpButtonLabel?.trim() || t('invite.rsvpButton')}
         </a>
       </div>
+      )}
       {giftsSectionEnabled ? (
         <>
           {giftsIntro ? (
@@ -239,7 +243,7 @@ export function ActionButtons({ data }: Props) {
           ) : null}
           <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row sm:items-end">
             <a
-              className={btn}
+              className={giftsOnly ? 'inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#5f734f] px-6 py-3.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#526546] sm:w-auto sm:min-w-[220px]' : btn}
               href={giftsHref}
               target="_blank"
               rel="noreferrer"

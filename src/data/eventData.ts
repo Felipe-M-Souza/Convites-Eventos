@@ -52,6 +52,30 @@ export const inviteTranslatableFields = [
 export type InviteTranslatableField = (typeof inviteTranslatableFields)[number]
 export type InviteTranslations = Partial<Record<InviteTranslationLocale, Partial<Record<InviteTranslatableField, string>>>>
 
+export const inviteThemes = ['classic', 'sage'] as const
+export type InviteTheme = (typeof inviteThemes)[number]
+
+export type DayProgramItem = {
+  time: string
+  title: string
+}
+
+export type GuestbookSample = {
+  name: string
+  message: string
+}
+
+/** Separa «Elaine e Leonardo» ou «Maria & João» em duas linhas. */
+export function coupleNameParts(names: string): string[] {
+  const parts = names
+    .split(/\s*(?:&| e )\s*/i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (parts.length >= 2) return [parts[0]!, parts.slice(1).join(' e ')]
+  const single = names.trim()
+  return single ? [single] : []
+}
+
 /** Primeira letra de cada nome quando o formato é «Nome & Nome» ou «Nome e Nome». */
 export function initialsFromCoupleNames(names: string): string {
   const parts = names
@@ -269,6 +293,23 @@ export const eventData = {
   guestGuideParking: '',
   guestGuideDress: '',
   guestGuideBeauty: '',
+  /**
+   * `classic` = envelope e página atuais.
+   * `sage` = modelo verde minimalista (capa, pais, calendário, programa e livro de mensagens).
+   */
+  inviteTheme: 'classic' as InviteTheme,
+  /** Linha curta acima dos nomes no modelo verde. Vazio = não mostra. */
+  sageEyebrow: '',
+  parentsLeftLabel: '',
+  parentsLeftNames: '',
+  parentsRightLabel: '',
+  parentsRightNames: '',
+  dayProgramHeading: '',
+  dayProgram: [] as DayProgramItem[],
+  /** O livro só aparece no modelo verde, e só quando esta opção está ligada. */
+  guestbookEnabled: false,
+  guestbookHeading: '',
+  guestbookSamples: [] as GuestbookSample[],
   translations: {} as InviteTranslations,
 }
 
@@ -377,6 +418,32 @@ function normalizeInviteTranslations(value: unknown): InviteTranslations {
   }
 
   return next
+}
+
+function normalizeDayProgram(value: unknown): DayProgramItem[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .flatMap((item) => {
+      if (!item || typeof item !== 'object') return []
+      const time = typeof (item as DayProgramItem).time === 'string' ? (item as DayProgramItem).time.trim() : ''
+      const title = typeof (item as DayProgramItem).title === 'string' ? (item as DayProgramItem).title.trim() : ''
+      if (!time && !title) return []
+      return [{ time, title }]
+    })
+    .slice(0, 12)
+}
+
+function normalizeGuestbookSamples(value: unknown): GuestbookSample[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .flatMap((item) => {
+      if (!item || typeof item !== 'object') return []
+      const name = typeof (item as GuestbookSample).name === 'string' ? (item as GuestbookSample).name.trim() : ''
+      const message = typeof (item as GuestbookSample).message === 'string' ? (item as GuestbookSample).message.trim() : ''
+      if (!name || !message) return []
+      return [{ name, message }]
+    })
+    .slice(0, 12)
 }
 
 function normalizeOpeningTextOpacity(value: unknown): number | null {
@@ -510,6 +577,35 @@ function storedHasKey(stored: unknown, key: string): boolean {
   return Boolean(stored && typeof stored === 'object' && !Array.isArray(stored) && Object.prototype.hasOwnProperty.call(stored, key))
 }
 
+/**
+ * Exemplo do modelo verde em `/c/default`.
+ * Só entra enquanto o payload não tem a chave `inviteTheme`, para o admin poder voltar ao clássico.
+ * Os pais e os horários depois da recepção são texto de exemplo, editável no painel.
+ */
+const defaultSageShowcase = {
+  inviteTheme: 'sage' as InviteTheme,
+  sageEyebrow: 'Nosso casamento',
+  parentsLeftLabel: 'Da noiva',
+  parentsLeftNames: 'Família de Elaine',
+  parentsRightLabel: 'Do noivo',
+  parentsRightNames: 'Família de Leonardo',
+  dayProgramHeading: 'Programa do dia',
+  dayProgram: [
+    { time: '15:00', title: 'Cerimônia na Paróquia Nossa Senhora do Brasil' },
+    { time: '18:00', title: 'Recepção no Terraço Itália' },
+    { time: '19:30', title: 'Jantar' },
+    { time: '21:00', title: 'Corte do bolo' },
+    { time: '21:30', title: 'Dança e festa' },
+  ] satisfies DayProgramItem[],
+  guestbookEnabled: true,
+  guestbookHeading: 'Livro de mensagens',
+  guestbookSamples: [
+    { name: 'Marina', message: 'Que este dia seja leve e cheio de gente querida.' },
+    { name: 'Paulo e Helena', message: 'Estaremos aí para brindar com vocês.' },
+    { name: 'Amigos da faculdade', message: 'Que a festa tenha a cara de vocês: alegre e sem pressa.' },
+  ] satisfies GuestbookSample[],
+}
+
 export function withDefaultInviteShowcase(data: EventData, slug: string, stored?: unknown): EventData {
   if (slug !== 'default') return data
 
@@ -540,6 +636,13 @@ export function withDefaultInviteShowcase(data: EventData, slug: string, stored?
   }
 
   next = replaceDefaultInviteCopy(next)
+
+  if (!storedHasKey(stored, 'inviteTheme')) {
+    next = {
+      ...next,
+      ...defaultSageShowcase,
+    }
+  }
 
   return next
 }
@@ -590,6 +693,17 @@ export function mergeInvitePayload(stored: unknown): EventData {
   merged.translations = normalizeInviteTranslations(s.translations)
   merged.openingTextColor = typeof s.openingTextColor === 'string' ? s.openingTextColor.trim() : ''
   merged.openingTextOpacity = normalizeOpeningTextOpacity(s.openingTextOpacity)
+  merged.inviteTheme = s.inviteTheme === 'sage' ? 'sage' : 'classic'
+  merged.sageEyebrow = typeof s.sageEyebrow === 'string' ? s.sageEyebrow : ''
+  merged.parentsLeftLabel = typeof s.parentsLeftLabel === 'string' ? s.parentsLeftLabel : ''
+  merged.parentsLeftNames = typeof s.parentsLeftNames === 'string' ? s.parentsLeftNames : ''
+  merged.parentsRightLabel = typeof s.parentsRightLabel === 'string' ? s.parentsRightLabel : ''
+  merged.parentsRightNames = typeof s.parentsRightNames === 'string' ? s.parentsRightNames : ''
+  merged.dayProgramHeading = typeof s.dayProgramHeading === 'string' ? s.dayProgramHeading : ''
+  merged.dayProgram = normalizeDayProgram(s.dayProgram)
+  merged.guestbookEnabled = s.guestbookEnabled === true
+  merged.guestbookHeading = typeof s.guestbookHeading === 'string' ? s.guestbookHeading : ''
+  merged.guestbookSamples = normalizeGuestbookSamples(s.guestbookSamples)
 
   /** Payloads antigos ainda apontam para a demo; alinhar à faixa por omissão do código. */
   if (merged.backgroundAudioUrl.trim() === '/audio/from-this-moment-on.mp3') {

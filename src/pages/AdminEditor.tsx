@@ -12,6 +12,7 @@ import {
 import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
+import { GuestbookModeration } from '../components/admin/GuestbookModeration'
 import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
 import { OwnerAccessField } from '../components/admin/OwnerAccessField'
 import { removeGalleryFolderContents, removeGalleryObject, uploadGalleryBlob, uploadGalleryJpeg } from '../lib/galleryStorage'
@@ -19,6 +20,7 @@ import { removeGuestUploadFolderContents } from '../lib/guestUploads'
 import { buildSiteUrl } from '../lib/siteUrl'
 import { normalizeInviteSlug } from '../lib/inviteSlug'
 import { resizeImageToJpeg } from '../lib/imageResize'
+import { programToText, samplesToText, textToProgram, textToSamples } from '../lib/sageContent'
 
 type Props = {
   onSignOut: () => void
@@ -38,6 +40,40 @@ function Field({
       </span>
       {children}
     </label>
+  )
+}
+
+function DraftLinesField({
+  value,
+  onChange,
+  inputClass,
+  placeholder,
+}: {
+  value: string
+  onChange: (value: string) => void
+  inputClass: string
+  placeholder: string
+}) {
+  const [text, setText] = useState(value)
+  const [focused, setFocused] = useState(false)
+
+  useEffect(() => {
+    if (!focused) setText(value)
+  }, [focused, value])
+
+  return (
+    <textarea
+      className={`${inputClass} min-h-[120px] font-mono text-sm`}
+      value={text}
+      placeholder={placeholder}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onChange={(event) => {
+        const next = event.target.value
+        setText(next)
+        onChange(next)
+      }}
+    />
   )
 }
 
@@ -905,6 +941,76 @@ export function AdminEditor({ onSignOut }: Props) {
       ) : null}
 
       <div className="space-y-10">
+        <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
+          <legend className="px-1 font-display text-lg text-stone-800">Modelo do convite</legend>
+          <p className="text-sm leading-relaxed text-stone-500">
+            O clássico mantém o envelope de sempre. O verde minimalista troca a capa, mostra os pais, o calendário do mês,
+            o programa do dia e o livro de mensagens. No convite default, o verde entra como exemplo até este campo ser
+            salvo com outra escolha.
+          </p>
+          <Field label="Visual">
+            <select
+              className={inputClass}
+              value={form.inviteTheme === 'sage' ? 'sage' : 'classic'}
+              onChange={(e) => set('inviteTheme')(e.target.value === 'sage' ? 'sage' : 'classic')}
+            >
+              <option value="classic">Clássico</option>
+              <option value="sage">Verde minimalista</option>
+            </select>
+          </Field>
+          <Field label="Linha acima dos nomes">
+            <input className={inputClass} value={form.sageEyebrow} onChange={(e) => set('sageEyebrow')(e.target.value)} placeholder="Nosso casamento" />
+          </Field>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Família da noiva — rótulo">
+              <input className={inputClass} value={form.parentsLeftLabel} onChange={(e) => set('parentsLeftLabel')(e.target.value)} />
+            </Field>
+            <Field label="Família da noiva — nomes">
+              <textarea className={`${inputClass} min-h-[72px]`} value={form.parentsLeftNames} onChange={(e) => set('parentsLeftNames')(e.target.value)} />
+            </Field>
+            <Field label="Família do noivo — rótulo">
+              <input className={inputClass} value={form.parentsRightLabel} onChange={(e) => set('parentsRightLabel')(e.target.value)} />
+            </Field>
+            <Field label="Família do noivo — nomes">
+              <textarea className={`${inputClass} min-h-[72px]`} value={form.parentsRightNames} onChange={(e) => set('parentsRightNames')(e.target.value)} />
+            </Field>
+          </div>
+          <Field label="Programa do dia — título">
+            <input className={inputClass} value={form.dayProgramHeading} onChange={(e) => set('dayProgramHeading')(e.target.value)} placeholder="Programa do dia" />
+          </Field>
+          <Field label="Programa do dia">
+            <DraftLinesField
+              inputClass={inputClass}
+              value={programToText(form.dayProgram)}
+              onChange={(value) => set('dayProgram')(textToProgram(value))}
+              placeholder={'15:00 | Cerimônia\n18:00 | Recepção'}
+            />
+            <p className="mt-1 text-xs text-stone-500">Uma linha por momento, no formato horário | descrição. Deixe em branco para ocultar.</p>
+          </Field>
+          <label className="inline-flex items-center gap-3 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              checked={form.guestbookEnabled === true}
+              onChange={(e) => set('guestbookEnabled')(e.target.checked)}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            Mostrar o livro de mensagens
+          </label>
+          <Field label="Livro de mensagens — título">
+            <input className={inputClass} value={form.guestbookHeading} onChange={(e) => set('guestbookHeading')(e.target.value)} />
+          </Field>
+          <Field label="Recados de exemplo">
+            <DraftLinesField
+              inputClass={inputClass}
+              value={samplesToText(form.guestbookSamples)}
+              onChange={(value) => set('guestbookSamples')(textToSamples(value))}
+              placeholder={'Marina | Que este dia seja leve.'}
+            />
+            <p className="mt-1 text-xs text-stone-500">Uma linha por recado, no formato nome | mensagem. Os recados enviados pelos convidados entram à parte, depois da aprovação.</p>
+          </Field>
+          <GuestbookModeration inviteSlug={inviteSlug} />
+        </fieldset>
+
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Abertura (envelope)</legend>
           <Field label="Texto de ajuda (selo)">
