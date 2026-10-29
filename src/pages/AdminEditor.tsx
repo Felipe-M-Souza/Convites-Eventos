@@ -4,6 +4,7 @@ import {
   getNewInvitePayload,
   inviteTranslationLocales,
   inviteTranslatableFields,
+  sageCloneSlug,
   type EventData,
   type InviteCreationTemplate,
   type InviteTranslatableField,
@@ -461,6 +462,26 @@ export function AdminEditor({ onSignOut }: Props) {
     navigate(`/admin?slug=${encodeURIComponent(slug)}`)
   }
 
+  const handleSaveSageClone = async () => {
+    if (!supabase || inviteSlug !== sageCloneSlug || inviteId) return
+    setCreating(true)
+    setMessage(null)
+    const payload = buildAdminInvitePayload({ ...form, inviteTheme: 'sage' })
+    const { error } = await supabase.from('invite_config').insert({
+      id: sageCloneSlug,
+      slug: sageCloneSlug,
+      payload,
+    })
+    setCreating(false)
+    if (error) {
+      setMessage({ type: 'err', text: error.message })
+      return
+    }
+    setMessage({ type: 'ok', text: 'Cópia gravada. O modelo verde agora tem o próprio convite.' })
+    await refresh()
+    loadInviteList()
+  }
+
   const handleDeleteInvite = async () => {
     if (!supabase || !inviteId) return
     if (inviteRows.length < 2) {
@@ -835,8 +856,11 @@ export function AdminEditor({ onSignOut }: Props) {
                 {inviteRows.length === 0 ? (
                   <option value={inviteSlug}>{inviteSlug}</option>
                 ) : (
-                  inviteRows.map((r) => (
-                    <option key={r.id} value={r.slug}>
+                  (inviteRows.some((row) => row.slug === sageCloneSlug)
+                    ? inviteRows
+                    : [...inviteRows, { id: sageCloneSlug, slug: sageCloneSlug }]
+                  ).map((r) => (
+                    <option key={r.id || r.slug} value={r.slug}>
                       {r.slug}
                     </option>
                   ))
@@ -940,13 +964,28 @@ export function AdminEditor({ onSignOut }: Props) {
         </div>
       ) : null}
 
+      {inviteSlug === sageCloneSlug && !inviteId && status === 'ready' ? (
+        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#c5d5be] bg-[#f4f7f2] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-stone-700">
+            Esta é a cópia verde do convite default. O link /c/default-verde já abre. Grave para ela ficar na lista e ser editada à parte.
+          </p>
+          <button
+            type="button"
+            disabled={creating || !supabase}
+            onClick={() => void handleSaveSageClone()}
+            className="shrink-0 rounded-full bg-[#5f734f] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {creating ? 'A gravar…' : 'Gravar cópia'}
+          </button>
+        </div>
+      ) : null}
+
       <div className="space-y-10">
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Modelo do convite</legend>
           <p className="text-sm leading-relaxed text-stone-500">
             O clássico mantém o envelope de sempre. O verde minimalista troca a capa, mostra os pais, o calendário do mês,
-            o programa do dia e o livro de mensagens. No convite default, o verde entra como exemplo até este campo ser
-            salvo com outra escolha.
+            o programa do dia e o livro de mensagens. O exemplo fica em /c/default-verde. O convite default continua clássico.
           </p>
           <Field label="Visual">
             <select

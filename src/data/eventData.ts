@@ -577,10 +577,12 @@ function storedHasKey(stored: unknown, key: string): boolean {
   return Boolean(stored && typeof stored === 'object' && !Array.isArray(stored) && Object.prototype.hasOwnProperty.call(stored, key))
 }
 
+/** Cópia pública do convite default, só para o modelo verde. O slug `default` permanece clássico. */
+export const sageCloneSlug = 'default-verde'
+
 /**
- * Exemplo do modelo verde em `/c/default`.
- * Só entra enquanto o payload não tem a chave `inviteTheme`, para o admin poder voltar ao clássico.
- * Os pais e os horários depois da recepção são texto de exemplo, editável no painel.
+ * Texto de exemplo do modelo verde.
+ * Os pais e os horários depois da recepção podem ser editados no painel da cópia.
  */
 const defaultSageShowcase = {
   inviteTheme: 'sage' as InviteTheme,
@@ -637,14 +639,15 @@ export function withDefaultInviteShowcase(data: EventData, slug: string, stored?
 
   next = replaceDefaultInviteCopy(next)
 
-  if (!storedHasKey(stored, 'inviteTheme')) {
-    next = {
-      ...next,
-      ...defaultSageShowcase,
-    }
-  }
-
   return next
+}
+
+/** Aplica o modelo verde em cima de um convite já montado (a cópia de `/c/default`). */
+export function withSageClone(data: EventData): EventData {
+  return {
+    ...data,
+    ...defaultSageShowcase,
+  }
 }
 
 const legacyDefaultLodging =
