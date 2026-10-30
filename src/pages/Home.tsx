@@ -35,6 +35,11 @@ function buildInviteDescription(message: string, fallback: string): string {
  */
 const STOCK_BIRTHDAY_SEO_TITLE = 'Convite digital aniversário 50 anos | Convites Diversos'
 
+/** Segunda faixa que começa assim que a música já gravada no convite termina. */
+const FOLLOW_UP_AUDIO_BY_SLUG: Record<string, string> = {
+  'eduarda-monteiro-18': '/audio/eduarda-monteiro-18-faixa-2.mp3',
+}
+
 function inviteTabTitle(name: string, preview: string, seoTitle: string): string {
   const stored = seoTitle.trim()
   const host = name.trim()
@@ -61,6 +66,7 @@ export function Home() {
   }, [inviteSlug])
 
   const audio = eventData.backgroundAudioUrl?.trim()
+  const nextAudio = FOLLOW_UP_AUDIO_BY_SLUG[inviteSlug]
   const primeMusicOnSeal = useCallback(() => {
     musicRef.current?.playFromUserGesture()
   }, [])
@@ -143,9 +149,10 @@ export function Home() {
     <div className={`min-h-dvh ${sageInvite ? 'bg-[#f4f7f2]' : 'bg-[color:var(--color-cream)]'}`}>
       {audio ? (
         <MusicToggle
-          key={audio}
+          key={`${audio}|${nextAudio ?? ''}`}
           ref={musicRef}
           src={audio}
+          nextSrc={nextAudio}
           showButton={inviteUnlocked}
         />
       ) : null}
