@@ -14,6 +14,7 @@ import {
 } from '../data/eventData'
 import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured, supabase } from '../lib/supabase'
+import { AssetHealthNotice } from '../components/admin/AssetHealthNotice'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
 import { GuestbookModeration } from '../components/admin/GuestbookModeration'
 import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
@@ -855,6 +856,20 @@ export function AdminEditor({ onSignOut }: Props) {
           </button>
         </div>
       </header>
+
+      <AssetHealthNotice
+        assets={[
+          { label: 'Capa', url: form.coverImageUrl },
+          { label: 'Envelope fechado', url: form.openingEnvelopeImageUrl },
+          { label: 'Envelope aberto', url: form.openingEnvelopeOpenImageUrl },
+          { label: 'Moldura', url: form.openingFrameImageUrl },
+          { label: 'Música', url: form.backgroundAudioUrl },
+          ...form.galleryPhotos.map((url, index) => ({ label: `Foto da galeria ${index + 1}`, url })),
+          { label: 'Foto da história do casal', url: form.coupleStoryImageUrl },
+          { label: 'Foto da cerimônia', url: form.ceremonyImageUrl },
+          { label: 'Foto da recepção', url: form.receptionImageUrl },
+        ]}
+      />
 
       <section
         className={`mb-8 rounded-xl border p-5 shadow-sm ${

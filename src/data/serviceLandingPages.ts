@@ -250,7 +250,7 @@ export const serviceLandingPages: ServiceLandingPage[] = [
       'Convite digital de casamento com abertura animada, mapa, RSVP e trilha sonora. Um link completo para seus convidados.',
     heading: 'Convite digital de casamento personalizado',
     intro:
-      'Convites de casamento com aparência premium, animações suaves e todos os detalhes importantes no mesmo link.',
+      'Quatro experiências para o mesmo grande dia: o clássico com envelope, o verde com o roteiro da festa, o monograma de papel e o filme que passa sozinho. Mapa, confirmação e música continuam no link.',
     demoSlug: 'default',
     bullets: [
       'Abertura em envelope para o primeiro impacto.',
@@ -327,7 +327,7 @@ export const serviceLandingPages: ServiceLandingPage[] = [
     heading: 'Convite digital corporativo personalizado',
     intro:
       'Convites profissionais para lançamentos, kickoffs, treinamentos e confraternizações, com identidade da marca, informações claras e distribuição rápida por link.',
-    demoSlug: 'default',
+    demoSlug: 'demo-evento-corporativo',
     bullets: [
       'Visual alinhado à identidade da empresa ou do evento.',
       'Data, local, mapa e confirmação de presença em um único link.',

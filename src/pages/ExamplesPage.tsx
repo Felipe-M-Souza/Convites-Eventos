@@ -9,12 +9,15 @@ import { getPromoOffer, PROMO } from '../config/pricing'
 import { buildLeadWhatsappHref } from '../lib/leadContact'
 import { getLocalizedCatalogItem, occasionCatalog } from '../data/occasionCatalog'
 import { PayCheckoutButton } from '../components/PayCheckoutButton'
+import { WeddingModelShowcase } from '../components/WeddingModelShowcase'
 
 export function ExamplesPage() {
   const { locale, t } = useI18n()
   const langParam = `lang=${encodeURIComponent(locale)}`
   const offer = getPromoOffer(locale)
-  const items = occasionCatalog.map((item) => getLocalizedCatalogItem(item, locale))
+  const items = occasionCatalog
+    .filter((item) => item.id !== 'casamento')
+    .map((item) => getLocalizedCatalogItem(item, locale))
 
   const seoTitle =
     locale === 'en'
@@ -98,6 +101,10 @@ export function ExamplesPage() {
           </div>
         </div>
 
+        <div className="mt-14">
+          <WeddingModelShowcase source="modelos" />
+        </div>
+
         <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => {
             const serviceHref = item.serviceSlug
@@ -135,6 +142,17 @@ export function ExamplesPage() {
                   ))}
                 </ul>
                 <div className="mt-6 flex flex-col gap-3">
+                  {item.demoSlug ? (
+                    <Link
+                      to={`/c/${item.demoSlug}?${langParam}&utm_source=modelos&utm_medium=card&utm_campaign=${item.id}`}
+                      onClick={() =>
+                        trackCtaClick('examples_page', 'abrir_modelo', `/c/${item.demoSlug}`, { occasion: item.id })
+                      }
+                      className="inline-flex items-center justify-center rounded-full bg-[color:var(--color-gold)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+                    >
+                      {t('examples.open')}
+                    </Link>
+                  ) : null}
                   <a
                     href={whatsappHref}
                     target="_blank"
