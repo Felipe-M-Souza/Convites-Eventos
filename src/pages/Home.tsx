@@ -15,6 +15,7 @@ import { GuestUploadsSection } from '../components/GuestUploadsSection'
 import { Footer } from '../components/Footer'
 import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
+import { FilmInvite } from '../components/film/FilmInvite'
 import { MonogramCover } from '../components/monogram/MonogramCover'
 import { MonogramInvite } from '../components/monogram/MonogramInvite'
 import { SageCover } from '../components/sage/SageCover'
@@ -74,7 +75,7 @@ export function Home() {
   }, [])
 
   useEffect(() => {
-    if (!inviteUnlocked) {
+    if (!inviteUnlocked && eventData.inviteTheme !== 'film') {
       const prev = document.body.style.overflow
       document.body.style.overflow = 'hidden'
       return () => {
@@ -82,11 +83,12 @@ export function Home() {
       }
     }
     return undefined
-  }, [inviteUnlocked])
+  }, [eventData.inviteTheme, inviteUnlocked])
 
   const inviteEnabled = eventData.inviteEnabled !== false
   const sageInvite = eventData.inviteTheme === 'sage'
   const monogramInvite = eventData.inviteTheme === 'monogram'
+  const filmInvite = eventData.inviteTheme === 'film'
 
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
@@ -156,11 +158,17 @@ export function Home() {
           ref={musicRef}
           src={audio}
           nextSrc={nextAudio}
-          showButton={inviteUnlocked}
+          showButton={filmInvite || inviteUnlocked}
         />
       ) : null}
       <AnimatePresence mode="wait">
-        {!inviteUnlocked ? (
+        {filmInvite ? (
+          <FilmInvite
+            key="film-invite"
+            data={eventData}
+            onOpenGesture={audio ? primeMusicOnSeal : undefined}
+          />
+        ) : !inviteUnlocked ? (
           monogramInvite ? (
             <MonogramCover
               key="monogram-cover"

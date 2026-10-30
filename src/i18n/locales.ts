@@ -70,6 +70,17 @@ export type TranslationKey =
   | 'invite.galleryDescription'
   | 'invite.sageOpen'
   | 'invite.monogramHint'
+  | 'invite.filmArrived'
+  | 'invite.filmWeMarry'
+  | 'invite.filmFamilies'
+  | 'invite.filmBrideFamily'
+  | 'invite.filmGroomFamily'
+  | 'invite.filmSaveDate'
+  | 'invite.filmJoin'
+  | 'invite.filmBigDay'
+  | 'invite.filmDress'
+  | 'invite.filmWaiting'
+  | 'invite.filmReplay'
   | 'invite.sageWelcome'
   | 'invite.sageCeremonyInfo'
   | 'invite.sageAt'
@@ -243,6 +254,17 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.galleryDescription': 'Alguns registros que ajudam a contar a história desse momento.',
     'invite.sageOpen': 'Abrir',
     'invite.monogramHint': 'Toque no monograma para abrir',
+    'invite.filmArrived': 'O nosso grande dia chegou',
+    'invite.filmWeMarry': 'Nos casamos',
+    'invite.filmFamilies': 'Com a bênção das nossas famílias',
+    'invite.filmBrideFamily': 'Família da noiva',
+    'invite.filmGroomFamily': 'Família do noivo',
+    'invite.filmSaveDate': 'Guarde esta data',
+    'invite.filmJoin': 'e venham celebrar conosco',
+    'invite.filmBigDay': 'O grande dia',
+    'invite.filmDress': 'Código de vestimenta',
+    'invite.filmWaiting': 'Esperamos por vocês...',
+    'invite.filmReplay': 'Ver de novo',
     'invite.sageWelcome': 'Convidamos cordialmente',
     'invite.sageCeremonyInfo': 'Info da cerimônia',
     'invite.sageAt': 'Às',
@@ -417,6 +439,17 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.galleryDescription': 'A few memories that help tell the story of this moment.',
     'invite.sageOpen': 'Open',
     'invite.monogramHint': 'Tap the monogram to open',
+    'invite.filmArrived': 'Our great day has arrived',
+    'invite.filmWeMarry': 'We are getting married',
+    'invite.filmFamilies': 'With the blessing of our families',
+    'invite.filmBrideFamily': 'Bride’s family',
+    'invite.filmGroomFamily': 'Groom’s family',
+    'invite.filmSaveDate': 'Save this date',
+    'invite.filmJoin': 'and join us to celebrate',
+    'invite.filmBigDay': 'The big day',
+    'invite.filmDress': 'Dress code',
+    'invite.filmWaiting': 'We are waiting for you...',
+    'invite.filmReplay': 'Play again',
     'invite.sageWelcome': 'We warmly invite you',
     'invite.sageCeremonyInfo': 'Ceremony',
     'invite.sageAt': 'At',
@@ -591,6 +624,17 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.galleryDescription': 'Algunos recuerdos que ayudan a contar la historia de este momento.',
     'invite.sageOpen': 'Abrir',
     'invite.monogramHint': 'Toca el monograma para abrir',
+    'invite.filmArrived': 'Ha llegado nuestro gran día',
+    'invite.filmWeMarry': 'Nos casamos',
+    'invite.filmFamilies': 'Con la bendición de nuestras familias',
+    'invite.filmBrideFamily': 'Familia de la novia',
+    'invite.filmGroomFamily': 'Familia del novio',
+    'invite.filmSaveDate': 'Guarda esta fecha',
+    'invite.filmJoin': 'y acompáñanos a celebrar',
+    'invite.filmBigDay': 'El gran día',
+    'invite.filmDress': 'Código de vestimenta',
+    'invite.filmWaiting': 'Te esperamos...',
+    'invite.filmReplay': 'Ver de nuevo',
     'invite.sageWelcome': 'Les invitamos cordialmente',
     'invite.sageCeremonyInfo': 'Información de la ceremonia',
     'invite.sageAt': 'A las',

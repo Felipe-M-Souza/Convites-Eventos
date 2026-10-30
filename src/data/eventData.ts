@@ -52,7 +52,7 @@ export const inviteTranslatableFields = [
 export type InviteTranslatableField = (typeof inviteTranslatableFields)[number]
 export type InviteTranslations = Partial<Record<InviteTranslationLocale, Partial<Record<InviteTranslatableField, string>>>>
 
-export const inviteThemes = ['classic', 'sage', 'monogram'] as const
+export const inviteThemes = ['classic', 'sage', 'monogram', 'film'] as const
 export type InviteTheme = (typeof inviteThemes)[number]
 
 export type DayProgramItem = {
@@ -297,6 +297,7 @@ export const eventData = {
    * `classic` = envelope e página atuais.
    * `sage` = modelo verde minimalista (capa, pais, calendário, programa e livro de mensagens).
    * `monogram` = envelope creme com fita sálvia, monograma dourado e rosa branca.
+   * `film` = a mesma paleta, em cenas que passam sozinhas, sem clique.
    */
   inviteTheme: 'classic' as InviteTheme,
   /** Linha curta acima dos nomes no modelo verde. Vazio = não mostra. */
@@ -584,6 +585,9 @@ export const sageCloneSlug = 'default-verde'
 /** Exemplo do modelo monograma (fita sálvia, selo dourado e rosa branca). */
 export const monogramCloneSlug = 'default-monograma'
 
+/** Exemplo do filme: as informações passam em animação, sem clique. */
+export const filmCloneSlug = 'default-filme'
+
 /**
  * Texto de exemplo do modelo verde.
  * Os pais e os horários depois da recepção podem ser editados no painel da cópia.
@@ -664,6 +668,14 @@ export function withMonogramClone(data: EventData): EventData {
   }
 }
 
+/** Mesmo casamento de exemplo, contado em cenas automáticas. */
+export function withFilmClone(data: EventData): EventData {
+  return {
+    ...withMonogramClone(data),
+    inviteTheme: 'film',
+  }
+}
+
 const legacyDefaultLodging =
   'Osasco tem hotéis perto da Rodovia Castelo Branco. Vale reservar com antecedência: o sábado de maio costuma encher.'
 const legacyDefaultParking =
@@ -710,7 +722,8 @@ export function mergeInvitePayload(stored: unknown): EventData {
   merged.translations = normalizeInviteTranslations(s.translations)
   merged.openingTextColor = typeof s.openingTextColor === 'string' ? s.openingTextColor.trim() : ''
   merged.openingTextOpacity = normalizeOpeningTextOpacity(s.openingTextOpacity)
-  merged.inviteTheme = s.inviteTheme === 'sage' || s.inviteTheme === 'monogram' ? s.inviteTheme : 'classic'
+  merged.inviteTheme =
+    s.inviteTheme === 'sage' || s.inviteTheme === 'monogram' || s.inviteTheme === 'film' ? s.inviteTheme : 'classic'
   merged.sageEyebrow = typeof s.sageEyebrow === 'string' ? s.sageEyebrow : ''
   merged.parentsLeftLabel = typeof s.parentsLeftLabel === 'string' ? s.parentsLeftLabel : ''
   merged.parentsLeftNames = typeof s.parentsLeftNames === 'string' ? s.parentsLeftNames : ''
