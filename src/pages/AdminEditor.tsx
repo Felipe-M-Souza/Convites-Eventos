@@ -4,6 +4,7 @@ import {
   getNewInvitePayload,
   inviteTranslationLocales,
   inviteTranslatableFields,
+  filmCloneSlug,
   monogramCloneSlug,
   sageCloneSlug,
   type EventData,
@@ -503,6 +504,26 @@ export function AdminEditor({ onSignOut }: Props) {
     loadInviteList()
   }
 
+  const handleSaveFilmClone = async () => {
+    if (!supabase || inviteSlug !== filmCloneSlug || inviteId) return
+    setCreating(true)
+    setMessage(null)
+    const payload = buildAdminInvitePayload({ ...form, inviteTheme: 'film' })
+    const { error } = await supabase.from('invite_config').insert({
+      id: filmCloneSlug,
+      slug: filmCloneSlug,
+      payload,
+    })
+    setCreating(false)
+    if (error) {
+      setMessage({ type: 'err', text: error.message })
+      return
+    }
+    setMessage({ type: 'ok', text: 'Cópia gravada. O filme agora tem o próprio convite.' })
+    await refresh()
+    loadInviteList()
+  }
+
   const handleDeleteInvite = async () => {
     if (!supabase || !inviteId) return
     if (inviteRows.length < 2) {
@@ -879,7 +900,7 @@ export function AdminEditor({ onSignOut }: Props) {
                 ) : (
                   [
                     ...inviteRows,
-                    ...[sageCloneSlug, monogramCloneSlug]
+                    ...[sageCloneSlug, monogramCloneSlug, filmCloneSlug]
                       .filter((slug) => !inviteRows.some((row) => row.slug === slug))
                       .map((slug) => ({ id: slug, slug })),
                   ].map((r) => (
@@ -1003,6 +1024,22 @@ export function AdminEditor({ onSignOut }: Props) {
         </div>
       ) : null}
 
+      {inviteSlug === filmCloneSlug && !inviteId && status === 'ready' ? (
+        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#e4d3ae] bg-[#fbf8f3] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-stone-700">
+            Esta é a cópia em filme do convite default. O link /c/default-filme já abre e as cenas passam sozinhas. Grave para ela ficar na lista e ser editada à parte.
+          </p>
+          <button
+            type="button"
+            disabled={creating || !supabase}
+            onClick={() => void handleSaveFilmClone()}
+            className="shrink-0 rounded-full bg-[#7d9480] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {creating ? 'A gravar…' : 'Gravar cópia'}
+          </button>
+        </div>
+      ) : null}
+
       {inviteSlug === monogramCloneSlug && !inviteId && status === 'ready' ? (
         <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#e4d3ae] bg-[#fbf8f3] p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-6 text-stone-700">
@@ -1025,20 +1062,22 @@ export function AdminEditor({ onSignOut }: Props) {
           <p className="text-sm leading-relaxed text-stone-500">
             O clássico mantém o envelope de sempre. O verde minimalista troca a capa e mostra pais, calendário, programa e livro
             de mensagens — o exemplo fica em /c/default-verde. O monograma é o envelope creme com fita sálvia, selo dourado e rosa
-            branca — o exemplo fica em /c/default-monograma. O convite default continua clássico.
+            branca — o exemplo fica em /c/default-monograma. O filme usa a mesma paleta e passa as informações sozinho, sem clique
+            — o exemplo fica em /c/default-filme. O convite default continua clássico.
           </p>
           <Field label="Visual">
             <select
               className={inputClass}
-              value={form.inviteTheme === 'sage' || form.inviteTheme === 'monogram' ? form.inviteTheme : 'classic'}
+              value={form.inviteTheme === 'sage' || form.inviteTheme === 'monogram' || form.inviteTheme === 'film' ? form.inviteTheme : 'classic'}
               onChange={(e) => {
                 const value = e.target.value
-                set('inviteTheme')(value === 'sage' || value === 'monogram' ? value : 'classic')
+                set('inviteTheme')(value === 'sage' || value === 'monogram' || value === 'film' ? value : 'classic')
               }}
             >
               <option value="classic">Clássico</option>
               <option value="sage">Verde minimalista</option>
               <option value="monogram">Monograma — sálvia e ouro</option>
+              <option value="film">Filme — sálvia e bege</option>
             </select>
           </Field>
           <Field label="Linha acima dos nomes">
