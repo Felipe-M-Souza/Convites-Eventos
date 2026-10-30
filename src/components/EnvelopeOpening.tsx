@@ -27,6 +27,8 @@ const OPENING_FRAME_SRC = '/images/moldura-elegante-aliancas.png'
 const SOCCER_GOAL_SLUG_FALLBACKS: readonly string[] = ['san-barssoti']
 /** Slugs que usam borboleta no lugar do selo mesmo sem `openingInteractionMode` no JSON guardado. */
 const BUTTERFLY_SEAL_SLUG_FALLBACKS: readonly string[] = ['cleyzamara']
+/** Borboleta de joia (rosa, azul e dourado), no lugar do selo de cera. */
+const JEWEL_BUTTERFLY_SLUGS: readonly string[] = ['eduarda-monteiro-18']
 /** Slugs que usam um pandeiro no lugar do selo (tema pagode). */
 const PANDEIRO_SEAL_SLUGS: readonly string[] = ['rafaele-41-anos']
 /** Brinde (chopp + caipirinha) no lugar do selo, antes de abrir o envelope. */
@@ -110,6 +112,23 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride
     boxWidthMaxPx: 300,
     boxMaxHeightPx: 420,
     compactWidthVw: 58,
+    fitVisibleArt: true,
+  },
+  /**
+   * Galáxia 1657×949 (fechado) e 1536×1024 (aberto). O painel gravou 1024×682
+   * e o zoom padrão cortava as bordas. A borboleta fica na ponta da aba.
+   */
+  'eduarda-monteiro-18': {
+    naturalWidth: 1657,
+    naturalHeight: 949,
+    openNaturalWidth: 1536,
+    openNaturalHeight: 1024,
+    textureZoom: 1,
+    sealAnchorY: 0.6,
+    boxHeightVhCap: 48,
+    boxWidthMaxPx: 340,
+    boxMaxHeightPx: 380,
+    compactWidthVw: 68,
     fitVisibleArt: true,
   },
 }
@@ -553,6 +572,108 @@ type ButterflySealProps = {
   onUserGesture?: () => void
   onFlewAway: () => void
   ariaLabel: string
+  /** Asas de joia rosa, azul e dourado, no lugar da borboleta clara. */
+  jewel?: boolean
+}
+
+function JewelButterflyArt({ gone }: { gone: boolean }) {
+  const wingBeat = gone ? { scaleX: [1, 0.28, 1, 0.34, 1] } : { scaleX: [1, 0.88, 1] }
+  return (
+    <svg
+      viewBox="0 0 160 124"
+      className="pointer-events-none absolute inset-0 z-10 h-full w-full drop-shadow-[0_8px_16px_rgba(90,8,70,0.6)]"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="jewelUpper" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#6ec8ff" />
+          <stop offset="42%" stopColor="#b44bff" />
+          <stop offset="100%" stopColor="#ff3ec4" />
+        </linearGradient>
+        <linearGradient id="jewelLower" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ff5ad0" />
+          <stop offset="55%" stopColor="#7a3cff" />
+          <stop offset="100%" stopColor="#3d6dff" />
+        </linearGradient>
+        <linearGradient id="jewelGold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff6cc" />
+          <stop offset="40%" stopColor="#f2c14d" />
+          <stop offset="100%" stopColor="#9a6412" />
+        </linearGradient>
+        <radialGradient id="jewelGem" cx="38%" cy="32%" r="70%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="40%" stopColor="#ff86e4" />
+          <stop offset="100%" stopColor="#7a22e8" />
+        </radialGradient>
+      </defs>
+
+      <g stroke="#f6c15a" strokeWidth="1.3" strokeLinecap="round" fill="none">
+        <path d="M80 42 C70 28 60 20 50 15" />
+        <path d="M80 42 C90 28 100 20 110 15" />
+      </g>
+      <circle cx="49" cy="14" r="2.4" fill="#fff6d0" stroke="#e2b043" strokeWidth="0.7" />
+      <circle cx="111" cy="14" r="2.4" fill="#fff6d0" stroke="#e2b043" strokeWidth="0.7" />
+
+      <motion.g
+        style={{ transformBox: 'view-box', transformOrigin: '80px 64px' }}
+        initial={false}
+        animate={wingBeat}
+        transition={
+          gone
+            ? { duration: 0.24, repeat: 4, ease: 'easeInOut' }
+            : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
+        }
+      >
+        <g stroke="url(#jewelGold)" strokeWidth="2.4" strokeLinejoin="round">
+          <path
+            fill="url(#jewelUpper)"
+            d="M80 56 C96 22 122 8 142 20 C154 30 152 52 136 64 C118 76 96 70 80 60 Z"
+          />
+          <path
+            fill="url(#jewelUpper)"
+            d="M80 56 C64 22 38 8 18 20 C6 30 8 52 24 64 C42 76 64 70 80 60 Z"
+          />
+          <path fill="url(#jewelLower)" d="M82 64 C104 70 132 96 116 114 C98 122 84 96 78 72 Z" />
+          <path fill="url(#jewelLower)" d="M78 64 C56 70 28 96 44 114 C62 122 76 96 82 72 Z" />
+        </g>
+        <g>
+          <path d="M108 24 C128 18 146 34 136 52 C120 40 108 34 108 24 Z" fill="#4aa6ff" opacity="0.9" />
+          <path d="M52 24 C32 18 14 34 24 52 C40 40 52 34 52 24 Z" fill="#4aa6ff" opacity="0.9" />
+          <path d="M86 46 C108 32 128 44 116 60 C100 56 86 52 86 46 Z" fill="#ff4fd2" opacity="0.85" />
+          <path d="M74 46 C52 32 32 44 44 60 C60 56 74 52 74 46 Z" fill="#ff4fd2" opacity="0.85" />
+          <path d="M100 86 C118 92 124 106 110 110 C98 104 94 92 100 86 Z" fill="#6d4bff" opacity="0.8" />
+          <path d="M60 86 C42 92 36 106 50 110 C62 104 66 92 60 86 Z" fill="#6d4bff" opacity="0.8" />
+        </g>
+        <g fill="#ffe9a8" stroke="#c8891d" strokeWidth="0.6">
+          <circle cx="132" cy="28" r="2.3" />
+          <circle cx="28" cy="28" r="2.3" />
+          <circle cx="124" cy="58" r="1.8" />
+          <circle cx="36" cy="58" r="1.8" />
+          <circle cx="112" cy="104" r="1.8" />
+          <circle cx="48" cy="104" r="1.8" />
+        </g>
+        <g stroke="#fff4c2" strokeWidth="0.8" fill="none" opacity="0.8">
+          <path d="M84 54 C104 40 126 34 140 40" />
+          <path d="M76 54 C56 40 34 34 20 40" />
+          <path d="M84 68 C104 86 118 100 112 110" />
+          <path d="M76 68 C56 86 42 100 48 110" />
+        </g>
+        <g fill="#ffffff">
+          <circle cx="118" cy="36" r="1.3" />
+          <circle cx="42" cy="36" r="1.3" />
+          <circle cx="108" cy="96" r="1.1" />
+          <circle cx="52" cy="96" r="1.1" />
+        </g>
+      </motion.g>
+
+      <path
+        d="M80 40 C85 40 87 50 87 62 C87 76 83.5 88 80 88 C76.5 88 73 76 73 62 C73 50 75 40 80 40 Z"
+        fill="url(#jewelGold)"
+      />
+      <circle cx="80" cy="58" r="5.2" fill="url(#jewelGem)" stroke="#f6c15a" strokeWidth="1" />
+      <circle cx="78.4" cy="56" r="1.4" fill="#ffffff" opacity="0.9" />
+    </svg>
+  )
 }
 
 /** Voo (ms) antes de abrir o envelope — deixa a borboleta sair de cena. */
@@ -562,7 +683,7 @@ const BUTTERFLY_FLY_MS = 1000
  * Borboleta no lugar do selo: bate as asas em repouso e, ao toque, sai voando
  * (sobe, gira e desvanece) chamando `onFlewAway`, que abre o envelope.
  */
-function ButterflySeal({ reduce, torn, onUserGesture, onFlewAway, ariaLabel }: ButterflySealProps) {
+function ButterflySeal({ reduce, torn, onUserGesture, onFlewAway, ariaLabel, jewel = false }: ButterflySealProps) {
   const [flew, setFlew] = useState(false)
   const completedRef = useRef(false)
 
@@ -599,7 +720,7 @@ function ButterflySeal({ reduce, torn, onUserGesture, onFlewAway, ariaLabel }: B
 
   return (
     <motion.div
-      className="relative h-20 w-20 select-none"
+      className={`relative select-none ${jewel ? 'h-[96px] w-[128px]' : 'h-20 w-20'}`}
       initial={false}
       animate={
         gone
@@ -635,6 +756,9 @@ function ButterflySeal({ reduce, torn, onUserGesture, onFlewAway, ariaLabel }: B
           ))
         : null}
 
+      {jewel ? (
+        <JewelButterflyArt gone={gone} />
+      ) : (
       <svg
         viewBox="0 0 100 100"
         className="pointer-events-none absolute inset-0 z-10 h-full w-full drop-shadow-[0_6px_10px_rgba(120,50,60,0.35)]"
@@ -695,6 +819,7 @@ function ButterflySeal({ reduce, torn, onUserGesture, onFlewAway, ariaLabel }: B
           fill="url(#bfBody)"
         />
       </svg>
+      )}
 
       <button
         type="button"
@@ -1200,8 +1325,10 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const soccerGoalMode =
     data.openingInteractionMode === 'soccer_goal' ||
     (typeof inviteSlug === 'string' && SOCCER_GOAL_SLUG_FALLBACKS.includes(inviteSlug))
+  const jewelButterflyMode = typeof inviteSlug === 'string' && JEWEL_BUTTERFLY_SLUGS.includes(inviteSlug)
   const butterflySealMode =
     data.openingInteractionMode === 'butterfly' ||
+    jewelButterflyMode ||
     (typeof inviteSlug === 'string' && BUTTERFLY_SEAL_SLUG_FALLBACKS.includes(inviteSlug))
   const pandeiroSealMode = typeof inviteSlug === 'string' && PANDEIRO_SEAL_SLUGS.includes(inviteSlug)
   const envelopeBlendMode =
@@ -1534,9 +1661,14 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                     <ButterflySeal
                       reduce={Boolean(reduce)}
                       torn={sealTorn}
+                      jewel={jewelButterflyMode}
                       onUserGesture={onSealUserGesture}
                       onFlewAway={handleButterflyFly}
-                      ariaLabel={data.openingSealHint?.trim() || t('invite.openingFallback')}
+                      ariaLabel={
+                        jewelButterflyMode
+                          ? 'Clique na borboleta para abrir o convite'
+                          : data.openingSealHint?.trim() || t('invite.openingFallback')
+                      }
                     />
                   ) : rockGuitarSealMode ? (
                     <RockGuitarSeal
@@ -1618,6 +1750,8 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
           >
             {pandeiroSealMode
               ? 'Clique no pandeiro para abrir o convite'
+              : jewelButterflyMode
+                ? 'Clique na borboleta para abrir o convite'
               : palomaEnvelope
                 ? 'Clique no brinde para abrir o convite'
                 : data.openingSealHint}
