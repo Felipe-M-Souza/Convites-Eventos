@@ -146,6 +146,7 @@ export type TranslationKey =
   | 'portfolio.testimonialErrorRequired'
   | 'portfolio.testimonialErrorUnavailable'
   | 'portfolio.testimonialErrorGeneric'
+  | 'portfolio.testimonialDot'
   | 'portfolio.step'
   | 'portfolio.valueEyebrow'
   | 'portfolio.valueTitle'
@@ -319,6 +320,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.testimonialErrorRequired': 'Escreva um depoimento com pelo menos 12 caracteres.',
     'portfolio.testimonialErrorUnavailable': 'O envio de depoimentos ainda não está configurado.',
     'portfolio.testimonialErrorGeneric': 'Não foi possível enviar o depoimento agora.',
+    'portfolio.testimonialDot': 'Mostrar depoimento {n}',
     'portfolio.step': 'Etapa',
     'portfolio.valueEyebrow': 'Prova de valor',
     'portfolio.valueTitle': 'O que faz o convite digital transmitir mais cuidado e profissionalismo.',
@@ -491,6 +493,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.testimonialErrorRequired': 'Write a testimonial with at least 12 characters.',
     'portfolio.testimonialErrorUnavailable': 'Testimonial submission is not configured yet.',
     'portfolio.testimonialErrorGeneric': 'Could not send the testimonial right now.',
+    'portfolio.testimonialDot': 'Show testimonial {n}',
     'portfolio.step': 'Step',
     'portfolio.valueEyebrow': 'Value proof',
     'portfolio.valueTitle': 'Why digital invitations feel more thoughtful and professional.',
@@ -663,6 +666,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'portfolio.testimonialErrorRequired': 'Escribe un testimonio con al menos 12 caracteres.',
     'portfolio.testimonialErrorUnavailable': 'El envío de testimonios aún no está configurado.',
     'portfolio.testimonialErrorGeneric': 'No fue posible enviar el testimonio ahora.',
+    'portfolio.testimonialDot': 'Mostrar testimonio {n}',
     'portfolio.step': 'Paso',
     'portfolio.valueEyebrow': 'Prueba de valor',
     'portfolio.valueTitle': 'Por qué la invitación digital transmite más cuidado y profesionalismo.',
