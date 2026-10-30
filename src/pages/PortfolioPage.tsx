@@ -11,6 +11,7 @@ import { PromoPopup } from '../components/PromoPopup'
 import { getPromoOffer, PROMO } from '../config/pricing'
 import { LEAD_WHATSAPP_E164 } from '../lib/leadContact'
 import { PayCheckoutButton } from '../components/PayCheckoutButton'
+import { useSagePager } from '../components/sage/SageDots'
 
 const PORTFOLIO_CONTACT_EMAIL = 'contato@convitesdiversos.com.br'
 const PORTFOLIO_CONTACT_WHATSAPP_E164 = LEAD_WHATSAPP_E164
@@ -70,6 +71,8 @@ export function PortfolioPage() {
         name: testimonial.name,
         context: testimonial.context,
       }))
+  const { index: testimonialIndex, select: selectTestimonial } = useSagePager(visibleTestimonials.length, 5000)
+  const currentTestimonial = visibleTestimonials[testimonialIndex]
 
   const offer = getPromoOffer(locale)
   const offerWhatsHref = `https://wa.me/${PORTFOLIO_CONTACT_WHATSAPP_E164}?text=${encodeURIComponent(offer.whatsappMessage)}`
@@ -305,24 +308,44 @@ export function PortfolioPage() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {visibleTestimonials.map((testimonial) => (
-              <figure
-                key={testimonial.id}
-                className="flex h-full flex-col rounded-[1.6rem] border border-stone-200 bg-white p-6 shadow-sm"
-              >
-                <blockquote className="flex-1 font-display text-2xl leading-snug text-ink">
-                  “{testimonial.quote}”
+          {currentTestimonial ? (
+            <div className="mx-auto mt-10 max-w-3xl">
+              <figure className="flex min-h-56 flex-col rounded-[1.6rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+                <blockquote className="flex-1 font-display text-2xl leading-snug text-ink sm:text-3xl">
+                  “{currentTestimonial.quote}”
                 </blockquote>
                 <figcaption className="mt-6 border-t border-stone-200 pt-4">
-                  <p className="text-sm font-semibold text-ink">{testimonial.name}</p>
+                  <p className="text-sm font-semibold text-ink">{currentTestimonial.name}</p>
                   <p className="mt-1 text-xs uppercase tracking-[0.18em] text-ink-muted">
-                    {testimonial.context}
+                    {currentTestimonial.context}
                   </p>
                 </figcaption>
               </figure>
-            ))}
-          </div>
+              {visibleTestimonials.length > 1 ? (
+                <div className="mt-2 flex flex-wrap justify-center">
+                  {visibleTestimonials.map((testimonial, dot) => {
+                    const active = dot === testimonialIndex
+                    return (
+                      <button
+                        key={testimonial.id}
+                        type="button"
+                        aria-label={t('portfolio.testimonialDot', { n: dot + 1 })}
+                        aria-current={active ? 'true' : undefined}
+                        onClick={() => selectTestimonial(dot)}
+                        className="flex h-11 w-11 cursor-pointer items-center justify-center"
+                      >
+                        <span
+                          className={`block h-2.5 w-2.5 rounded-full transition-colors ${
+                            active ? 'bg-gold' : 'bg-stone-300'
+                          }`}
+                        />
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <form
             onSubmit={handleTestimonialSubmit}
