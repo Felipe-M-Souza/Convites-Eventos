@@ -10,6 +10,7 @@ import { PromoPopup } from '../components/PromoPopup'
 import { buildLeadMessageForOccasion, buildLeadWhatsappHref } from '../lib/leadContact'
 import { getPromoOffer, PROMO } from '../config/pricing'
 import { PayCheckoutButton } from '../components/PayCheckoutButton'
+import { WeddingModelShowcase } from '../components/WeddingModelShowcase'
 
 export function ServiceLandingPage() {
   const { serviceSlug } = useParams()
@@ -94,6 +95,12 @@ export function ServiceLandingPage() {
         <p className="mt-6 max-w-3xl text-base leading-8 text-[color:var(--color-ink-muted)] sm:text-lg">
           {page.intro}
         </p>
+
+        {page.slug === 'casamento' ? (
+          <div className="mt-10">
+            <WeddingModelShowcase source="seo_casamento" compact />
+          </div>
+        ) : null}
 
         <section className="mt-8 rounded-3xl border border-[color:var(--color-gold-soft)] bg-white/90 p-6 shadow-[0_18px_45px_rgba(44,38,34,0.08)] sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">

@@ -57,7 +57,8 @@ const enOccasions: Record<string, OccasionCopy> = {
     title: 'Custom Wedding Digital Invitation | Convites Diversos',
     description: 'Wedding digital invitation with animated opening, map, RSVP and soundtrack in one complete link.',
     heading: 'Custom wedding digital invitation',
-    intro: 'Premium wedding invitations with smooth animations and all important details in one link.',
+    intro:
+      'Four experiences for the same big day: the classic with an envelope, the sage layout with the day’s timeline, the paper monogram and the film that plays on its own. Map, RSVP and music stay in the link.',
   },
   bodas: {
     occasion: 'anniversary celebration',
@@ -125,7 +126,8 @@ const esOccasions: Record<string, OccasionCopy> = {
     title: 'Invitación Digital Boda Personalizada | Convites Diversos',
     description: 'Invitación digital de boda con apertura animada, mapa, RSVP y música en un enlace completo.',
     heading: 'Invitación digital de boda personalizada',
-    intro: 'Invitaciones de boda con apariencia premium, animaciones suaves y todos los detalles importantes en un enlace.',
+    intro:
+      'Cuatro experiencias para el mismo gran día: el clásico con sobre, el verde con el programa de la fiesta, el monograma de papel y el filme que se reproduce solo. Mapa, confirmación y música siguen en el enlace.',
   },
   bodas: {
     occasion: 'aniversario',

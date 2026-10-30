@@ -1,12 +1,14 @@
 /**
  * Catálogo comercial de tipos de convite.
- * Usado em /modelos — sem depender de demos interativos quebrados.
+ * Usado em /modelos. `demoSlug` aponta para um convite de exemplo que abre em /c/.
  */
 
 export type OccasionCatalogItem = {
   id: string
   /** Slug da landing SEO, se existir. */
   serviceSlug?: string
+  /** Convite de exemplo em /c/:slug. O casamento usa a vitrine dos quatro modelos. */
+  demoSlug?: string
   accent: string
   title: Record<'pt-BR' | 'en' | 'es', string>
   summary: Record<'pt-BR' | 'en' | 'es', string>
@@ -37,6 +39,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: '15-anos',
     serviceSlug: '15-anos',
+    demoSlug: 'demo-festa-15-anos',
     accent: '#B76E79',
     title: {
       'pt-BR': '15 anos',
@@ -57,6 +60,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: 'aniversario-infantil',
     serviceSlug: 'aniversario-infantil',
+    demoSlug: 'demo-aniversario-infantil',
     accent: '#7BA3A8',
     title: {
       'pt-BR': 'Aniversário infantil',
@@ -77,6 +81,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: 'aniversario-adulto',
     serviceSlug: 'aniversario-adulto',
+    demoSlug: 'demo-aniversario-adulto',
     accent: '#8B7355',
     title: {
       'pt-BR': 'Aniversário adulto',
@@ -97,6 +102,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: 'cha-de-bebe',
     serviceSlug: 'cha-de-bebe',
+    demoSlug: 'demo-cha-de-bebe',
     accent: '#A8B5A0',
     title: {
       'pt-BR': 'Chá de bebê',
@@ -117,6 +123,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: 'cha-revelacao',
     serviceSlug: 'cha-revelacao',
+    demoSlug: 'demo-cha-revelacao',
     accent: '#9AA7C1',
     title: {
       'pt-BR': 'Chá revelação',
@@ -137,6 +144,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: 'bodas',
     serviceSlug: 'bodas',
+    demoSlug: 'demo-bodas-de-ouro',
     accent: '#BFA46F',
     title: {
       'pt-BR': 'Bodas',
@@ -157,6 +165,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: 'homenagem',
     serviceSlug: 'homenagem',
+    demoSlug: 'demo-homenagem',
     accent: '#7A7A72',
     title: {
       'pt-BR': 'Homenagem',
@@ -177,6 +186,7 @@ export const occasionCatalog: OccasionCatalogItem[] = [
   {
     id: 'evento-corporativo',
     serviceSlug: 'evento-corporativo',
+    demoSlug: 'demo-evento-corporativo',
     accent: '#5C6B73',
     title: {
       'pt-BR': 'Evento corporativo',
@@ -201,6 +211,7 @@ export function getLocalizedCatalogItem(item: OccasionCatalogItem, locale: strin
   return {
     id: item.id,
     serviceSlug: item.serviceSlug,
+    demoSlug: item.demoSlug,
     accent: item.accent,
     title: item.title[lang],
     summary: item.summary[lang],
