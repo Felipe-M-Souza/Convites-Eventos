@@ -108,6 +108,187 @@ body {
   animation: film-shimmer 2.4s ease-in-out 0.4s 1;
 }
 
+@keyframes film-smoke-drift {
+  0% {
+    transform: translate3d(-6%, 24%, 0) scale(0.82);
+    opacity: 0.08;
+  }
+  45% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(28%, -42%, 0) scale(1.25);
+    opacity: 0;
+  }
+}
+
+@keyframes film-twinkle {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: scale(0.55);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes film-sweep {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes film-card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes film-heart-draw {
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes film-orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(12px, -18px, 0);
+  }
+}
+
+.film-smoke {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, rgba(255, 252, 245, 0.82), rgba(255, 236, 206, 0.2) 46%, transparent 72%);
+  filter: blur(18px);
+  mix-blend-mode: screen;
+  animation: film-smoke-drift 12s ease-in-out infinite;
+}
+
+.film-smoke-a {
+  width: 68%;
+  height: 26%;
+  left: -12%;
+  bottom: 12%;
+}
+
+.film-smoke-b {
+  width: 52%;
+  height: 22%;
+  right: -10%;
+  top: 18%;
+  animation-duration: 15s;
+  animation-delay: -5s;
+}
+
+.film-smoke-c {
+  width: 40%;
+  height: 18%;
+  left: 24%;
+  bottom: 4%;
+  animation-duration: 9.5s;
+  animation-delay: -2.4s;
+}
+
+.film-spark,
+.film-star {
+  position: absolute;
+  display: block;
+  background: #fff;
+  box-shadow: 0 0 8px 2px rgba(255, 226, 170, 0.95);
+  animation: film-twinkle 2.7s ease-in-out infinite;
+}
+
+.film-spark {
+  border-radius: 999px;
+}
+
+.film-star {
+  clip-path: polygon(50% 0%, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0% 50%, 39% 38%);
+}
+
+.film-sweep::after {
+  content: '';
+  position: absolute;
+  top: -12%;
+  bottom: -12%;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255, 244, 214, 0.55), transparent);
+  animation: film-sweep 2.6s ease-in-out 0.35s 1;
+}
+
+.film-card-float {
+  animation: film-card-float 4.6s ease-in-out infinite;
+}
+
+.film-paper {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.97), rgba(247, 239, 226, 0.95));
+  border: 1px solid rgba(198, 165, 106, 0.55);
+  box-shadow:
+    0 28px 54px rgba(72, 52, 24, 0.28),
+    0 0 42px rgba(255, 214, 140, 0.38);
+}
+
+.film-gold {
+  color: #a67c45;
+  text-shadow:
+    0 0 16px rgba(255, 214, 140, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.film-ink {
+  color: #3d4a36;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.film-heart path {
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: film-heart-draw 2.1s ease forwards 0.25s;
+}
+
+.film-orb {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 236, 190, 0.55), transparent 68%);
+  animation: film-orb-drift 7.5s ease-in-out infinite;
+}
+
+.film-orb-a {
+  width: 140px;
+  height: 140px;
+  left: 8%;
+  top: 10%;
+}
+
+.film-orb-b {
+  width: 180px;
+  height: 180px;
+  right: 4%;
+  top: 22%;
+  animation-delay: -3s;
+}
+
 .mono-float {
   animation: mono-float 5.5s ease-in-out infinite;
 }
@@ -124,7 +305,14 @@ body {
   .mono-float,
   .mono-spark,
   .mono-leave,
-  .film-shimmer {
+  .film-shimmer,
+  .film-smoke,
+  .film-spark,
+  .film-star,
+  .film-card-float,
+  .film-heart path,
+  .film-orb,
+  .film-sweep::after {
     animation: none;
   }
 }
