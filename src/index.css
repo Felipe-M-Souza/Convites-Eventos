@@ -95,6 +95,19 @@ body {
   }
 }
 
+@keyframes film-shimmer {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+  }
+}
+
+.film-shimmer {
+  animation: film-shimmer 2.4s ease-in-out 0.4s 1;
+}
+
 .mono-float {
   animation: mono-float 5.5s ease-in-out infinite;
 }
@@ -110,7 +123,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .mono-float,
   .mono-spark,
-  .mono-leave {
+  .mono-leave,
+  .film-shimmer {
     animation: none;
   }
 }
