@@ -69,6 +69,7 @@ export type TranslationKey =
   | 'invite.galleryHeading'
   | 'invite.galleryDescription'
   | 'invite.sageOpen'
+  | 'invite.monogramHint'
   | 'invite.sageWelcome'
   | 'invite.sageCeremonyInfo'
   | 'invite.sageAt'
@@ -241,6 +242,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Alguns registros que ajudam a contar a história desse momento.',
     'invite.sageOpen': 'Abrir',
+    'invite.monogramHint': 'Toque no monograma para abrir',
     'invite.sageWelcome': 'Convidamos cordialmente',
     'invite.sageCeremonyInfo': 'Info da cerimônia',
     'invite.sageAt': 'Às',
@@ -414,6 +416,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.galleryHeading': 'Moments',
     'invite.galleryDescription': 'A few memories that help tell the story of this moment.',
     'invite.sageOpen': 'Open',
+    'invite.monogramHint': 'Tap the monogram to open',
     'invite.sageWelcome': 'We warmly invite you',
     'invite.sageCeremonyInfo': 'Ceremony',
     'invite.sageAt': 'At',
@@ -587,6 +590,7 @@ export const translations: Record<Locale, TranslationDictionary> = {
     'invite.galleryHeading': 'Momentos',
     'invite.galleryDescription': 'Algunos recuerdos que ayudan a contar la historia de este momento.',
     'invite.sageOpen': 'Abrir',
+    'invite.monogramHint': 'Toca el monograma para abrir',
     'invite.sageWelcome': 'Les invitamos cordialmente',
     'invite.sageCeremonyInfo': 'Información de la ceremonia',
     'invite.sageAt': 'A las',

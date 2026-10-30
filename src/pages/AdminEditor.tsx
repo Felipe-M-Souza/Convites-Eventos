@@ -4,6 +4,7 @@ import {
   getNewInvitePayload,
   inviteTranslationLocales,
   inviteTranslatableFields,
+  monogramCloneSlug,
   sageCloneSlug,
   type EventData,
   type InviteCreationTemplate,
@@ -482,6 +483,26 @@ export function AdminEditor({ onSignOut }: Props) {
     loadInviteList()
   }
 
+  const handleSaveMonogramClone = async () => {
+    if (!supabase || inviteSlug !== monogramCloneSlug || inviteId) return
+    setCreating(true)
+    setMessage(null)
+    const payload = buildAdminInvitePayload({ ...form, inviteTheme: 'monogram' })
+    const { error } = await supabase.from('invite_config').insert({
+      id: monogramCloneSlug,
+      slug: monogramCloneSlug,
+      payload,
+    })
+    setCreating(false)
+    if (error) {
+      setMessage({ type: 'err', text: error.message })
+      return
+    }
+    setMessage({ type: 'ok', text: 'Cópia gravada. O modelo monograma agora tem o próprio convite.' })
+    await refresh()
+    loadInviteList()
+  }
+
   const handleDeleteInvite = async () => {
     if (!supabase || !inviteId) return
     if (inviteRows.length < 2) {
@@ -856,10 +877,12 @@ export function AdminEditor({ onSignOut }: Props) {
                 {inviteRows.length === 0 ? (
                   <option value={inviteSlug}>{inviteSlug}</option>
                 ) : (
-                  (inviteRows.some((row) => row.slug === sageCloneSlug)
-                    ? inviteRows
-                    : [...inviteRows, { id: sageCloneSlug, slug: sageCloneSlug }]
-                  ).map((r) => (
+                  [
+                    ...inviteRows,
+                    ...[sageCloneSlug, monogramCloneSlug]
+                      .filter((slug) => !inviteRows.some((row) => row.slug === slug))
+                      .map((slug) => ({ id: slug, slug })),
+                  ].map((r) => (
                     <option key={r.id || r.slug} value={r.slug}>
                       {r.slug}
                     </option>
@@ -980,21 +1003,42 @@ export function AdminEditor({ onSignOut }: Props) {
         </div>
       ) : null}
 
+      {inviteSlug === monogramCloneSlug && !inviteId && status === 'ready' ? (
+        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#e4d3ae] bg-[#fbf8f3] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-stone-700">
+            Esta é a cópia monograma do convite default. O link /c/default-monograma já abre. Grave para ela ficar na lista e ser editada à parte.
+          </p>
+          <button
+            type="button"
+            disabled={creating || !supabase}
+            onClick={() => void handleSaveMonogramClone()}
+            className="shrink-0 rounded-full bg-[#7d9480] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {creating ? 'A gravar…' : 'Gravar cópia'}
+          </button>
+        </div>
+      ) : null}
+
       <div className="space-y-10">
         <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white/80 p-5 shadow-sm">
           <legend className="px-1 font-display text-lg text-stone-800">Modelo do convite</legend>
           <p className="text-sm leading-relaxed text-stone-500">
-            O clássico mantém o envelope de sempre. O verde minimalista troca a capa, mostra os pais, o calendário do mês,
-            o programa do dia e o livro de mensagens. O exemplo fica em /c/default-verde. O convite default continua clássico.
+            O clássico mantém o envelope de sempre. O verde minimalista troca a capa e mostra pais, calendário, programa e livro
+            de mensagens — o exemplo fica em /c/default-verde. O monograma é o envelope creme com fita sálvia, selo dourado e rosa
+            branca — o exemplo fica em /c/default-monograma. O convite default continua clássico.
           </p>
           <Field label="Visual">
             <select
               className={inputClass}
-              value={form.inviteTheme === 'sage' ? 'sage' : 'classic'}
-              onChange={(e) => set('inviteTheme')(e.target.value === 'sage' ? 'sage' : 'classic')}
+              value={form.inviteTheme === 'sage' || form.inviteTheme === 'monogram' ? form.inviteTheme : 'classic'}
+              onChange={(e) => {
+                const value = e.target.value
+                set('inviteTheme')(value === 'sage' || value === 'monogram' ? value : 'classic')
+              }}
             >
               <option value="classic">Clássico</option>
               <option value="sage">Verde minimalista</option>
+              <option value="monogram">Monograma — sálvia e ouro</option>
             </select>
           </Field>
           <Field label="Linha acima dos nomes">
