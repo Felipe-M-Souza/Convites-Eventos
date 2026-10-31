@@ -22,6 +22,8 @@ RewriteRule ^favicon\.ico$ /favicon.svg [L]
 
 # Link de compartilhamento (WhatsApp/Instagram/etc): /i/slug
 # Entrega metatags OG/Twitter no servidor e redireciona para /c/slug.
+# A capa sai em JPEG no próprio domínio, com o nome do arquivo na URL para o WhatsApp atualizar quando a foto muda.
+RewriteRule ^i/([a-z0-9-]{2,64})/capa/([a-z0-9]{8,64})\.jpg$ /preview.php?slug=$1&img=$2 [L,QSA,NC]
 RewriteRule ^i/([a-z0-9-]{2,64})/?$ /preview.php?slug=$1 [L,QSA,NC]
 
 # Evita confusão ao abrir artefatos SEO sob /c/*
