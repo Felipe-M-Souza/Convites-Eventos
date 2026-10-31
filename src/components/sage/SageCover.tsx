@@ -2,15 +2,17 @@ import type { EventData } from '../../data/eventData'
 import { coupleNameParts } from '../../data/eventData'
 import { parseIsoLocal } from '../../lib/inviteCalendar'
 import { useI18n } from '../../i18n/useI18n'
+import { SageCoupleNames } from './SageCoupleNames'
 import { SageLeaves } from './SageLeaves'
 
 type Props = {
   data: EventData
   onOpen: () => void
   onOpenGesture?: () => void
+  elegantNames?: boolean
 }
 
-export function SageCover({ data, onOpen, onOpenGesture }: Props) {
+export function SageCover({ data, onOpen, onOpenGesture, elegantNames = false }: Props) {
   const { locale, t } = useI18n()
   const names = coupleNameParts(data.coupleNames)
   const when = parseIsoLocal(data.weddingDateTime)
@@ -26,13 +28,7 @@ export function SageCover({ data, onOpen, onOpenGesture }: Props) {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#5f734f] text-2xl text-white">
           ♡
         </div>
-        <h1 className="mt-6 font-display text-5xl leading-none text-[#4d5c45]">
-          {names.map((name, index) => (
-            <span key={`${name}-${index}`} className="block">
-              {name}
-            </span>
-          ))}
-        </h1>
+        <SageCoupleNames as="h1" names={names} elegant={elegantNames} className="mt-6 text-5xl text-[#4d5c45]" />
         <div className="mx-auto mt-5 flex w-36 items-center gap-3 text-[#8ea184]" aria-hidden>
           <span className="h-px flex-1 bg-current" />
           <span className="text-[10px]">✦</span>
