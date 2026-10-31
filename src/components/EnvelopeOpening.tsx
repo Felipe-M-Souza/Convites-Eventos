@@ -69,6 +69,39 @@ type EnvelopeTransparentOverride = {
   fitVisibleArt?: boolean
 }
 
+/**
+ * Tamanho e posição da abertura, só por slug. Não grava no Supabase e não altera os outros convites.
+ * O texto do selo, a data, o local e o horário andam juntos com o envelope.
+ */
+type EnvelopeSizeOverride = {
+  boxWidthMaxPx?: number
+  boxHeightVhCap?: number
+  boxMaxHeightPx?: number
+  textureZoom?: number
+  /** Empurra o envelope e o texto para baixo, sem recentralizar o bloco. */
+  shiftY?: string
+  /** Corrige o centro horizontal dentro da moldura. */
+  shiftX?: string
+  /** Aproxima o texto do envelope. No desktop o espaço padrão de 32px cai no buquê. */
+  columnGap?: string
+}
+
+const ENVELOPE_SIZE_OVERRIDES: Record<string, EnvelopeSizeOverride> = {
+  /**
+   * Moldura 1087×1447. O miolo útil fica abaixo do «15 Anos» e acima das rosas.
+   * 300px ainda cobria o título; 10vh enterrava a data no buquê.
+   */
+  'kemilly-15-anos': {
+    boxWidthMaxPx: 268,
+    boxHeightVhCap: 28,
+    boxMaxHeightPx: 210,
+    textureZoom: 1,
+    shiftY: '4vh',
+    shiftX: '8px',
+    columnGap: '12px',
+  },
+}
+
 const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride> = {
   cleyzamara: {
     closed: '/images/envelopes/cleyzamara-closed.png',
@@ -171,6 +204,13 @@ const ENVELOPE_WIDTH_VW_DESKTOP = 94
 function isOpeningCompactViewport(): boolean {
   if (typeof window === 'undefined') return false
   return window.matchMedia('(max-width: 767px)').matches
+}
+
+function positiveOverride(...values: Array<number | null | undefined>): number {
+  for (const value of values) {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value
+  }
+  return 400
 }
 
 function subscribeOpeningCompactViewport(onChange: () => void) {
@@ -1344,6 +1384,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   /** Arte de envelope com fundo recortado (transparente) para o slug atual, se existir. */
   const envelopeOverride =
     typeof inviteSlug === 'string' ? ENVELOPE_TRANSPARENT_OVERRIDES[inviteSlug] : undefined
+  const sizeOverride = typeof inviteSlug === 'string' ? ENVELOPE_SIZE_OVERRIDES[inviteSlug] : undefined
   const openingStagePaperBg =
     (soccerGoalMode || envelopeBlendMode || butterflySealMode || pandeiroSealMode || Boolean(envelopeOverride)) && !backdropColor
       ? 'transparent'
@@ -1372,36 +1413,24 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const sealAnchorX = Math.min(0.92, Math.max(0.08, sealAnchorXRaw))
   const previewTitle = data.openingPreviewTitle?.trim() || t('invite.openingFallback')
 
-  const envBoxWMax =
-    typeof envelopeOverride?.boxWidthMaxPx === 'number' &&
-    Number.isFinite(envelopeOverride.boxWidthMaxPx) &&
-    envelopeOverride.boxWidthMaxPx > 0
-      ? envelopeOverride.boxWidthMaxPx
-      : typeof data.openingEnvelopeBoxWidthMaxPx === 'number' &&
-          Number.isFinite(data.openingEnvelopeBoxWidthMaxPx) &&
-          data.openingEnvelopeBoxWidthMaxPx > 0
-        ? data.openingEnvelopeBoxWidthMaxPx
-        : 400
-  const envBoxVhCap =
-    typeof envelopeOverride?.boxHeightVhCap === 'number' &&
-    Number.isFinite(envelopeOverride.boxHeightVhCap) &&
-    envelopeOverride.boxHeightVhCap > 0
-      ? envelopeOverride.boxHeightVhCap
-      : typeof data.openingEnvelopeBoxHeightVhCap === 'number' &&
-        Number.isFinite(data.openingEnvelopeBoxHeightVhCap) &&
-        data.openingEnvelopeBoxHeightVhCap > 0
-      ? data.openingEnvelopeBoxHeightVhCap
-      : 42
-  const envBoxPxCap =
-    typeof envelopeOverride?.boxMaxHeightPx === 'number' &&
-    Number.isFinite(envelopeOverride.boxMaxHeightPx) &&
-    envelopeOverride.boxMaxHeightPx > 0
-      ? envelopeOverride.boxMaxHeightPx
-      : typeof data.openingEnvelopeBoxMaxHeightPx === 'number' &&
-          Number.isFinite(data.openingEnvelopeBoxMaxHeightPx) &&
-          data.openingEnvelopeBoxMaxHeightPx > 0
-        ? data.openingEnvelopeBoxMaxHeightPx
-        : 440
+  const envBoxWMax = positiveOverride(
+    sizeOverride?.boxWidthMaxPx,
+    envelopeOverride?.boxWidthMaxPx,
+    data.openingEnvelopeBoxWidthMaxPx,
+    400,
+  )
+  const envBoxVhCap = positiveOverride(
+    sizeOverride?.boxHeightVhCap,
+    envelopeOverride?.boxHeightVhCap,
+    data.openingEnvelopeBoxHeightVhCap,
+    42,
+  )
+  const envBoxPxCap = positiveOverride(
+    sizeOverride?.boxMaxHeightPx,
+    envelopeOverride?.boxMaxHeightPx,
+    data.openingEnvelopeBoxMaxHeightPx,
+    440,
+  )
 
   /** Pré-carrega o PNG aberto para o crossfade não “piscar”. */
   useEffect(() => {
@@ -1529,7 +1558,13 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
       >
         <div
           className="flex w-full max-w-full flex-col items-center justify-center gap-3 sm:gap-4 md:gap-8"
-          style={layoutOffsetTop ? { marginTop: layoutOffsetTop } : undefined}
+          style={{
+            ...(layoutOffsetTop ? { marginTop: layoutOffsetTop } : {}),
+            ...(sizeOverride?.columnGap ? { gap: sizeOverride.columnGap } : {}),
+            ...(sizeOverride?.shiftX || sizeOverride?.shiftY
+              ? { transform: `translate(${sizeOverride.shiftX || '0px'}, ${sizeOverride.shiftY || '0px'})` }
+              : {}),
+          }}
         >
         <div className="flex w-full shrink-0 flex-col items-center justify-center overflow-visible [perspective:1400px]">
           <div
@@ -1608,6 +1643,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 sealAnchorX={sealAnchorX}
                 sealAnchorY={sealAnchorY}
                 textureZoomOverride={
+                  sizeOverride?.textureZoom ??
                   data.openingEnvelopeTextureZoom ??
                   envelopeOverride?.textureZoom ??
                   (butterflySealMode
