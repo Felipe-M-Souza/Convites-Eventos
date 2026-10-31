@@ -235,7 +235,7 @@ export function Home() {
               <CoupleMessage data={eventData} />
               <CoupleStory data={eventData} />
               <CountdownTimer targetIso={eventData.weddingDateTime} />
-              <EventDetails data={eventData} />
+              <EventDetails data={eventData} inviteSlug={inviteSlug} />
               <GuestGuide data={eventData} />
               <ActionButtons data={eventData} />
               <PhotoGallery photos={eventData.galleryPhotos} />
