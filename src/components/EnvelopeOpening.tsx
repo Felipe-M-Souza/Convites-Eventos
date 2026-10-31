@@ -164,6 +164,19 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride
     compactWidthVw: 68,
     fitVisibleArt: true,
   },
+  /**
+   * Kemilly: envelope floral 1536×1024 sem selo pintado.
+   * O laço fica na ponta da aba (o ouro do V termina por volta de 77% da altura).
+   */
+  'kemilly-15-anos': {
+    closed: '/images/envelopes/kemilly-15-anos-closed.png',
+    /** Sem arte aberta nova: o cartão sobe deste envelope, sem cruzar para o PNG antigo. */
+    open: '/images/envelopes/kemilly-15-anos-closed.png',
+    naturalWidth: 1536,
+    naturalHeight: 1024,
+    textureZoom: 1,
+    sealAnchorY: 0.72,
+  },
 }
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
 const ENVELOPE_BLEND_SLUG_FALLBACKS: readonly string[] = ['fernando-correia']
@@ -1183,6 +1196,160 @@ type OpeningEnvelopeProps = {
 }
 
 /** Envelope fechado (uma textura) → após o selo, crossfade para PNG do envelope aberto. */
+type RibbonBowSealProps = {
+  torn: boolean
+  reduce: boolean
+  onUntie: () => void
+  ariaLabel: string
+}
+
+/**
+ * Laço de cetim na ponta da aba. Em repouso as alças respiram e as fitas balançam;
+ * ao toque, o laço desata e o envelope abre.
+ */
+function RibbonBowSeal({ torn, reduce, onUntie, ariaLabel }: RibbonBowSealProps) {
+  const loopTransition = torn
+    ? { duration: reduce ? 0.16 : 0.72, ease: [0.4, 0, 0.2, 1] as const }
+    : { duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const }
+  const tailTransition = torn
+    ? { duration: reduce ? 0.16 : 0.78, ease: [0.22, 1, 0.36, 1] as const }
+    : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' as const }
+
+  return (
+    <motion.div
+      className="relative h-[100px] w-[112px] select-none"
+      initial={false}
+      animate={torn || reduce ? { y: 0 } : { y: [0, -3, 0] }}
+      transition={torn || reduce ? { duration: 0.2 } : { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <svg
+        viewBox="0 0 200 180"
+        className="pointer-events-none absolute inset-0 h-full w-full overflow-visible drop-shadow-[0_7px_10px_rgba(150,40,70,0.38)]"
+        aria-hidden
+      >
+        <defs>
+          <linearGradient id="kemillyBowPink" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#fff0f6" />
+            <stop offset="32%" stopColor="#f7b3cb" />
+            <stop offset="68%" stopColor="#e56d98" />
+            <stop offset="100%" stopColor="#c43b70" />
+          </linearGradient>
+          <linearGradient id="kemillyBowGold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fff6d2" />
+            <stop offset="42%" stopColor="#e8c15a" />
+            <stop offset="100%" stopColor="#a56d10" />
+          </linearGradient>
+          <radialGradient id="kemillyBowKnot" cx="38%" cy="32%" r="70%">
+            <stop offset="0%" stopColor="#fff7df" />
+            <stop offset="45%" stopColor="#f0c56a" />
+            <stop offset="100%" stopColor="#b47416" />
+          </radialGradient>
+        </defs>
+
+        <motion.g
+          style={{ transformBox: 'view-box', transformOrigin: '94px 90px' }}
+          initial={false}
+          animate={torn ? { y: 34, rotate: -18, opacity: 0 } : { rotate: [-4, 3, -4], y: 0, opacity: 1 }}
+          transition={tailTransition}
+        >
+          <path
+            d="M94 90 C76 114 50 136 32 164 L50 168 C64 140 86 118 108 96 Z"
+            fill="url(#kemillyBowPink)"
+            stroke="url(#kemillyBowGold)"
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+          />
+          <path d="M86 108 C68 126 52 144 42 160" stroke="#fff7fb" strokeWidth="1.6" fill="none" opacity="0.75" />
+        </motion.g>
+        <motion.g
+          style={{ transformBox: 'view-box', transformOrigin: '106px 90px' }}
+          initial={false}
+          animate={torn ? { y: 34, rotate: 18, opacity: 0 } : { rotate: [4, -3, 4], y: 0, opacity: 1 }}
+          transition={tailTransition}
+        >
+          <path
+            d="M106 90 C124 114 150 136 168 164 L150 168 C136 140 114 118 92 96 Z"
+            fill="url(#kemillyBowPink)"
+            stroke="url(#kemillyBowGold)"
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+          />
+          <path d="M114 108 C132 126 148 144 158 160" stroke="#fff7fb" strokeWidth="1.6" fill="none" opacity="0.75" />
+        </motion.g>
+
+        <motion.g
+          style={{ transformBox: 'view-box', transformOrigin: '100px 82px' }}
+          initial={false}
+          animate={
+            torn
+              ? { x: -48, y: -8, rotate: -26, scale: 0.72, opacity: 0 }
+              : { x: 0, y: 0, rotate: 0, scaleX: [1, 0.9, 1], scaleY: [1, 1.05, 1], opacity: 1 }
+          }
+          transition={loopTransition}
+        >
+          <path
+            d="M100 80 C90 40 34 22 18 50 C4 74 28 106 72 96 C86 92 96 86 100 80 Z"
+            fill="url(#kemillyBowPink)"
+            stroke="url(#kemillyBowGold)"
+            strokeWidth="2.4"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M92 74 C80 50 48 40 32 56 C24 68 42 84 68 82"
+            stroke="#fff7fb"
+            strokeWidth="2"
+            fill="none"
+            opacity="0.8"
+          />
+        </motion.g>
+        <motion.g
+          style={{ transformBox: 'view-box', transformOrigin: '100px 82px' }}
+          initial={false}
+          animate={
+            torn
+              ? { x: 48, y: -8, rotate: 26, scale: 0.72, opacity: 0 }
+              : { x: 0, y: 0, rotate: 0, scaleX: [1, 0.9, 1], scaleY: [1, 1.05, 1], opacity: 1 }
+          }
+          transition={{ ...loopTransition, delay: torn || reduce ? 0 : 0.15 }}
+        >
+          <path
+            d="M100 80 C110 40 166 22 182 50 C196 74 172 106 128 96 C114 92 104 86 100 80 Z"
+            fill="url(#kemillyBowPink)"
+            stroke="url(#kemillyBowGold)"
+            strokeWidth="2.4"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M108 74 C120 50 152 40 168 56 C176 68 158 84 132 82"
+            stroke="#fff7fb"
+            strokeWidth="2"
+            fill="none"
+            opacity="0.8"
+          />
+        </motion.g>
+
+        <motion.g
+          style={{ transformBox: 'view-box', transformOrigin: '100px 84px' }}
+          initial={false}
+          animate={torn ? { scale: 0.2, opacity: 0 } : { scale: [1, 1.06, 1], opacity: 1 }}
+          transition={torn ? { duration: reduce ? 0.16 : 0.45 } : { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <ellipse cx="100" cy="84" rx="15" ry="13" fill="url(#kemillyBowKnot)" stroke="#8d5a0c" strokeWidth="1.2" />
+          <ellipse cx="96" cy="80" rx="5" ry="3.2" fill="#fff8e4" opacity="0.85" />
+        </motion.g>
+      </svg>
+      <button
+        type="button"
+        disabled={torn}
+        onClick={onUntie}
+        className="absolute inset-0 z-10 cursor-pointer rounded-full border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-amber-600/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none"
+        style={{ touchAction: 'manipulation' }}
+        aria-label={ariaLabel}
+      />
+    </motion.div>
+  )
+}
+
 function OpeningEnvelope({
   closedSrc,
   openSrc,
@@ -1393,6 +1560,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const soccerOpeningTextClass = soccerGoalMode && !darkOpeningBackdrop
   const layoutOffsetTop = data.openingLayoutOffsetTop?.trim() || (envelopeBlendMode ? 'clamp(2rem, 5vh, 3.75rem)' : '')
   const palomaEnvelope = inviteSlug === 'paloma-48'
+  const kemillyBowMode = inviteSlug === 'kemilly-15-anos'
   const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim() || envelopeOverride?.marginTop || ''
   const envelopeSrc =
     envelopeOverride?.closed || data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
@@ -1449,12 +1617,14 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
             ? 1000
             : palomaEnvelope
               ? TOAST_BEFORE_FLAP_MS
-              : 780,
+              : kemillyBowMode
+                ? 860
+                : 780,
       /** Após mostrar o envelope aberto (crossfade + pausa), o cartão sobe. */
       flapToCardMs: reduce ? 200 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
       cardToLeaveMs: reduce ? 480 : 2200,
     }),
-    [reduce, soccerGoalMode, pandeiroSealMode, palomaEnvelope],
+    [reduce, soccerGoalMode, pandeiroSealMode, palomaEnvelope, kemillyBowMode],
   )
 
   useEffect(() => {
@@ -1725,6 +1895,13 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                     >
                       <PandeiroSeal torn={sealTorn} reduce={Boolean(reduce)} />
                     </button>
+                  ) : kemillyBowMode ? (
+                    <RibbonBowSeal
+                      torn={sealTorn}
+                      reduce={Boolean(reduce)}
+                      onUntie={handleSealClick}
+                      ariaLabel="Clique no laço para abrir o convite"
+                    />
                   ) : palomaEnvelope ? (
                     <button
                       type="button"
@@ -1790,7 +1967,9 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 ? 'Clique na borboleta para abrir o convite'
               : palomaEnvelope
                 ? 'Clique no brinde para abrir o convite'
-                : data.openingSealHint}
+                : kemillyBowMode
+                  ? 'Clique no laço para abrir o convite'
+                  : data.openingSealHint}
           </p>
           <p
             className={`font-display text-sm tracking-wide transition-opacity duration-300 ${
