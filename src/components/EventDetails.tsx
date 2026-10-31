@@ -1,28 +1,11 @@
 import { motion, useReducedMotion } from 'framer-motion'
+import { dressAvoidFor, type DressAvoidColor } from '../data/dressAvoid'
 import { inviteMomentFilled, type EventData } from '../data/eventData'
 import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
   inviteSlug?: string
-}
-
-type DressAvoidColor = {
-  label: string
-  hex: string
-}
-
-/** Cores que a cliente pediu para vetar, só neste convite. A escrita fica à frente da bolinha. */
-const DRESS_AVOID_BY_SLUG: Record<string, { note: string; colors: DressAvoidColor[] }> = {
-  'kemilly-15-anos': {
-    note: 'Não pode ser utilizado',
-    colors: [
-      { label: 'Rosa', hex: '#e56b98' },
-      { label: 'Rosa claro', hex: '#f6c6d6' },
-      { label: 'Rosê', hex: '#c48996' },
-      { label: 'Rosa pink', hex: '#ff4f9a' },
-    ],
-  },
 }
 
 function DressAvoidList({ note, colors }: { note: string; colors: DressAvoidColor[] }) {
@@ -92,6 +75,7 @@ export function EventDetails({ data, inviteSlug }: Props) {
   const reception = inviteMomentFilled(data.receptionTime, data.receptionVenue, data.receptionAddress, data.receptionImageUrl)
   const hasSchedule = ceremony || reception
   const mapsLabel = data.mapsButtonLabel?.trim() || t('invite.mapButton')
+  const dressAvoid = dressAvoidFor(inviteSlug)
 
   return (
     <motion.section
@@ -158,12 +142,7 @@ export function EventDetails({ data, inviteSlug }: Props) {
               {data.dressCodeLabel?.trim() || t('invite.detailsDressCode')}
             </dt>
             <dd className="mt-2 text-[color:var(--color-ink)]">{data.dressCode}</dd>
-            {inviteSlug && DRESS_AVOID_BY_SLUG[inviteSlug] ? (
-              <DressAvoidList
-                note={DRESS_AVOID_BY_SLUG[inviteSlug].note}
-                colors={DRESS_AVOID_BY_SLUG[inviteSlug].colors}
-              />
-            ) : null}
+            {dressAvoid ? <DressAvoidList note={dressAvoid.note} colors={dressAvoid.colors} /> : null}
           </div>
         ) : null}
         {data.notes ? (

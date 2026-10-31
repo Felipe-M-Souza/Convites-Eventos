@@ -15,6 +15,7 @@ import { GuestUploadsSection } from '../components/GuestUploadsSection'
 import { Footer } from '../components/Footer'
 import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
+import { GardenInvite } from '../components/garden/GardenInvite'
 import { FilmInvite } from '../components/film/FilmInvite'
 import { StoryInvite } from '../components/story/StoryInvite'
 import { MonogramCover } from '../components/monogram/MonogramCover'
@@ -91,6 +92,7 @@ export function Home() {
   const monogramInvite = eventData.inviteTheme === 'monogram'
   const filmInvite = eventData.inviteTheme === 'film'
   const storyInvite = eventData.inviteTheme === 'story'
+  const gardenInvite = inviteSlug === 'kemilly-15-anos'
 
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
@@ -218,6 +220,8 @@ export function Home() {
             onSealUserGesture={audio ? primeMusicOnSeal : undefined}
           />
           )
+        ) : gardenInvite ? (
+          <GardenInvite key="garden-invite" data={eventData} inviteSlug={inviteSlug} />
         ) : monogramInvite ? (
           <MonogramInvite key="monogram-invite" data={eventData} inviteSlug={inviteSlug} />
         ) : sageInvite ? (
