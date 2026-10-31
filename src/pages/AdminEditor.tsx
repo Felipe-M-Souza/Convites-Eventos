@@ -5,6 +5,7 @@ import {
   inviteTranslationLocales,
   inviteTranslatableFields,
   filmCloneSlug,
+  inviteThemes,
   monogramCloneSlug,
   sageCloneSlug,
   type EventData,
@@ -15,6 +16,8 @@ import {
 import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import { AssetHealthNotice } from '../components/admin/AssetHealthNotice'
+import { StoryFramesField } from '../components/admin/StoryFramesField'
+import { helenaStorySlug } from '../data/helenaStory'
 import { GalleryPhotosField } from '../components/admin/GalleryPhotosField'
 import { GuestbookModeration } from '../components/admin/GuestbookModeration'
 import { GiftsQrCodeField } from '../components/admin/GiftsQrCodeField'
@@ -525,6 +528,26 @@ export function AdminEditor({ onSignOut }: Props) {
     loadInviteList()
   }
 
+  const handleSaveHelenaStory = async () => {
+    if (!supabase || inviteSlug !== helenaStorySlug || inviteId) return
+    setCreating(true)
+    setMessage(null)
+    const payload = buildAdminInvitePayload({ ...form, inviteTheme: 'story' })
+    const { error } = await supabase.from('invite_config').insert({
+      id: helenaStorySlug,
+      slug: helenaStorySlug,
+      payload,
+    })
+    setCreating(false)
+    if (error) {
+      setMessage({ type: 'err', text: error.message })
+      return
+    }
+    setMessage({ type: 'ok', text: 'Convite gravado. Daqui em diante os textos da Helena podem ser editados neste painel.' })
+    await refresh()
+    loadInviteList()
+  }
+
   const handleDeleteInvite = async () => {
     if (!supabase || !inviteId) return
     if (inviteRows.length < 2) {
@@ -915,7 +938,7 @@ export function AdminEditor({ onSignOut }: Props) {
                 ) : (
                   [
                     ...inviteRows,
-                    ...[sageCloneSlug, monogramCloneSlug, filmCloneSlug]
+                    ...[sageCloneSlug, monogramCloneSlug, filmCloneSlug, helenaStorySlug]
                       .filter((slug) => !inviteRows.some((row) => row.slug === slug))
                       .map((slug) => ({ id: slug, slug })),
                   ].map((r) => (
@@ -1039,6 +1062,22 @@ export function AdminEditor({ onSignOut }: Props) {
         </div>
       ) : null}
 
+      {inviteSlug === helenaStorySlug && !inviteId && status === 'ready' ? (
+        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#f0c9cf] bg-[#fff7f6] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-stone-700">
+            O vídeo da Helena já abre em /c/helena-jardim. Grave para os textos de cada cena ficarem neste painel e poderem ser alterados.
+          </p>
+          <button
+            type="button"
+            disabled={creating || !supabase}
+            onClick={() => void handleSaveHelenaStory()}
+            className="shrink-0 rounded-full bg-[#c45b78] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {creating ? 'A gravar…' : 'Gravar convite'}
+          </button>
+        </div>
+      ) : null}
+
       {inviteSlug === filmCloneSlug && !inviteId && status === 'ready' ? (
         <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#e4d3ae] bg-[#fbf8f3] p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-6 text-stone-700">
@@ -1078,23 +1117,27 @@ export function AdminEditor({ onSignOut }: Props) {
             O clássico mantém o envelope de sempre. O verde minimalista troca a capa e mostra pais, calendário, programa e livro
             de mensagens — o exemplo fica em /c/default-verde. O monograma é o envelope creme com fita sálvia, selo dourado e rosa
             branca — o exemplo fica em /c/default-monograma. O filme usa a mesma paleta e passa as informações sozinho, sem clique
-            — o exemplo fica em /c/default-filme. O convite default continua clássico.
+            — o exemplo fica em /c/default-filme. O vídeo em cenas é a história da Helena, em /c/helena-jardim. O convite default continua clássico.
           </p>
           <Field label="Visual">
             <select
               className={inputClass}
-              value={form.inviteTheme === 'sage' || form.inviteTheme === 'monogram' || form.inviteTheme === 'film' ? form.inviteTheme : 'classic'}
+              value={inviteThemes.includes(form.inviteTheme) ? form.inviteTheme : 'classic'}
               onChange={(e) => {
-                const value = e.target.value
-                set('inviteTheme')(value === 'sage' || value === 'monogram' || value === 'film' ? value : 'classic')
+                const value = inviteThemes.find((theme) => theme === e.target.value) ?? 'classic'
+                set('inviteTheme')(value)
               }}
             >
               <option value="classic">Clássico</option>
               <option value="sage">Verde minimalista</option>
               <option value="monogram">Monograma — sálvia e ouro</option>
               <option value="film">Filme — sálvia e bege</option>
+              <option value="story">Vídeo — história em cenas</option>
             </select>
           </Field>
+          {form.inviteTheme === 'story' ? (
+            <StoryFramesField frames={form.storyFrames} onChange={set('storyFrames')} />
+          ) : null}
           <Field label="Linha acima dos nomes">
             <input className={inputClass} value={form.sageEyebrow} onChange={(e) => set('sageEyebrow')(e.target.value)} placeholder="Nosso casamento" />
           </Field>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { eventData, filmCloneSlug, mergeInvitePayload, monogramCloneSlug, sageCloneSlug, withDefaultInviteShowcase, withFilmClone, withMonogramClone, withSageClone, type EventData } from '../data/eventData'
 import { demoInvitesBySlug } from '../data/demoInvites'
+import { helenaStoryInvite, helenaStorySlug } from '../data/helenaStory'
 import { isCmsConfigured, supabase } from '../lib/supabase'
 import {
   EventDataContext,
@@ -54,6 +55,15 @@ export function EventDataProvider({ inviteSlug, children }: ProviderProps) {
       setSource('local')
       setStatus('error')
       setInviteId(null)
+      setInviteNotFound(false)
+      return
+    }
+
+    if (!row && inviteSlug === helenaStorySlug) {
+      setInviteId(null)
+      setData(helenaStoryInvite())
+      setSource('local')
+      setStatus('ready')
       setInviteNotFound(false)
       return
     }
