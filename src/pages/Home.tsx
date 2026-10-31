@@ -16,6 +16,7 @@ import { Footer } from '../components/Footer'
 import { MusicToggle, type MusicToggleHandle } from '../components/MusicToggle'
 import { EnvelopeOpening } from '../components/EnvelopeOpening'
 import { FilmInvite } from '../components/film/FilmInvite'
+import { StoryInvite } from '../components/story/StoryInvite'
 import { MonogramCover } from '../components/monogram/MonogramCover'
 import { MonogramInvite } from '../components/monogram/MonogramInvite'
 import { SageCover } from '../components/sage/SageCover'
@@ -75,7 +76,7 @@ export function Home() {
   }, [])
 
   useEffect(() => {
-    if (!inviteUnlocked && eventData.inviteTheme !== 'film') {
+    if (!inviteUnlocked && eventData.inviteTheme !== 'film' && eventData.inviteTheme !== 'story') {
       const prev = document.body.style.overflow
       document.body.style.overflow = 'hidden'
       return () => {
@@ -89,6 +90,7 @@ export function Home() {
   const sageInvite = eventData.inviteTheme === 'sage'
   const monogramInvite = eventData.inviteTheme === 'monogram'
   const filmInvite = eventData.inviteTheme === 'film'
+  const storyInvite = eventData.inviteTheme === 'story'
 
   useEffect(() => {
     if (isCmsConfigured && status !== 'ready') return
@@ -151,18 +153,24 @@ export function Home() {
   }
 
   return (
-    <div className={`min-h-dvh ${monogramInvite ? 'bg-[#f6f1e8]' : sageInvite ? 'bg-[#f4f7f2]' : 'bg-[color:var(--color-cream)]'}`}>
+    <div className={`min-h-dvh ${storyInvite ? 'bg-[#f3d5cc]' : monogramInvite ? 'bg-[#f6f1e8]' : sageInvite ? 'bg-[#f4f7f2]' : 'bg-[color:var(--color-cream)]'}`}>
       {audio ? (
         <MusicToggle
           key={`${audio}|${nextAudio ?? ''}`}
           ref={musicRef}
           src={audio}
           nextSrc={nextAudio}
-          showButton={filmInvite || inviteUnlocked}
+          showButton={filmInvite || storyInvite || inviteUnlocked}
         />
       ) : null}
       <AnimatePresence mode="wait">
-        {filmInvite ? (
+        {storyInvite ? (
+          <StoryInvite
+            key="story-invite"
+            data={eventData}
+            onOpenGesture={audio ? primeMusicOnSeal : undefined}
+          />
+        ) : filmInvite ? (
           <FilmInvite
             key="film-invite"
             data={eventData}

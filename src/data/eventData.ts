@@ -52,8 +52,17 @@ export const inviteTranslatableFields = [
 export type InviteTranslatableField = (typeof inviteTranslatableFields)[number]
 export type InviteTranslations = Partial<Record<InviteTranslationLocale, Partial<Record<InviteTranslatableField, string>>>>
 
-export const inviteThemes = ['classic', 'sage', 'monogram', 'film'] as const
+export const inviteThemes = ['classic', 'sage', 'monogram', 'film', 'story'] as const
 export type InviteTheme = (typeof inviteThemes)[number]
+
+/** Uma cena do convite em vídeo. O texto pode ir por cima da arte quando a cliente quiser trocar a frase. */
+export type StoryFrame = {
+  imageUrl: string
+  speaker: string
+  caption: string
+  captionOverImage: boolean
+  holdMs: number
+}
 
 export type DayProgramItem = {
   time: string
@@ -298,8 +307,11 @@ export const eventData = {
    * `sage` = modelo verde minimalista (capa, pais, calendário, programa e livro de mensagens).
    * `monogram` = envelope creme com fita sálvia, monograma dourado e rosa branca.
    * `film` = a mesma paleta, em cenas que passam sozinhas, sem clique.
+   * `story` = vídeo em tela cheia, cena a cena, como uma história.
    */
   inviteTheme: 'classic' as InviteTheme,
+  /** Cenas do tema `story`. Vazio nos outros modelos. */
+  storyFrames: [] as StoryFrame[],
   /** Linha curta acima dos nomes no modelo verde. Vazio = não mostra. */
   sageEyebrow: '',
   parentsLeftLabel: '',
@@ -575,6 +587,26 @@ const defaultInviteShowcase = {
   } satisfies InviteTranslations,
 }
 
+function normalizeStoryFrames(value: unknown): StoryFrame[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object') return []
+    const frame = item as Partial<StoryFrame>
+    const imageUrl = typeof frame.imageUrl === 'string' ? frame.imageUrl.trim() : ''
+    if (!imageUrl) return []
+    const hold = Number(frame.holdMs)
+    return [
+      {
+        imageUrl,
+        speaker: typeof frame.speaker === 'string' ? frame.speaker.trim() : '',
+        caption: typeof frame.caption === 'string' ? frame.caption.trim() : '',
+        captionOverImage: frame.captionOverImage === true,
+        holdMs: Number.isFinite(hold) ? Math.min(20000, Math.max(1500, hold)) : 6000,
+      },
+    ]
+  })
+}
+
 function storedHasKey(stored: unknown, key: string): boolean {
   return Boolean(stored && typeof stored === 'object' && !Array.isArray(stored) && Object.prototype.hasOwnProperty.call(stored, key))
 }
@@ -722,8 +754,8 @@ export function mergeInvitePayload(stored: unknown): EventData {
   merged.translations = normalizeInviteTranslations(s.translations)
   merged.openingTextColor = typeof s.openingTextColor === 'string' ? s.openingTextColor.trim() : ''
   merged.openingTextOpacity = normalizeOpeningTextOpacity(s.openingTextOpacity)
-  merged.inviteTheme =
-    s.inviteTheme === 'sage' || s.inviteTheme === 'monogram' || s.inviteTheme === 'film' ? s.inviteTheme : 'classic'
+  merged.inviteTheme = inviteThemes.includes(s.inviteTheme as InviteTheme) ? (s.inviteTheme as InviteTheme) : 'classic'
+  merged.storyFrames = normalizeStoryFrames(s.storyFrames)
   merged.sageEyebrow = typeof s.sageEyebrow === 'string' ? s.sageEyebrow : ''
   merged.parentsLeftLabel = typeof s.parentsLeftLabel === 'string' ? s.parentsLeftLabel : ''
   merged.parentsLeftNames = typeof s.parentsLeftNames === 'string' ? s.parentsLeftNames : ''

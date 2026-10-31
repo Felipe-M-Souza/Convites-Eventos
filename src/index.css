@@ -301,6 +301,18 @@ body {
   animation: mono-leave 0.85s ease forwards;
 }
 
+@keyframes story-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.story-fill {
+  transform-origin: left center;
+  animation-name: story-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mono-float,
   .mono-spark,
@@ -312,7 +324,9 @@ body {
   .film-card-float,
   .film-heart path,
   .film-orb,
-  .film-sweep::after {
+  .film-sweep::after,
+  .story-fill {
     animation: none;
+    transform: scaleX(1);
   }
 }
