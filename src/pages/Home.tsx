@@ -196,6 +196,7 @@ export function Home() {
             <SageCover
               key="sage-cover"
               data={eventData}
+              elegantNames={inviteSlug === 'josimar-naiza'}
               onOpen={() => {
                 trackEvent('invite_opened', {
                   invite_slug: inviteSlug,

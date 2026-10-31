@@ -10,6 +10,7 @@ import { buildRsvpWhatsappHref } from '../../lib/whatsappLink'
 import { getCurrentPagePath, trackEvent } from '../../lib/analytics'
 import { GuestbookSection } from './GuestbookSection'
 import { SageDots, useSagePager } from './SageDots'
+import { SageCoupleNames } from './SageCoupleNames'
 import { SageLeaves } from './SageLeaves'
 
 type Props = {
@@ -153,13 +154,7 @@ export function SageInvite({ data, inviteSlug }: Props) {
             <p className="text-xs uppercase tracking-[0.35em] text-[#6d7d64]">{data.sageEyebrow}</p>
           ) : null}
           <PhotoEnvelope photos={photos.length ? photos : [data.coverImageUrl].filter(Boolean)} seal={resolveSealMark(data)} />
-          <h1 className="mt-8 font-display text-6xl leading-none text-[#4d5c45]">
-            {names.map((name, index) => (
-              <span key={`${name}-${index}`} className="block">
-                {name}
-              </span>
-            ))}
-          </h1>
+          <SageCoupleNames as="h1" names={names} elegant={openLetter} className="mt-8 text-6xl text-[#4d5c45]" />
           <Ornament />
         </header>
 
@@ -184,13 +179,7 @@ export function SageInvite({ data, inviteSlug }: Props) {
             </div>
           ) : null}
           {data.message.trim() ? <p className="mx-auto mt-8 max-w-sm whitespace-pre-line text-sm leading-7 text-white/95">{data.message}</p> : null}
-          <div className="mt-8 font-display text-4xl leading-tight">
-            {names.map((name, index) => (
-              <span key={`full-${name}-${index}`} className="block">
-                {name}
-              </span>
-            ))}
-          </div>
+          <SageCoupleNames names={names} elegant={openLetter} className={openLetter ? 'mt-8 text-5xl' : 'mt-8 text-4xl'} />
           {ceremony ? (
             <MomentBlock
               title={data.ceremonyTitle.trim() || t('invite.ceremonyTitle')}
