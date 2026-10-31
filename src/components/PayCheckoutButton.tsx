@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import QRCode from 'qrcode'
 import { trackCtaClick, trackEvent } from '../lib/analytics'
 import { buildAttributedSourcePath, captureAdsClickIds } from '../lib/adsAttribution'
 import { PROMO } from '../config/pricing'
@@ -7,6 +8,7 @@ import {
   createMercadoPagoCheckout,
   type CheckoutPlanKey,
 } from '../lib/mercadopagoCheckout'
+import { buildPixBrCode, PIX_KEY } from '../lib/pixBrCode'
 import { useI18n } from '../i18n/useI18n'
 
 type Props = {
@@ -38,6 +40,12 @@ type CheckoutCopy = {
   whatsappInvalid: string
   emailInvalid: string
   checkoutFailed: string
+  pixCta: string
+  pixTitle: string
+  pixHint: string
+  pixCopyKey: string
+  pixCopyCode: string
+  pixCopied: string
 }
 
 function getCheckoutCopy(locale: string): CheckoutCopy {
@@ -53,6 +61,12 @@ function getCheckoutCopy(locale: string): CheckoutCopy {
       whatsappInvalid: 'Enter a valid WhatsApp number with area code.',
       emailInvalid: 'Enter a valid email or leave it blank.',
       checkoutFailed: 'Could not start payment. Try again or contact us on WhatsApp.',
+      pixCta: 'Pay with PIX QR Code',
+      pixTitle: 'PIX · R$ 50.00',
+      pixHint: 'Scan the code or copy the key. Then send the receipt on the WhatsApp above.',
+      pixCopyKey: 'Copy key',
+      pixCopyCode: 'Copy code',
+      pixCopied: 'Copied',
     }
   }
   if (locale === 'es') {
@@ -67,6 +81,12 @@ function getCheckoutCopy(locale: string): CheckoutCopy {
       whatsappInvalid: 'Ingresa un WhatsApp válido con código de área.',
       emailInvalid: 'Ingresa un email válido o déjalo en blanco.',
       checkoutFailed: 'No se pudo iniciar el pago. Inténtalo de nuevo o escríbenos por WhatsApp.',
+      pixCta: 'Pagar con QR Code PIX',
+      pixTitle: 'PIX · R$ 50,00',
+      pixHint: 'Escanea el código o copia la clave. Después envía el comprobante al WhatsApp de arriba.',
+      pixCopyKey: 'Copiar clave',
+      pixCopyCode: 'Copiar código',
+      pixCopied: 'Copiado',
     }
   }
   return {
@@ -80,6 +100,12 @@ function getCheckoutCopy(locale: string): CheckoutCopy {
     whatsappInvalid: 'Informe um WhatsApp válido com DDD.',
     emailInvalid: 'Informe um e-mail válido ou deixe em branco.',
     checkoutFailed: 'Não foi possível iniciar o pagamento. Tente de novo ou fale no WhatsApp.',
+    pixCta: 'Pagar com QR Code PIX',
+    pixTitle: 'PIX · R$ 50,00',
+    pixHint: 'Escaneie o código ou copie a chave. Depois envie o comprovante no WhatsApp informado.',
+    pixCopyKey: 'Copiar chave',
+    pixCopyCode: 'Copiar código',
+    pixCopied: 'Copiado',
   }
 }
 
@@ -118,8 +144,53 @@ export function PayCheckoutButton({
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pixOpen, setPixOpen] = useState(false)
+  const [pixImage, setPixImage] = useState('')
+  const [copied, setCopied] = useState<'key' | 'code' | null>(null)
+  const pixCode = buildPixBrCode(PROMO.priceCents)
+
+  useEffect(() => {
+    if (!pixOpen) return undefined
+    let active = true
+    void QRCode.toDataURL(pixCode, { margin: 1, width: 280, errorCorrectionLevel: 'M' }).then((url) => {
+      if (active) setPixImage(url)
+    })
+    return () => {
+      active = false
+    }
+  }, [pixCode, pixOpen])
 
   const busyLabel = loadingLabel || copy.busy
+
+  const contactError = (): string | null => {
+    const normalizedWhatsapp = normalizeBrazilWhatsapp(whatsapp)
+    if (!whatsapp.trim()) return copy.whatsappRequired
+    if (!normalizedWhatsapp) return copy.whatsappInvalid
+    if (!isValidEmail(email.trim())) return copy.emailInvalid
+    return null
+  }
+
+  const openPix = () => {
+    const problem = contactError()
+    if (problem) {
+      setError(problem)
+      setPixOpen(false)
+      return
+    }
+    setError(null)
+    setPixOpen(true)
+    trackCtaClick(source, 'pagar_pix', 'qrcode', { plan: planKey })
+  }
+
+  const copyText = async (value: string, kind: 'key' | 'code') => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(kind)
+      window.setTimeout(() => setCopied((current) => (current === kind ? null : current)), 1600)
+    } catch {
+      setCopied(null)
+    }
+  }
 
   const startCheckout = async (event: FormEvent) => {
     event.preventDefault()
@@ -236,6 +307,39 @@ export function PayCheckoutButton({
         <MercadoPagoMark />
         {loading ? busyLabel : label}
       </button>
+      <button
+        type="button"
+        onClick={openPix}
+        className="inline-flex w-full items-center justify-center rounded-full border border-[color:var(--color-gold)] bg-white px-6 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-[color:var(--color-blush)]"
+      >
+        {copy.pixCta}
+      </button>
+      {pixOpen ? (
+        <div className="rounded-2xl border border-[color:var(--color-gold-soft)] bg-white p-4 text-center">
+          <p className="font-display text-2xl text-[color:var(--color-ink)]">{copy.pixTitle}</p>
+          {pixImage ? (
+            <img src={pixImage} alt={copy.pixTitle} className="mx-auto mt-3 h-52 w-52 rounded-xl bg-white" />
+          ) : null}
+          <p className="mt-3 break-all text-sm font-medium text-[color:var(--color-ink)]">{PIX_KEY}</p>
+          <p className="mt-2 text-xs leading-5 text-[color:var(--color-ink-muted)]">{copy.pixHint}</p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => void copyText(PIX_KEY, 'key')}
+              className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-800"
+            >
+              {copied === 'key' ? copy.pixCopied : copy.pixCopyKey}
+            </button>
+            <button
+              type="button"
+              onClick={() => void copyText(pixCode, 'code')}
+              className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-800"
+            >
+              {copied === 'code' ? copy.pixCopied : copy.pixCopyCode}
+            </button>
+          </div>
+        </div>
+      ) : null}
       {error ? (
         <p className="text-center text-xs leading-5 text-red-700" role="alert">
           {error}
