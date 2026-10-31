@@ -94,7 +94,7 @@ function MomentBlock({
   return (
     <div className="mt-8">
       <p className="text-xs uppercase tracking-[0.22em] text-white/80">{title}</p>
-      {venue ? <p className="mt-2 font-display text-2xl">{venue}</p> : null}
+      {venue ? <p className="mt-2 break-words font-display text-2xl">{venue}</p> : null}
       {time ? (
         <>
           <p className="mt-4 text-xs uppercase tracking-[0.2em] text-white/75">{atLabel}</p>
@@ -142,6 +142,7 @@ export function SageInvite({ data, inviteSlug }: Props) {
   ]
   const cells = when ? monthCells(when) : []
   const weekdays = weekdayLabels(locale)
+  const openLetter = inviteSlug === 'josimar-naiza'
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[#f4f7f2] text-[#3f4a38]">
@@ -162,7 +163,13 @@ export function SageInvite({ data, inviteSlug }: Props) {
           <Ornament />
         </header>
 
-        <section className="mt-10 rounded-t-[9rem] bg-[#8ea184] px-6 pb-16 pt-14 text-center text-white">
+        <section
+          className={
+            openLetter
+              ? 'mx-6 mt-10 rounded-t-[7.5rem] rounded-b-[1.75rem] bg-[#8ea184] px-5 pb-16 pt-14 text-center text-white shadow-[0_16px_36px_rgba(63,74,56,0.14)]'
+              : 'mt-10 rounded-t-[9rem] bg-[#8ea184] px-6 pb-16 pt-14 text-center text-white'
+          }
+        >
           <h2 className="text-sm uppercase tracking-[0.28em]">{t('invite.sageCeremonyInfo')}</h2>
           {parents ? (
             <div className="mx-auto mt-8 grid max-w-sm grid-cols-2 gap-4 text-sm">
