@@ -93,8 +93,9 @@ const ENVELOPE_SIZE_OVERRIDES: Record<string, EnvelopeSizeOverride> = {
    */
   'kemilly-15-anos': {
     boxWidthMaxPx: 268,
-    boxHeightVhCap: 28,
-    boxMaxHeightPx: 210,
+    /** O fechado continua na proporção 3:2. O teto só sobe para caber o envelope aberto. */
+    boxHeightVhCap: 38,
+    boxMaxHeightPx: 300,
     textureZoom: 1,
     shiftY: '4vh',
     shiftX: '8px',
@@ -170,12 +171,14 @@ const ENVELOPE_TRANSPARENT_OVERRIDES: Record<string, EnvelopeTransparentOverride
    */
   'kemilly-15-anos': {
     closed: '/images/envelopes/kemilly-15-anos-closed.png',
-    /** Sem arte aberta nova: o cartão sobe deste envelope, sem cruzar para o PNG antigo. */
-    open: '/images/envelopes/kemilly-15-anos-closed.png',
     naturalWidth: 1536,
     naturalHeight: 1024,
+    openNaturalWidth: 1242,
+    openNaturalHeight: 1266,
     textureZoom: 1,
     sealAnchorY: 0.72,
+    /** Fechado largo; aberto quase quadrado, com a aba para cima. A caixa acompanha a arte visível. */
+    fitVisibleArt: true,
   },
 }
 /** Artes de envelope com canvas claro que deve mesclar com a moldura do convite. */
@@ -1436,6 +1439,7 @@ function OpeningEnvelope({
     /** Tecto vh/px: artes 1∶1; altura efetiva também limitada por largura × proporção. */
     height: `min(min(${vhCap}vh, ${pxCap}px), calc(min(${envelopeVw}vw, ${wMax}px) * ${boxHeightOverWidth}))`,
     backgroundColor: paperBackgroundColor,
+    ...(fitVisibleArt ? { transition: 'height 0.45s cubic-bezier(0.22, 1, 0.36, 1)' } : {}),
   }
 
   const imgShared = useVisualCrop
@@ -1621,7 +1625,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 ? 860
                 : 780,
       /** Após mostrar o envelope aberto (crossfade + pausa), o cartão sobe. */
-      flapToCardMs: reduce ? 200 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
+      flapToCardMs: reduce ? 200 : kemillyBowMode ? 1500 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
       cardToLeaveMs: reduce ? 480 : 2200,
     }),
     [reduce, soccerGoalMode, pandeiroSealMode, palomaEnvelope, kemillyBowMode],
