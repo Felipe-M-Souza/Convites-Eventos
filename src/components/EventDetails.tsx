@@ -4,6 +4,45 @@ import { useI18n } from '../i18n/useI18n'
 
 type Props = {
   data: EventData
+  inviteSlug?: string
+}
+
+type DressAvoidColor = {
+  label: string
+  hex: string
+}
+
+/** Cores que a cliente pediu para vetar, só neste convite. A escrita fica à frente da bolinha. */
+const DRESS_AVOID_BY_SLUG: Record<string, { note: string; colors: DressAvoidColor[] }> = {
+  'kemilly-15-anos': {
+    note: 'Não pode ser utilizado',
+    colors: [
+      { label: 'Rosa', hex: '#e56b98' },
+      { label: 'Rosa claro', hex: '#f6c6d6' },
+      { label: 'Rosê', hex: '#c48996' },
+      { label: 'Rosa pink', hex: '#ff4f9a' },
+    ],
+  },
+}
+
+function DressAvoidList({ note, colors }: { note: string; colors: DressAvoidColor[] }) {
+  return (
+    <div className="mt-4">
+      <p className="text-sm text-[color:var(--color-ink)]">{note}</p>
+      <ul className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 md:justify-start">
+        {colors.map((color) => (
+          <li key={color.label} className="inline-flex items-center gap-2 text-sm text-[color:var(--color-ink)]">
+            <span>{color.label}</span>
+            <span
+              className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-black/10 shadow-sm"
+              style={{ backgroundColor: color.hex }}
+              aria-hidden
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 function ScheduleCard({
@@ -46,7 +85,7 @@ function ScheduleCard({
   )
 }
 
-export function EventDetails({ data }: Props) {
+export function EventDetails({ data, inviteSlug }: Props) {
   const reduce = useReducedMotion()
   const { t } = useI18n()
   const ceremony = inviteMomentFilled(data.ceremonyTime, data.ceremonyVenue, data.ceremonyAddress, data.ceremonyImageUrl)
@@ -119,6 +158,12 @@ export function EventDetails({ data }: Props) {
               {data.dressCodeLabel?.trim() || t('invite.detailsDressCode')}
             </dt>
             <dd className="mt-2 text-[color:var(--color-ink)]">{data.dressCode}</dd>
+            {inviteSlug && DRESS_AVOID_BY_SLUG[inviteSlug] ? (
+              <DressAvoidList
+                note={DRESS_AVOID_BY_SLUG[inviteSlug].note}
+                colors={DRESS_AVOID_BY_SLUG[inviteSlug].colors}
+              />
+            ) : null}
           </div>
         ) : null}
         {data.notes ? (
