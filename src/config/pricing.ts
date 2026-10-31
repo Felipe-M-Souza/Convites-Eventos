@@ -43,11 +43,11 @@ const COPY: Record<PricingLocale, OfferCopy> = {
   'pt-BR': {
     badge: 'Valor único',
     title: 'Convite digital por R$ 50,00',
-    subtitle: 'Pague online com segurança ou fale no WhatsApp. O link personalizado sai depois da confirmação.',
+    subtitle: 'Pague com Mercado Pago ou PIX, ou fale no WhatsApp. O link personalizado sai depois da confirmação.',
     sectionEyebrow: 'Investimento',
     sectionTitle: 'Seu convite digital por R$ 50,00.',
     sectionDescription:
-      'Um preço único para o convite personalizado, com abertura animada, trilha, mapa e confirmação por WhatsApp. Pagamento seguro via Mercado Pago.',
+      'Um preço único para o convite personalizado, com abertura animada, trilha, mapa e confirmação por WhatsApp. Pagamento por Mercado Pago ou PIX.',
     offerName: 'Convite digital',
     offerDescription:
       'Convite personalizado com abertura animada, trilha, mapa, confirmação por WhatsApp e experiência pensada para celular.',
@@ -65,11 +65,11 @@ const COPY: Record<PricingLocale, OfferCopy> = {
   en: {
     badge: 'Single price',
     title: 'Digital invitation for R$ 50.00',
-    subtitle: 'Pay securely online or message us on WhatsApp. Your personalized link is delivered after confirmation.',
+    subtitle: 'Pay with Mercado Pago or PIX, or message us on WhatsApp. Your personalized link is delivered after confirmation.',
     sectionEyebrow: 'Pricing',
     sectionTitle: 'Your digital invitation for R$ 50.00.',
     sectionDescription:
-      'One flat price for a personalized invitation with animated opening, soundtrack, map and WhatsApp RSVP. Secure checkout with Mercado Pago.',
+      'One flat price for a personalized invitation with animated opening, soundtrack, map and WhatsApp RSVP. Pay with Mercado Pago or PIX.',
     offerName: 'Digital invitation',
     offerDescription:
       'Personalized invitation with animated opening, soundtrack, map, WhatsApp RSVP and a mobile-first experience.',
@@ -87,11 +87,11 @@ const COPY: Record<PricingLocale, OfferCopy> = {
   es: {
     badge: 'Precio único',
     title: 'Invitación digital por R$ 50,00',
-    subtitle: 'Paga en línea con seguridad o escríbenos por WhatsApp. El enlace personalizado sale después de la confirmación.',
+    subtitle: 'Paga con Mercado Pago o PIX, o escríbenos por WhatsApp. El enlace personalizado sale después de la confirmación.',
     sectionEyebrow: 'Inversión',
     sectionTitle: 'Tu invitación digital por R$ 50,00.',
     sectionDescription:
-      'Un solo precio para la invitación personalizada, con apertura animada, música, mapa y confirmación por WhatsApp. Pago seguro con Mercado Pago.',
+      'Un solo precio para la invitación personalizada, con apertura animada, música, mapa y confirmación por WhatsApp. Pago con Mercado Pago o PIX.',
     offerName: 'Invitación digital',
     offerDescription:
       'Invitación personalizada con apertura animada, música, mapa, confirmación por WhatsApp y experiencia pensada para celular.',

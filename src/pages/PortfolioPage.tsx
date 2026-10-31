@@ -10,6 +10,7 @@ import { FloatingWhatsappButton } from '../components/FloatingWhatsappButton'
 import { PromoPopup } from '../components/PromoPopup'
 import { getPromoOffer, PROMO } from '../config/pricing'
 import { LEAD_WHATSAPP_E164 } from '../lib/leadContact'
+import { FilmHeroPreview } from '../components/FilmHeroPreview'
 import { PayCheckoutButton } from '../components/PayCheckoutButton'
 import { WeddingModelShowcase } from '../components/WeddingModelShowcase'
 import { useSagePager } from '../components/sage/SageDots'
@@ -255,17 +256,7 @@ export function PortfolioPage() {
 
           <div className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-[0_25px_70px_rgba(44,38,34,0.08)] backdrop-blur">
             <div className="rounded-[1.6rem] bg-[linear-gradient(160deg,rgba(212,188,148,0.24),rgba(255,255,255,0.95))] p-7">
-              <img
-                src="/images/moldura-elegante-aliancas.png"
-                alt={
-                  locale === 'en'
-                    ? 'Wedding invitation frame with rings'
-                    : locale === 'es'
-                      ? 'Marco de la invitación de boda con alianzas'
-                      : 'Moldura do convite de casamento com alianças'
-                }
-                className="mx-auto mb-6 max-h-80 w-full object-contain sm:max-h-[420px]"
-              />
+              <FilmHeroPreview />
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--color-ink-muted)]">
                 {t('portfolio.highlightsEyebrow')}
               </p>

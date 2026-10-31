@@ -1,11 +1,13 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { localeLabels, supportedLocales } from '../i18n/locales'
 import { useI18n } from '../i18n/useI18n'
 
 export function LanguageSwitcher() {
   const { locale, setLocale, t } = useI18n()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
 
+  if (searchParams.get('embed') === '1') return null
   if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/owner')) return null
 
   return (

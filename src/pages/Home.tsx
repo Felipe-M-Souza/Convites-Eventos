@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEventData } from '../contexts/useEventData'
 import { isCmsConfigured } from '../lib/supabase'
@@ -58,6 +58,8 @@ function inviteTabTitle(name: string, preview: string, seoTitle: string): string
 export function Home() {
   const { data: baseEventData, status, inviteNotFound, inviteSlug } = useEventData()
   const { locale, t } = useI18n()
+  const [searchParams] = useSearchParams()
+  const embed = searchParams.get('embed') === '1'
   const eventData = resolveEventDataForLocale(baseEventData, locale)
   const [inviteUnlocked, setInviteUnlocked] = useState(false)
   const musicRef = useRef<MusicToggleHandle>(null)
@@ -162,7 +164,7 @@ export function Home() {
           ref={musicRef}
           src={audio}
           nextSrc={nextAudio}
-          showButton={filmInvite || storyInvite || inviteUnlocked}
+          showButton={!embed && (filmInvite || storyInvite || inviteUnlocked)}
         />
       ) : null}
       <AnimatePresence mode="wait">
