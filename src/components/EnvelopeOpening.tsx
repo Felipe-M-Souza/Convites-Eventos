@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { resolveSealMark, type EventData } from '../data/eventData'
+import { KemillyOpeningLife } from './garden/KemillyOpeningLife'
 import { useI18n } from '../i18n/useI18n'
 
 type Props = {
@@ -1565,6 +1566,8 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
   const layoutOffsetTop = data.openingLayoutOffsetTop?.trim() || (envelopeBlendMode ? 'clamp(2rem, 5vh, 3.75rem)' : '')
   const palomaEnvelope = inviteSlug === 'paloma-48'
   const kemillyBowMode = inviteSlug === 'kemilly-15-anos'
+  const [kemillyIntroClear, setKemillyIntroClear] = useState(false)
+  const kemillyEnvelopeVisible = !kemillyBowMode || Boolean(reduce) || kemillyIntroClear
   const envelopeMarginTopOnly = data.openingEnvelopeMarginTop?.trim() || envelopeOverride?.marginTop || ''
   const envelopeSrc =
     envelopeOverride?.closed || data.openingEnvelopeImageUrl?.trim() || '/images/envelope-burgundy.png'
@@ -1715,6 +1718,9 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
         crop={pandeiroSealMode ? RAFAELE_FRAME_CROP : undefined}
         flushTop={palomaEnvelope}
       />
+      {kemillyBowMode && !reduce ? (
+        <KemillyOpeningLife envelopeSrc={envelopeSrc} onClear={() => setKemillyIntroClear(true)} />
+      ) : null}
       {openingFrameSubtitle ? (
         <div className="pointer-events-none absolute inset-x-0 top-[clamp(6.1rem,15vh,8.5rem)] z-[12] flex justify-center px-8 text-center">
           <p className="max-w-[min(82vw,520px)] whitespace-pre-wrap font-display text-sm leading-snug text-emerald-950/85 [text-shadow:0_1px_10px_rgba(255,255,255,0.78)] md:text-base">
@@ -1723,12 +1729,16 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
         </div>
       ) : null}
 
-      <div
+      <motion.div
+        data-opening-ready={kemillyEnvelopeVisible ? '1' : '0'}
         className={`relative z-10 mx-auto flex min-h-dvh w-full max-w-full flex-col items-center px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-4 md:max-w-none md:px-5 md:py-10 ${
           palomaEnvelope
             ? 'justify-start pt-[25vh] md:justify-center md:pt-10'
             : 'justify-center py-4 pt-[max(0.75rem,env(safe-area-inset-top))] sm:py-5'
-        }`}
+        } ${kemillyEnvelopeVisible ? '' : 'pointer-events-none'}`}
+        initial={false}
+        animate={{ opacity: kemillyEnvelopeVisible ? 1 : 0 }}
+        transition={{ duration: kemillyBowMode && !reduce ? 0.9 : 0, ease: 'easeOut' }}
       >
         <div
           className="flex w-full max-w-full flex-col items-center justify-center gap-3 sm:gap-4 md:gap-8"
@@ -2031,7 +2041,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
           </p>
         </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
