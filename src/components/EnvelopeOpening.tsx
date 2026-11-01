@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { resolveSealMark, type EventData } from '../data/eventData'
+import { KemillyEnvelopeMagic } from './garden/KemillyEnvelopeMagic'
 import { KemillyOpeningLife } from './garden/KemillyOpeningLife'
 import { useI18n } from '../i18n/useI18n'
 
@@ -1183,6 +1184,10 @@ type OpeningEnvelopeProps = {
   showOpenArt: boolean
   cardOut: boolean
   reduce: boolean
+  /** Luz, pó e borboletas no miolo e no papel. Só a Kemilly. */
+  living?: boolean
+  /** Segundos do crossfade fechado → aberto. */
+  crossfadeSeconds?: number
   children: ReactNode
   /** Omite = 400px — alinhar ao `openingEnvelopeBoxWidthMaxPx` do convite. */
   boxWidthMaxPx?: number
@@ -1376,6 +1381,8 @@ function OpeningEnvelope({
   showOpenArt,
   cardOut,
   reduce,
+  living = false,
+  crossfadeSeconds,
   children,
   boxWidthMaxPx = 400,
   boxHeightVhCap = 42,
@@ -1468,7 +1475,7 @@ function OpeningEnvelope({
     ...(closedClipPath ? { clipPath: closedClipPath } : {}),
   }
 
-  const fade = reduce ? 0.16 : ENVELOPE_CROSSFADE_S
+  const fade = reduce ? 0.16 : crossfadeSeconds && crossfadeSeconds > 0 ? crossfadeSeconds : ENVELOPE_CROSSFADE_S
 
   return (
     <motion.div
@@ -1510,6 +1517,8 @@ function OpeningEnvelope({
           transition={{ duration: fade, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>
+
+      {living ? <KemillyEnvelopeMagic open={showOpenArt} /> : null}
 
       <div className="pointer-events-none absolute inset-0 z-[30]">
         {/* Selo: (sealAnchorX, sealAnchorY) em % da caixa; translate(-50%,-50%) no centro do selo. */}
@@ -1628,7 +1637,7 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 ? 860
                 : 780,
       /** Após mostrar o envelope aberto (crossfade + pausa), o cartão sobe. */
-      flapToCardMs: reduce ? 200 : kemillyBowMode ? 1500 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
+      flapToCardMs: reduce ? 200 : kemillyBowMode ? 3800 : OPEN_ENVELOPE_HOLD_BEFORE_CARD_MS,
       cardToLeaveMs: reduce ? 480 : 2200,
     }),
     [reduce, soccerGoalMode, pandeiroSealMode, palomaEnvelope, kemillyBowMode],
@@ -1867,6 +1876,8 @@ export function EnvelopeOpening({ data, inviteSlug, onOpen, onSealUserGesture }:
                 showOpenArt={flapOpen}
                 cardOut={cardOut}
                 reduce={Boolean(reduce)}
+                living={kemillyBowMode && !reduce}
+                crossfadeSeconds={kemillyBowMode && !reduce ? 0.9 : undefined}
               >
                 <div className="pointer-events-auto">
                   {soccerGoalMode ? (
