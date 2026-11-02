@@ -20,6 +20,8 @@ type Props = {
   className?: string
   /** Classes do estado de loading / disabled. */
   loadingLabel?: string
+  /** O banner de abertura fica sem o QR, para caber na tela e poder ser fechado. */
+  showPix?: boolean
 }
 
 function MercadoPagoMark() {
@@ -138,6 +140,7 @@ export function PayCheckoutButton({
   label,
   className,
   loadingLabel,
+  showPix = true,
 }: Props) {
   const { locale } = useI18n()
   const copy = getCheckoutCopy(locale)
@@ -153,6 +156,7 @@ export function PayCheckoutButton({
   )
 
   useEffect(() => {
+    if (!showPix) return undefined
     let active = true
     void QRCode.toDataURL(pixCode, { margin: 1, width: 280, errorCorrectionLevel: 'M' }).then((url) => {
       if (active) setPixImage(url)
@@ -160,7 +164,7 @@ export function PayCheckoutButton({
     return () => {
       active = false
     }
-  }, [pixCode])
+  }, [pixCode, showPix])
 
   const busyLabel = loadingLabel || copy.busy
 
@@ -289,6 +293,7 @@ export function PayCheckoutButton({
         <MercadoPagoMark />
         {loading ? busyLabel : label}
       </button>
+      {showPix ? (
       <div className="rounded-2xl border border-[color:var(--color-gold-soft)] bg-white p-4 text-center">
         <p className="text-sm font-semibold text-[color:var(--color-ink)]">{copy.pixCta}</p>
         <p className="mt-1 font-display text-2xl text-[color:var(--color-ink)]">{copy.pixTitle}</p>
@@ -324,6 +329,7 @@ export function PayCheckoutButton({
           </button>
         </div>
       </div>
+      ) : null}
       {error ? (
         <p className="text-center text-xs leading-5 text-red-700" role="alert">
           {error}
