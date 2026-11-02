@@ -218,11 +218,6 @@ export function PortfolioPage() {
               {t('portfolio.heroDescription')}
             </p>
             <div className="mt-10 max-w-md space-y-4">
-              <PayCheckoutButton
-                source={`portfolio_hero_${PROMO.planKey}`}
-                label={offer.payCta}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-gold)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:cursor-wait disabled:opacity-70"
-              />
               <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                 <Link
                   to={demoHomeHref}
