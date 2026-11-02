@@ -65,28 +65,28 @@ export function PromoPopup({ source }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-stone-950/60 px-4 pb-4 pt-10 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-stone-950/60 px-4 py-4 backdrop-blur-sm sm:items-center sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-label={offer.title}
       onClick={dismiss}
     >
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-[1.6rem] bg-[color:var(--color-cream)] shadow-[0_30px_80px_rgba(44,38,34,0.35)] ring-1 ring-stone-200/80"
+        className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-[1.6rem] bg-[color:var(--color-cream)] shadow-[0_30px_80px_rgba(44,38,34,0.35)] ring-1 ring-stone-200/80"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={dismiss}
           aria-label={closeLabel}
-          className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-stone-600 shadow-sm transition hover:bg-white hover:text-stone-900"
+          className="absolute right-3 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-stone-700 shadow-sm transition hover:bg-white hover:text-stone-900"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
 
-        <div className="px-6 pb-6 pt-7 sm:px-8">
+        <div className="overflow-y-auto overscroll-contain px-6 pb-6 pt-12 sm:px-8">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-gold)] px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white">
             {offer.badge}
           </span>
@@ -104,6 +104,7 @@ export function PromoPopup({ source }: Props) {
               <PayCheckoutButton
                 source={`promo_popup_${source}_${PROMO.planKey}`}
                 label={offer.payCta}
+                showPix={false}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-gold)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-wait disabled:opacity-70"
               />
               <a
