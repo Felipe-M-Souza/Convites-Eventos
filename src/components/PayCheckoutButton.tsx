@@ -8,6 +8,7 @@ import {
   createMercadoPagoCheckout,
   type CheckoutPlanKey,
 } from '../lib/mercadopagoCheckout'
+import { buildLeadWhatsappHref } from '../lib/leadContact'
 import { buildPixBrCode, PIX_KEY } from '../lib/pixBrCode'
 import { useI18n } from '../i18n/useI18n'
 
@@ -42,7 +43,7 @@ type CheckoutCopy = {
   checkoutFailed: string
   pixCta: string
   pixTitle: string
-  pixHint: string
+  pixHintLead: string
   pixCopyKey: string
   pixCopyCode: string
   pixCopied: string
@@ -63,7 +64,7 @@ function getCheckoutCopy(locale: string): CheckoutCopy {
       checkoutFailed: 'Could not start payment. Try again or contact us on WhatsApp.',
       pixCta: 'Pay with PIX QR Code',
       pixTitle: 'PIX · R$ 50.00',
-      pixHint: 'Scan the code or copy the key. Then send the receipt on the WhatsApp above.',
+      pixHintLead: 'Scan the code or copy the key. Then send the receipt on WhatsApp ',
       pixCopyKey: 'Copy key',
       pixCopyCode: 'Copy code',
       pixCopied: 'Copied',
@@ -83,7 +84,7 @@ function getCheckoutCopy(locale: string): CheckoutCopy {
       checkoutFailed: 'No se pudo iniciar el pago. Inténtalo de nuevo o escríbenos por WhatsApp.',
       pixCta: 'Pagar con QR Code PIX',
       pixTitle: 'PIX · R$ 50,00',
-      pixHint: 'Escanea el código o copia la clave. Después envía el comprobante al WhatsApp de arriba.',
+      pixHintLead: 'Escanea el código o copia la clave. Después envía el comprobante por WhatsApp ',
       pixCopyKey: 'Copiar clave',
       pixCopyCode: 'Copiar código',
       pixCopied: 'Copiado',
@@ -102,7 +103,7 @@ function getCheckoutCopy(locale: string): CheckoutCopy {
     checkoutFailed: 'Não foi possível iniciar o pagamento. Tente de novo ou fale no WhatsApp.',
     pixCta: 'Pagar com QR Code PIX',
     pixTitle: 'PIX · R$ 50,00',
-    pixHint: 'Escaneie o código ou copie a chave. Depois envie o comprovante no WhatsApp informado.',
+    pixHintLead: 'Escaneie o código ou copie a chave. Depois envie o comprovante no WhatsApp ',
     pixCopyKey: 'Copiar chave',
     pixCopyCode: 'Copiar código',
     pixCopied: 'Copiado',
@@ -144,13 +145,14 @@ export function PayCheckoutButton({
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [pixOpen, setPixOpen] = useState(false)
   const [pixImage, setPixImage] = useState('')
   const [copied, setCopied] = useState<'key' | 'code' | null>(null)
   const pixCode = buildPixBrCode(PROMO.priceCents)
+  const receiptWhatsappHref = buildLeadWhatsappHref(
+    'Olá! Segue o comprovante do pagamento do convite digital.',
+  )
 
   useEffect(() => {
-    if (!pixOpen) return undefined
     let active = true
     void QRCode.toDataURL(pixCode, { margin: 1, width: 280, errorCorrectionLevel: 'M' }).then((url) => {
       if (active) setPixImage(url)
@@ -158,29 +160,9 @@ export function PayCheckoutButton({
     return () => {
       active = false
     }
-  }, [pixCode, pixOpen])
+  }, [pixCode])
 
   const busyLabel = loadingLabel || copy.busy
-
-  const contactError = (): string | null => {
-    const normalizedWhatsapp = normalizeBrazilWhatsapp(whatsapp)
-    if (!whatsapp.trim()) return copy.whatsappRequired
-    if (!normalizedWhatsapp) return copy.whatsappInvalid
-    if (!isValidEmail(email.trim())) return copy.emailInvalid
-    return null
-  }
-
-  const openPix = () => {
-    const problem = contactError()
-    if (problem) {
-      setError(problem)
-      setPixOpen(false)
-      return
-    }
-    setError(null)
-    setPixOpen(true)
-    trackCtaClick(source, 'pagar_pix', 'qrcode', { plan: planKey })
-  }
 
   const copyText = async (value: string, kind: 'key' | 'code') => {
     try {
@@ -307,39 +289,41 @@ export function PayCheckoutButton({
         <MercadoPagoMark />
         {loading ? busyLabel : label}
       </button>
-      <button
-        type="button"
-        onClick={openPix}
-        className="inline-flex w-full items-center justify-center rounded-full border border-[color:var(--color-gold)] bg-white px-6 py-3 text-sm font-semibold text-[color:var(--color-ink)] transition hover:bg-[color:var(--color-blush)]"
-      >
-        {copy.pixCta}
-      </button>
-      {pixOpen ? (
-        <div className="rounded-2xl border border-[color:var(--color-gold-soft)] bg-white p-4 text-center">
-          <p className="font-display text-2xl text-[color:var(--color-ink)]">{copy.pixTitle}</p>
-          {pixImage ? (
-            <img src={pixImage} alt={copy.pixTitle} className="mx-auto mt-3 h-52 w-52 rounded-xl bg-white" />
-          ) : null}
-          <p className="mt-3 break-all text-sm font-medium text-[color:var(--color-ink)]">{PIX_KEY}</p>
-          <p className="mt-2 text-xs leading-5 text-[color:var(--color-ink-muted)]">{copy.pixHint}</p>
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => void copyText(PIX_KEY, 'key')}
-              className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-800"
-            >
-              {copied === 'key' ? copy.pixCopied : copy.pixCopyKey}
-            </button>
-            <button
-              type="button"
-              onClick={() => void copyText(pixCode, 'code')}
-              className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-800"
-            >
-              {copied === 'code' ? copy.pixCopied : copy.pixCopyCode}
-            </button>
-          </div>
+      <div className="rounded-2xl border border-[color:var(--color-gold-soft)] bg-white p-4 text-center">
+        <p className="text-sm font-semibold text-[color:var(--color-ink)]">{copy.pixCta}</p>
+        <p className="mt-1 font-display text-2xl text-[color:var(--color-ink)]">{copy.pixTitle}</p>
+        {pixImage ? (
+          <img src={pixImage} alt={copy.pixTitle} className="mx-auto mt-3 h-52 w-52 rounded-xl bg-white" />
+        ) : null}
+        <p className="mt-3 break-all text-sm font-medium text-[color:var(--color-ink)]">{PIX_KEY}</p>
+        <p className="mt-2 text-xs leading-5 text-[color:var(--color-ink-muted)]">
+          {copy.pixHintLead}
+          <a
+            href={receiptWhatsappHref}
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-[color:var(--color-ink)] underline decoration-[color:var(--color-gold)] underline-offset-2"
+          >
+            (11)9.6581-4224
+          </a>
+        </p>
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => void copyText(PIX_KEY, 'key')}
+            className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-800"
+          >
+            {copied === 'key' ? copy.pixCopied : copy.pixCopyKey}
+          </button>
+          <button
+            type="button"
+            onClick={() => void copyText(pixCode, 'code')}
+            className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-800"
+          >
+            {copied === 'code' ? copy.pixCopied : copy.pixCopyCode}
+          </button>
         </div>
-      ) : null}
+      </div>
       {error ? (
         <p className="text-center text-xs leading-5 text-red-700" role="alert">
           {error}
